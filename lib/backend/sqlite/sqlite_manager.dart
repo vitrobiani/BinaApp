@@ -3,10 +3,12 @@ import 'package:flutter/foundation.dart';
 import '/backend/sqlite/init.dart';
 import 'queries/read.dart';
 import 'queries/update.dart';
+import 'queries/delete.dart';
 
 import 'package:sqflite/sqflite.dart';
 export 'queries/read.dart';
 export 'queries/update.dart';
+export 'queries/delete.dart';
 
 class SQLiteManager {
   SQLiteManager._();
@@ -280,4 +282,35 @@ class SQLiteManager {
         content: content,
         timestamp: DateTime.now().millisecondsSinceEpoch,
       );
+
+  /// START DELETE QUERY CALLS
+
+  /// Delete scan images by session ID
+  Future<int> deleteScanImagesBySessionId({
+    required String sessionId,
+  }) =>
+      performDeleteScanImagesBySessionId(
+        _database,
+        sessionId: sessionId,
+      );
+
+  /// Delete a scan session by ID
+  Future<int> deleteScanSession({
+    required String sessionId,
+  }) =>
+      performDeleteScanSession(
+        _database,
+        sessionId: sessionId,
+      );
+
+  /// Delete multiple scan sessions with cascade (images first, then sessions)
+  Future<void> deleteScanSessionsCascade({
+    required List<String> sessionIds,
+  }) =>
+      performDeleteScanSessionsCascade(
+        _database,
+        sessionIds: sessionIds,
+      );
+
+  /// END DELETE QUERY CALLS
 }
