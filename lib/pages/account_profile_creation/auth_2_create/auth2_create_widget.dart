@@ -1053,23 +1053,35 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                           functions.stringToUnixTimestamp(
                                               _model.ageTextController.text);
 
-                                      await SQLiteManager.instance
-                                          .registerNewUser(
-                                        id: _model.userID!,
-                                        email: _model
-                                            .emailAddressTextController.text,
-                                        phoneNumber: '',
-                                        createdAt: getCurrentTimestamp
-                                            .secondsSinceEpoch,
-                                        passwordHash: _model.hashedPW!,
-                                        familyMemberID: _model.familyMemberID!,
-                                        name: _model.nameTextController.text,
-                                        birthday: birthdayTimestamp,
-                                        gender: _model.genderValue!,
-                                        relationship: 'ME',
-                                        lastChecked: 0,
-                                        lastActive: 0,
-                                      );
+                                      try {
+                                        await SQLiteManager.instance
+                                            .registerNewUser(
+                                          id: _model.userID!,
+                                          email: _model
+                                              .emailAddressTextController.text,
+                                          phoneNumber: null, // Pass null instead of '' to avoid UNIQUE constraint violation
+                                          createdAt: getCurrentTimestamp
+                                              .secondsSinceEpoch,
+                                          passwordHash: _model.hashedPW!,
+                                          familyMemberID: _model.familyMemberID!,
+                                          name: _model.nameTextController.text,
+                                          birthday: birthdayTimestamp,
+                                          gender: _model.genderValue!,
+                                          relationship: 'ME',
+                                          lastChecked: 0,
+                                          lastActive: 0,
+                                        );
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Error creating account: ${e.toString().contains('UNIQUE') ? 'Email already exists' : e.toString()}',
+                                            ),
+                                            backgroundColor: AppTheme.of(context).error,
+                                          ),
+                                        );
+                                        return;
+                                      }
 
                                       // Create the initial family member struct
                                       final familyMember = FamilyMemberStruct(
