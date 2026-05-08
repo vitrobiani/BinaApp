@@ -20,6 +20,9 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '/services/gemma_service.dart';
 import '/services/llm_prompts.dart';
+import '/services/mjpeg_capture_service.dart';
+import '/components/camera_selection_dialog/camera_selection_dialog_widget.dart';
+import '/components/bina_camera_preview/bina_camera_preview_widget.dart';
 import 'photo_session_model.dart';
 export 'photo_session_model.dart';
 
@@ -118,6 +121,23 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
       return;
     }
 
+    final cameraConnection = AppState().cameraConnection;
+
+    // If Bina Camera is connected, show selection dialog
+    if (cameraConnection.isCameraConnected()) {
+      final selectedSource = await showCameraSelectionDialog(context);
+
+      if (selectedSource == null) {
+        return; // User cancelled
+      }
+
+      if (selectedSource == CameraSource.binaCamera) {
+        await _captureFromBinaCamera();
+        return;
+      }
+      // Otherwise, continue with phone camera below
+    }
+
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.camera,
@@ -129,6 +149,35 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
     if (image != null) {
       await _processImage(image.path);
     }
+  }
+
+  Future<void> _captureFromBinaCamera() async {
+    final cameraConnection = AppState().cameraConnection;
+
+    if (!cameraConnection.isCameraConnected()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Bina Camera is not connected.'),
+          backgroundColor: AppTheme.of(context).warning,
+        ),
+      );
+      return;
+    }
+
+    // Show the camera preview and wait for capture
+    final imagePath = await showBinaCameraPreview(
+      context,
+      cameraIP: cameraConnection.cameraHost,
+      cameraPort: cameraConnection.cameraPort,
+    );
+
+    // If user cancelled or capture failed, imagePath will be null
+    if (imagePath == null) {
+      return;
+    }
+
+    // Process the captured image
+    await _processImage(imagePath);
   }
 
   Future<void> _selectFromGallery() async {

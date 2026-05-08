@@ -38,6 +38,12 @@ Future<Database> initializeDatabaseFromDbFile(
 }
 
 Future<void> _runMigrations(Database database) async {
+  // Fix empty phone_number values that violate UNIQUE constraint
+  // Convert '' to NULL so multiple users can register without phone numbers
+  await database.execute('''
+    UPDATE users SET phone_number = NULL WHERE phone_number = ''
+  ''');
+
   // Create scan_session table if it doesn't exist
   await database.execute('''
     CREATE TABLE IF NOT EXISTS scan_session (
