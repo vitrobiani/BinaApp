@@ -391,53 +391,70 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget>
                                 Padding(
                                   padding: EdgeInsetsDirectional.fromSTEB(
                                       0.0, 0.0, 0.0, 1.0),
-                                  child: Container(
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.of(context)
-                                          .secondaryBackground,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          blurRadius: 0.0,
-                                          color: AppTheme.of(context)
-                                              .lineColor,
-                                          offset: Offset(
-                                            0.0,
-                                            1.0,
-                                          ),
-                                        )
-                                      ],
-                                      borderRadius: BorderRadius.circular(0.0),
-                                      shape: BoxShape.rectangle,
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          24.0, 12.0, 16.0, 12.0),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Icon(
-                                            Icons.language_sharp,
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      context.pushNamed(LanguageSettingsWidget.routeName);
+                                    },
+                                    child: Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.of(context)
+                                            .secondaryBackground,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            blurRadius: 0.0,
                                             color: AppTheme.of(context)
-                                                .secondaryText,
-                                            size: 24.0,
-                                          ),
-                                          Expanded(
-                                            child: Padding(
-                                              padding: EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      12.0, 0.0, 0.0, 0.0),
-                                              child: Text(
-                                                AppLocalizations.of(context)
-                                                    .getText(
-                                                  'iqxwv326' /* Language and Region */,
-                                                ),
-                                                style:
-                                                    AppTheme.of(context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
+                                                .lineColor,
+                                            offset: Offset(
+                                              0.0,
+                                              1.0,
+                                            ),
+                                          )
+                                        ],
+                                        borderRadius: BorderRadius.circular(0.0),
+                                        shape: BoxShape.rectangle,
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            24.0, 12.0, 16.0, 12.0),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.max,
+                                          children: [
+                                            Icon(
+                                              Icons.language_sharp,
+                                              color: AppTheme.of(context)
+                                                  .secondaryText,
+                                              size: 24.0,
+                                            ),
+                                            Expanded(
+                                              child: Padding(
+                                                padding: EdgeInsetsDirectional
+                                                    .fromSTEB(
+                                                        12.0, 0.0, 0.0, 0.0),
+                                                child: Text(
+                                                  AppLocalizations.of(context)
+                                                      .getText(
+                                                    'iqxwv326' /* Language and Region */,
+                                                  ),
+                                                  style:
+                                                      AppTheme.of(context)
+                                                          .bodySmall
+                                                          .override(
+                                                            font:
+                                                                GoogleFonts.inter(
+                                                              fontWeight:
+                                                                  AppTheme.of(
+                                                                          context)
+                                                                      .bodySmall
+                                                                      .fontWeight,
+                                                              fontStyle:
+                                                                  AppTheme.of(
+                                                                          context)
+                                                                      .bodySmall
+                                                                      .fontStyle,
+                                                            ),
+                                                            letterSpacing: 0.0,
                                                             fontWeight:
                                                                 AppTheme.of(
                                                                         context)
@@ -449,28 +466,17 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget>
                                                                     .bodySmall
                                                                     .fontStyle,
                                                           ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .bodySmall
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .bodySmall
-                                                                  .fontStyle,
-                                                        ),
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: AppTheme.of(context)
-                                                .secondaryText,
-                                            size: 18.0,
-                                          ),
-                                        ],
+                                            Icon(
+                                              Icons.arrow_forward_ios,
+                                              color: AppTheme.of(context)
+                                                  .secondaryText,
+                                              size: 18.0,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -589,7 +595,7 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget>
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                'Hints Mode',
+                                                AppLocalizations.of(context).getText('accs001' /* Hints Mode */),
                                                 style: AppTheme.of(context)
                                                     .bodySmall
                                                     .override(
@@ -603,7 +609,7 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget>
                                                     ),
                                               ),
                                               Text(
-                                                'Show tooltips on long-press',
+                                                AppLocalizations.of(context).getText('accs002' /* Show tooltips on long-press */),
                                                 style: AppTheme.of(context)
                                                     .labelSmall
                                                     .override(
@@ -674,7 +680,7 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget>
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                'Auto-Adjust Settings',
+                                                AppLocalizations.of(context).getText('accs003' /* Auto-Adjust Settings */),
                                                 style: AppTheme.of(context)
                                                     .bodySmall
                                                     .override(
@@ -688,7 +694,7 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget>
                                                     ),
                                               ),
                                               Text(
-                                                'Adjust text size based on age (65+)',
+                                                AppLocalizations.of(context).getText('accs004' /* Adjust text size based on age (65+) */),
                                                 style: AppTheme.of(context)
                                                     .labelSmall
                                                     .override(

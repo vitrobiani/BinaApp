@@ -98,7 +98,7 @@ class _FamilyWidgetState extends State<FamilyWidget>
         key: scaffoldKey,
         backgroundColor: AppTheme.of(context).primaryBackground,
         floatingActionButton: TooltipWrapper(
-          message: 'Add a new family member',
+          message: AppLocalizations.of(context).getText('tip003' /* Add a new family member */),
           child: FloatingActionButton(
             onPressed: () async {
               await showModalBottomSheet(

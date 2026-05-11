@@ -89,7 +89,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                 },
               ),
               title: Text(
-                'Chats',
+                AppLocalizations.of(context).getText('chat001' /* Chats */),
                 style: AppTheme.of(context).headlineMedium.override(
                       font: GoogleFonts.readexPro(
                         fontWeight: AppTheme.of(context)
@@ -140,7 +140,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
           ),
           SizedBox(height: 16.0),
           Text(
-            'No conversations yet',
+            AppLocalizations.of(context).getText('chat002' /* No conversations yet */),
             style: AppTheme.of(context).titleMedium.override(
                   font: GoogleFonts.inter(
                     fontWeight: AppTheme.of(context)
@@ -156,7 +156,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
           ),
           SizedBox(height: 8.0),
           Text(
-            'Tap + to start a new chat',
+            AppLocalizations.of(context).getText('chat003' /* Tap + to start a new chat */),
             style: AppTheme.of(context).bodySmall.override(
                   font: GoogleFonts.inter(
                     fontWeight:
@@ -177,7 +177,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
       BuildContext context, ChatConversation conversation) {
     final lastMessage = conversation.messages.isNotEmpty
         ? conversation.messages.last.content
-        : 'No messages yet';
+        : AppLocalizations.of(context).getText('chat007' /* No messages yet */);
     final preview = lastMessage.length > 60
         ? '${lastMessage.substring(0, 60)}...'
         : lastMessage;
@@ -197,11 +197,11 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
           showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: Text('Delete conversation?'),
+              title: Text(AppLocalizations.of(context).getText('chat004' /* Delete conversation? */)),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text('Cancel'),
+                  child: Text(AppLocalizations.of(context).getText('chat005' /* Cancel */)),
                 ),
                 TextButton(
                   onPressed: () {
@@ -210,7 +210,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                     Navigator.of(ctx).pop();
                   },
                   child: Text(
-                    'Delete',
+                    AppLocalizations.of(context).getText('chat006' /* Delete */),
                     style: TextStyle(
                         color: AppTheme.of(context).error),
                   ),

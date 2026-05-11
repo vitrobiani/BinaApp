@@ -165,7 +165,7 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
           },
         ),
         title: Text(
-          'Session Details',
+          AppLocalizations.of(context).getText('sesd001' /* Session Details */),
           style: AppTheme.of(context).headlineMedium.override(
                 font: GoogleFonts.readexPro(
                   fontWeight: AppTheme.of(context).headlineMedium.fontWeight,
@@ -203,7 +203,7 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
             ),
             SizedBox(height: 16.0),
             Text(
-              'Error loading images',
+              AppLocalizations.of(context).getText('sesd009' /* Error loading images */),
               style: AppTheme.of(context).titleMedium.override(
                     font: GoogleFonts.inter(
                       fontWeight: AppTheme.of(context).titleMedium.fontWeight,
@@ -245,7 +245,7 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
             ),
             SizedBox(height: 16.0),
             Text(
-              'No images found',
+              AppLocalizations.of(context).getText('sesd011' /* No images found */),
               style: AppTheme.of(context).titleMedium.override(
                     font: GoogleFonts.inter(
                       fontWeight: AppTheme.of(context).titleMedium.fontWeight,
@@ -257,7 +257,7 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
             ),
             SizedBox(height: 8.0),
             Text(
-              'This session has no images',
+              AppLocalizations.of(context).getText('sesd012' /* This session has no images */),
               style: AppTheme.of(context).bodySmall.override(
                     font: GoogleFonts.inter(
                       fontWeight: AppTheme.of(context).bodySmall.fontWeight,
@@ -445,7 +445,7 @@ class ImageDetailSheetWidgetWithBytes extends StatelessWidget {
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
                 child: Text(
-                  'Original Image',
+                  AppLocalizations.of(context).getText('sesd013' /* Original Image */),
                   style: AppTheme.of(context).titleMedium.override(
                         font: GoogleFonts.inter(
                           fontWeight: AppTheme.of(context).titleMedium.fontWeight,
@@ -489,7 +489,7 @@ class ImageDetailSheetWidgetWithBytes extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        'Original image not available',
+                        AppLocalizations.of(context).getText('sesd019' /* Original image not available */),
                         style: AppTheme.of(context).bodyMedium.override(
                               font: GoogleFonts.inter(
                                 fontWeight: AppTheme.of(context).bodyMedium.fontWeight,
@@ -507,7 +507,7 @@ class ImageDetailSheetWidgetWithBytes extends StatelessWidget {
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
                 child: Text(
-                  'Diagnosed Image',
+                  AppLocalizations.of(context).getText('sesd014' /* Diagnosed Image */),
                   style: AppTheme.of(context).titleMedium.override(
                         font: GoogleFonts.inter(
                           fontWeight: AppTheme.of(context).titleMedium.fontWeight,
@@ -551,7 +551,7 @@ class ImageDetailSheetWidgetWithBytes extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        'Diagnosed image not available',
+                        AppLocalizations.of(context).getText('sesd020' /* Diagnosed image not available */),
                         style: AppTheme.of(context).bodyMedium.override(
                               font: GoogleFonts.inter(
                                 fontWeight: AppTheme.of(context).bodyMedium.fontWeight,
@@ -569,7 +569,7 @@ class ImageDetailSheetWidgetWithBytes extends StatelessWidget {
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
                 child: Text(
-                  'Detection Summary',
+                  AppLocalizations.of(context).getText('sesd015' /* Detection Summary */),
                   style: AppTheme.of(context).titleMedium.override(
                         font: GoogleFonts.inter(
                           fontWeight: AppTheme.of(context).titleMedium.fontWeight,
@@ -588,7 +588,7 @@ class ImageDetailSheetWidgetWithBytes extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Issues Found',
+                        AppLocalizations.of(context).getText('sesd016' /* Issues Found */),
                         style: AppTheme.of(context).titleSmall.override(
                               font: GoogleFonts.inter(
                                 fontWeight: FontWeight.w600,
@@ -688,7 +688,7 @@ class ImageDetailSheetWidgetWithBytes extends StatelessWidget {
                         ),
                         SizedBox(width: 8.0),
                         Text(
-                          'No issues detected',
+                          AppLocalizations.of(context).getText('sesd017' /* No issues detected */),
                           style: AppTheme.of(context).bodyMedium.override(
                                 font: GoogleFonts.inter(
                                   fontWeight: FontWeight.w500,
@@ -711,7 +711,7 @@ class ImageDetailSheetWidgetWithBytes extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Teeth Detected',
+                        AppLocalizations.of(context).getText('sesd018' /* Teeth Detected */),
                         style: AppTheme.of(context).titleSmall.override(
                               font: GoogleFonts.inter(
                                 fontWeight: FontWeight.w600,

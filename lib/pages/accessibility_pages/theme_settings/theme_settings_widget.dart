@@ -59,7 +59,7 @@ class _ThemeSettingsWidgetState extends State<ThemeSettingsWidget> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Color and Theme',
+          AppLocalizations.of(context).getText('zsq8vj02' /* Color and Theme */),
           style: AppTheme.of(context).headlineSmall,
         ),
         centerTitle: false,
@@ -74,7 +74,7 @@ class _ThemeSettingsWidgetState extends State<ThemeSettingsWidget> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  'Choose a color theme that suits your preference. You can also adjust the contrast level for better visibility.',
+                  AppLocalizations.of(context).getText('thms002' /* Choose a color theme... */),
                   style: AppTheme.of(context).bodyMedium.override(
                         font: GoogleFonts.inter(),
                         color: AppTheme.of(context).secondaryText,
@@ -86,7 +86,7 @@ class _ThemeSettingsWidgetState extends State<ThemeSettingsWidget> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  'Theme',
+                  AppLocalizations.of(context).getText('thms001' /* Theme */),
                   style: AppTheme.of(context).titleSmall.override(
                         font: GoogleFonts.inter(),
                         color: AppTheme.of(context).primaryText,
@@ -133,7 +133,7 @@ class _ThemeSettingsWidgetState extends State<ThemeSettingsWidget> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  'Contrast',
+                  AppLocalizations.of(context).getText('thms003' /* Contrast */),
                   style: AppTheme.of(context).titleSmall.override(
                         font: GoogleFonts.inter(),
                         color: AppTheme.of(context).primaryText,
@@ -145,7 +145,7 @@ class _ThemeSettingsWidgetState extends State<ThemeSettingsWidget> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  'Increase contrast to make text and borders more visible.',
+                  AppLocalizations.of(context).getText('thms004' /* Adjust contrast level... */),
                   style: AppTheme.of(context).bodySmall.override(
                         font: GoogleFonts.inter(),
                         color: AppTheme.of(context).secondaryText,
@@ -226,7 +226,7 @@ class _ThemeSettingsWidgetState extends State<ThemeSettingsWidget> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  'Preview',
+                  AppLocalizations.of(context).getText('thms005' /* Preview */),
                   style: AppTheme.of(context).titleSmall.override(
                         font: GoogleFonts.inter(),
                         color: AppTheme.of(context).primaryText,

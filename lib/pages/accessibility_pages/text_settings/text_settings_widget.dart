@@ -57,7 +57,7 @@ class _TextSettingsWidgetState extends State<TextSettingsWidget> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Text Settings',
+          AppLocalizations.of(context).getText('txts001' /* Text Size */),
           style: AppTheme.of(context).headlineSmall,
         ),
         centerTitle: false,
@@ -72,7 +72,7 @@ class _TextSettingsWidgetState extends State<TextSettingsWidget> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  'Choose a text size that is comfortable for you. All text in the app will be adjusted.',
+                  AppLocalizations.of(context).getText('txts002' /* Choose your preferred text size... */),
                   style: AppTheme.of(context).bodyMedium.override(
                         font: GoogleFonts.inter(),
                         color: AppTheme.of(context).secondaryText,
@@ -205,7 +205,7 @@ class _TextSettingsWidgetState extends State<TextSettingsWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Preview',
+                      AppLocalizations.of(context).getText('txts003' /* Preview */),
                       style: AppTheme.of(context).titleSmall.override(
                             font: GoogleFonts.inter(),
                             color: AppTheme.of(context).secondaryText,
@@ -227,58 +227,13 @@ class _TextSettingsWidgetState extends State<TextSettingsWidget> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Headline Text',
-                            style: AppTheme.of(context).headlineSmall,
-                          ),
-                          const SizedBox(height: 8.0),
-                          Text(
-                            'This is body text that shows how regular content will appear with your selected text size.',
+                            AppLocalizations.of(context).getText('txts004' /* This is how text will appear... */),
                             style: AppTheme.of(context).bodyMedium,
-                          ),
-                          const SizedBox(height: 8.0),
-                          Text(
-                            'Small label text',
-                            style: AppTheme.of(context).labelSmall,
                           ),
                         ],
                       ),
                     ),
                   ],
-                ),
-              ),
-
-              // Info note
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: AppTheme.of(context).info.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(
-                      color: AppTheme.of(context).info.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: AppTheme.of(context).secondaryText,
-                        size: 20.0,
-                      ),
-                      const SizedBox(width: 12.0),
-                      Expanded(
-                        child: Text(
-                          'Changes are applied immediately and saved automatically.',
-                          style: AppTheme.of(context).bodySmall.override(
-                                font: GoogleFonts.inter(),
-                                color: AppTheme.of(context).secondaryText,
-                              ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ],

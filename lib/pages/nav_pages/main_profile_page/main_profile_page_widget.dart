@@ -2,7 +2,6 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/components/accessibility/accessibility_widget.dart';
 import '/components/dialogs/confirm_dialog.dart';
 import '/components/dialogs/loading_dialog.dart';
-import '/components/tooltip_wrapper/tooltip_wrapper_widget.dart';
 import '/app_core/app_animations.dart';
 import '/app_core/app_icon_button.dart';
 import '/app_core/app_theme.dart';
@@ -599,10 +598,10 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                                       // Show confirmation dialog
                                       final confirmed = await ConfirmDialog.show(
                                         context: context,
-                                        title: 'Log Out?',
-                                        message: 'Are you sure you want to log out of your account?',
-                                        confirmText: 'Log Out',
-                                        cancelText: 'Cancel',
+                                        title: AppLocalizations.of(context).getText('dlg005' /* Log Out? */),
+                                        message: AppLocalizations.of(context).getText('dlg006' /* Are you sure you want to log out of your account? */),
+                                        confirmText: AppLocalizations.of(context).getText('dlg007' /* Log Out */),
+                                        cancelText: AppLocalizations.of(context).getText('dlg003' /* Cancel */),
                                         isDestructive: true,
                                         icon: Icons.logout,
                                       );
@@ -612,7 +611,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                                       // Show loading and perform logout
                                       LoadingDialog.show(
                                         context: context,
-                                        message: 'Logging out...',
+                                        message: AppLocalizations.of(context).getText('dlg008' /* Logging out... */),
                                       );
 
                                       GoRouter.of(context).prepareAuthEvent();

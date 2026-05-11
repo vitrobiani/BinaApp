@@ -231,7 +231,7 @@ class _MainDiagnoseWidgetState extends State<MainDiagnoseWidget>
                                           ).animateOnPageLoad(animationsMap[
                                               'textOnPageLoadAnimation']!),
                                         ),
-                                        TooltipWrapper(message: "External Bina Camera Connection",
+                                        TooltipWrapper(message: AppLocalizations.of(context).getText('tip004' /* Connect to external camera */),
                                             child: AppIconButton(
                                           borderColor: Colors.transparent,
                                           borderRadius: 30.0,

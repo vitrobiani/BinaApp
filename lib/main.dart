@@ -26,6 +26,7 @@ void main() async {
 
   await SQLiteManager.initialize();
   await AppTheme.initialize();
+  await AppLocalizations.initialize();
   await AccessibilitySettingsService.instance.init();
 
   // Load the Gemma model so it's ready before the user reaches any chat screen.
@@ -125,6 +126,7 @@ class _MyAppState extends State<MyApp> {
       locale: _locale,
       supportedLocales: const [
         Locale('en'),
+        Locale('he'),
         Locale('id'),
         Locale('ms'),
       ],

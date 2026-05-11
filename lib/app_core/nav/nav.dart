@@ -245,6 +245,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               path: HelpSupportWidget.routePath,
               builder: (context, params) => HelpSupportWidget(),
             ),
+            AppRoute(
+              name: LanguageSettingsWidget.routeName,
+              path: LanguageSettingsWidget.routePath,
+              builder: (context, params) => LanguageSettingsWidget(),
+            ),
           ].map((r) => r.toRoute(appStateNotifier)).toList(),
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),

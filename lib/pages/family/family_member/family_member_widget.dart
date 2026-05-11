@@ -479,7 +479,7 @@ class _FamilyMemberWidgetState extends State<FamilyMemberWidget> {
                         // Show loading indicator
                         LoadingDialog.show(
                           context: context,
-                          message: 'Creating family member...',
+                          message: AppLocalizations.of(context).getText('dlg010' /* Creating family member... */),
                         );
 
                         try {
@@ -531,7 +531,7 @@ class _FamilyMemberWidgetState extends State<FamilyMemberWidget> {
                             LoadingDialog.hide(context);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Error creating member: $e'),
+                                content: Text('${AppLocalizations.of(context).getText('dlg011' /* Error creating member */)}: $e'),
                                 backgroundColor: AppTheme.of(context).error,
                               ),
                             );
