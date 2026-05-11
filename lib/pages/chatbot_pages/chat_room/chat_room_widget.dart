@@ -4,6 +4,7 @@ import '/app_core/app_util.dart';
 import '/services/gemma_service.dart';
 import '/services/chat_manager.dart';
 import '/services/llm_prompts.dart';
+import '/components/gemma_download_progress/gemma_download_progress_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
@@ -59,6 +60,19 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
   Future<void> _sendMessage() async {
     final text = _model.messageController.text.trim();
     if (text.isEmpty || widget.conversationId == null) return;
+
+    // Check if model is ready
+    if (!GemmaService.instance.isModelLoaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(GemmaService.instance.isDownloading
+              ? 'AI model is still downloading... (${(GemmaService.instance.downloadProgress * 100).toStringAsFixed(0)}%)'
+              : 'AI model is not ready yet. Please wait...'),
+          backgroundColor: AppTheme.of(context).warning,
+        ),
+      );
+      return;
+    }
 
     _model.messageController.clear();
 
@@ -193,6 +207,13 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
             body: SafeArea(
               child: Column(
                 children: [
+                  // Show download progress if model is not ready
+                  if (!GemmaService.instance.isModelLoaded)
+                    GemmaDownloadProgressWidget(
+                      onModelReady: () {
+                        if (mounted) setState(() {});
+                      },
+                    ),
                   // Messages list.
                   Expanded(
                     child: messages.isEmpty

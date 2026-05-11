@@ -29,8 +29,12 @@ void main() async {
   await AppLocalizations.initialize();
   await AccessibilitySettingsService.instance.init();
 
-  // Load the Gemma model so it's ready before the user reaches any chat screen.
-  await GemmaService.instance.init();
+  // Start loading Gemma model in background (don't block app startup)
+  // For large models like Gemma 4, this downloads from HuggingFace
+  // Users can use the app while it downloads
+  GemmaService.instance.init().catchError((e) {
+    debugPrint('GemmaService background init error: $e');
+  });
 
   final appState = AppState(); // Initialize AppState
   await appState.initializePersistedState();
