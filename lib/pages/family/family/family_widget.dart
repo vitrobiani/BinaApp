@@ -3,7 +3,7 @@ import '/app_core/app_animations.dart';
 import '/app_core/app_icon_button.dart';
 import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
-import '/app_core/app_widgets.dart';
+import '/components/tooltip_wrapper/tooltip_wrapper_widget.dart';
 import '/pages/family/family_member/family_member_widget.dart';
 import '/pages/family/family_row_detail/family_row_detail_widget.dart';
 import '/actions/actions.dart' as action_blocks;
@@ -97,9 +97,38 @@ class _FamilyWidgetState extends State<FamilyWidget>
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: AppTheme.of(context).primaryBackground,
-        body: Stack(
-          children: [
-            Column(
+        floatingActionButton: TooltipWrapper(
+          message: 'Add a new family member',
+          child: FloatingActionButton(
+            onPressed: () async {
+              await showModalBottomSheet(
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                enableDrag: false,
+                context: context,
+                builder: (context) {
+                  return GestureDetector(
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    },
+                    child: Padding(
+                      padding: MediaQuery.viewInsetsOf(context),
+                      child: FamilyMemberWidget(),
+                    ),
+                  );
+                },
+              ).then((value) => safeSetState(() {}));
+            },
+            backgroundColor: AppTheme.of(context).primary,
+            child: Icon(
+              Icons.add,
+              color: Colors.white,
+              size: 24.0,
+            ),
+          ),
+        ),
+        body: Column(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -478,68 +507,6 @@ class _FamilyWidgetState extends State<FamilyWidget>
                 ),
               ],
             ),
-            Align(
-              alignment: AlignmentDirectional(1.0, 1.0),
-              child: Padding(
-                padding: EdgeInsets.all(24.0),
-                child: AppButtonWidget(
-                  onPressed: () async {
-                    await showModalBottomSheet(
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      enableDrag: false,
-                      context: context,
-                      builder: (context) {
-                        return GestureDetector(
-                          onTap: () {
-                            FocusScope.of(context).unfocus();
-                            FocusManager.instance.primaryFocus?.unfocus();
-                          },
-                          child: Padding(
-                            padding: MediaQuery.viewInsetsOf(context),
-                            child: FamilyMemberWidget(),
-                          ),
-                        );
-                      },
-                    ).then((value) => safeSetState(() {}));
-                  },
-                  text: AppLocalizations.of(context).getText(
-                    'ww48hqky' /* + */,
-                  ),
-                  options: AppButtonOptions(
-                    width: 60.0,
-                    height: 60.0,
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 12.0),
-                    iconPadding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: AppTheme.of(context).secondary,
-                    textStyle: AppTheme.of(context).titleSmall.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: AppTheme.of(context)
-                                .titleSmall
-                                .fontWeight,
-                            fontStyle: AppTheme.of(context)
-                                .titleSmall
-                                .fontStyle,
-                          ),
-                          color: Colors.white,
-                          fontSize: 70.0,
-                          letterSpacing: 0.0,
-                          fontWeight: AppTheme.of(context)
-                              .titleSmall
-                              .fontWeight,
-                          fontStyle:
-                              AppTheme.of(context).titleSmall.fontStyle,
-                        ),
-                    elevation: 0.0,
-                    borderRadius: BorderRadius.circular(14.0),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

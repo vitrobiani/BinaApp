@@ -635,6 +635,91 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget>
                                 ),
                               ),
                             ),
+                            // Auto-Adjust Settings Toggle
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 1.0, 0.0, 0.0),
+                              child: Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.of(context)
+                                      .secondaryBackground,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      blurRadius: 0.0,
+                                      color: AppTheme.of(context).lineColor,
+                                      offset: Offset(0.0, -1.0),
+                                    )
+                                  ],
+                                  borderRadius: BorderRadius.circular(0.0),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      24.0, 12.0, 16.0, 12.0),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      Icon(
+                                        Icons.auto_fix_high,
+                                        color: AppTheme.of(context)
+                                            .secondaryText,
+                                        size: 24.0,
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: EdgeInsetsDirectional
+                                              .fromSTEB(12.0, 0.0, 0.0, 0.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Auto-Adjust Settings',
+                                                style: AppTheme.of(context)
+                                                    .bodySmall
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            AppTheme.of(context)
+                                                                .bodySmall
+                                                                .fontWeight,
+                                                      ),
+                                                      letterSpacing: 0.0,
+                                                    ),
+                                              ),
+                                              Text(
+                                                'Adjust text size based on age (65+)',
+                                                style: AppTheme.of(context)
+                                                    .labelSmall
+                                                    .override(
+                                                      font: GoogleFonts.inter(),
+                                                      color: AppTheme.of(context)
+                                                          .secondaryText,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Switch(
+                                        value: context
+                                            .watch<AccessibilitySettingsService>()
+                                            .autoAdjustEnabled,
+                                        onChanged: (value) async {
+                                          await AccessibilitySettingsService
+                                              .instance
+                                              .setAutoAdjustEnabled(value);
+                                        },
+                                        activeTrackColor:
+                                            AppTheme.of(context).primary.withValues(alpha: 0.5),
+                                        activeThumbColor:
+                                            AppTheme.of(context).primary,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),

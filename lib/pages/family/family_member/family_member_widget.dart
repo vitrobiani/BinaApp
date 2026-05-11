@@ -9,6 +9,7 @@ import '/app_core/form_field_controller.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/custom_code/actions/index.dart' as actions;
 import '/app_core/custom_functions.dart' as functions;
+import '/components/dialogs/loading_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
@@ -475,41 +476,67 @@ class _FamilyMemberWidgetState extends State<FamilyMemberWidget> {
                         EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 44.0),
                     child: AppButtonWidget(
                       onPressed: () async {
-                        _model.uid = await actions.getUUID();
+                        // Show loading indicator
+                        LoadingDialog.show(
+                          context: context,
+                          message: 'Creating family member...',
+                        );
 
-                        if (AppState().UserSession.isLocalSession) {
-                          // Insert into SQLite for local sessions
-                          final birthdayTimestamp = functions.stringToUnixTimestamp(
-                              _model.birthdayTextController.text);
+                        try {
+                          _model.uid = await actions.getUUID();
 
-                          await SQLiteManager.instance.addFamilyMember(
-                            familyMemberID: _model.uid,
-                            accountID: AppState().UserSession.userID,
-                            name: _model.nameTextController.text,
-                            birthday: birthdayTimestamp,
-                            gender: _model.genderValue,
-                            relationship: 'OTHER',
-                            lastChecked: 0,
-                          );
-                        } else {
-                          // Insert into Supabase for cloud sessions
-                          _model.uInfo = await FamilyMembersTable().insert({
-                            'id': _model.uid,
-                            'account_id': AppState().UserSession.userID,
-                            'name': _model.nameTextController.text,
-                            'birthday': supaSerialize<DateTime>(
-                                functions.stringToDateTime(
-                                    _model.birthdayTextController.text)),
-                            'gender': _model.genderValue,
-                            'admin': false,
-                          });
+                          if (AppState().UserSession.isLocalSession) {
+                            // Insert into SQLite for local sessions
+                            final birthdayTimestamp = functions.stringToUnixTimestamp(
+                                _model.birthdayTextController.text);
+
+                            await SQLiteManager.instance.addFamilyMember(
+                              familyMemberID: _model.uid,
+                              accountID: AppState().UserSession.userID,
+                              name: _model.nameTextController.text,
+                              birthday: birthdayTimestamp,
+                              gender: _model.genderValue,
+                              relationship: 'OTHER',
+                              lastChecked: 0,
+                            );
+                          } else {
+                            // Insert into Supabase for cloud sessions
+                            _model.uInfo = await FamilyMembersTable().insert({
+                              'id': _model.uid,
+                              'account_id': AppState().UserSession.userID,
+                              'name': _model.nameTextController.text,
+                              'birthday': supaSerialize<DateTime>(
+                                  functions.stringToDateTime(
+                                      _model.birthdayTextController.text)),
+                              'gender': _model.genderValue,
+                              'admin': false,
+                            });
+                          }
+
+                          // Refresh family list
+                          await action_blocks.updateSessionFamily(context);
+
+                          // Hide loading indicator
+                          if (context.mounted) {
+                            LoadingDialog.hide(context);
+                          }
+
+                          // Close the bottom sheet
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
+                        } catch (e) {
+                          // Hide loading indicator on error
+                          if (context.mounted) {
+                            LoadingDialog.hide(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error creating member: $e'),
+                                backgroundColor: AppTheme.of(context).error,
+                              ),
+                            );
+                          }
                         }
-
-                        // Refresh family list
-                        await action_blocks.updateSessionFamily(context);
-
-                        // Close the bottom sheet
-                        Navigator.pop(context);
                       },
                       text: AppLocalizations.of(context).getText(
                         '3syylynq' /* Create Member */,

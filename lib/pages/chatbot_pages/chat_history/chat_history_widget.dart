@@ -258,6 +258,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                                   .titleSmall
                                   .fontStyle,
                             ),
+                            color: AppTheme.of(context).primaryText,
                             letterSpacing: 0.0,
                           ),
                       maxLines: 1,
