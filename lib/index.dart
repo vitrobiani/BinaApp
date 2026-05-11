@@ -46,3 +46,5 @@ export '/pages/accessibility_pages/text_settings/text_settings_widget.dart'
     show TextSettingsWidget;
 export '/pages/accessibility_pages/theme_settings/theme_settings_widget.dart'
     show ThemeSettingsWidget;
+export '/pages/accessibility_pages/help_support/help_support_widget.dart'
+    show HelpSupportWidget;

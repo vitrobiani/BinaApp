@@ -240,6 +240,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               path: ThemeSettingsWidget.routePath,
               builder: (context, params) => ThemeSettingsWidget(),
             ),
+            AppRoute(
+              name: HelpSupportWidget.routeName,
+              path: HelpSupportWidget.routePath,
+              builder: (context, params) => HelpSupportWidget(),
+            ),
           ].map((r) => r.toRoute(appStateNotifier)).toList(),
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),

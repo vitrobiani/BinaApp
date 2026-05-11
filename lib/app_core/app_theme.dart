@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '/services/accessibility_settings_service.dart';
+import '/app_core/app_theme_type.dart';
 
 const kThemeModeKey = '__theme_mode__';
 
@@ -28,9 +29,27 @@ abstract class AppTheme {
       : _prefs?.setBool(kThemeModeKey, mode == ThemeMode.dark);
 
   static AppTheme of(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark
-        ? DarkModeTheme()
-        : LightModeTheme();
+    // Get theme from AccessibilitySettingsService if initialized
+    try {
+      final themeType = AccessibilitySettingsService.instance.themeType;
+      switch (themeType) {
+        case AppThemeType.light:
+          return LightModeTheme();
+        case AppThemeType.dark:
+          return DarkModeTheme();
+        case AppThemeType.warm:
+          return WarmModeTheme();
+        case AppThemeType.cool:
+          return CoolModeTheme();
+        case AppThemeType.deuteranopia:
+          return DeuteranopiaTheme();
+      }
+    } catch (_) {
+      // Fallback to brightness-based theme if service not initialized
+      return Theme.of(context).brightness == Brightness.dark
+          ? DarkModeTheme()
+          : LightModeTheme();
+    }
   }
 
   @Deprecated('Use primary instead')
@@ -372,6 +391,103 @@ class DarkModeTheme extends AppTheme {
   late Color lineColor = const Color(0xFF8F6F37);
   late Color overlay = const Color(0xFF91054C);
   late Color tertiary400 = const Color(0xFF8C1C83);
+}
+
+/// Warm theme - cozy amber/cream tones
+class WarmModeTheme extends AppTheme {
+  @Deprecated('Use primary instead')
+  Color get primaryColor => primary;
+  @Deprecated('Use secondary instead')
+  Color get secondaryColor => secondary;
+  @Deprecated('Use tertiary instead')
+  Color get tertiaryColor => tertiary;
+
+  late Color primary = const Color(0xFFFF8F00);       // Amber
+  late Color secondary = const Color(0xFFFFB74D);     // Light amber
+  late Color tertiary = const Color(0xFFD84315);      // Deep orange
+  late Color alternate = const Color(0xFFE8DED0);     // Warm beige
+  late Color primaryText = const Color(0xFF3E2723);   // Brown
+  late Color secondaryText = const Color(0xFF5D4037); // Medium brown
+  late Color primaryBackground = const Color(0xFFFFF8E1); // Cream
+  late Color secondaryBackground = const Color(0xFFFFFBF5); // Light cream
+  late Color accent1 = const Color(0x4CFF8F00);
+  late Color accent2 = const Color(0x4CFFB74D);
+  late Color accent3 = const Color(0x4CD84315);
+  late Color accent4 = const Color(0xB3FFFBF5);
+  late Color success = const Color(0xFF43A047);       // Green
+  late Color warning = const Color(0xFFEF6C00);       // Orange
+  late Color error = const Color(0xFFD32F2F);         // Red
+  late Color info = const Color(0xFFFFFFFF);
+
+  late Color primaryBtnText = const Color(0xFFFFFFFF);
+  late Color lineColor = const Color(0xFFBCAAA4);     // Warm gray
+  late Color overlay = const Color(0xFF6D4C41);
+  late Color tertiary400 = const Color(0xFFFF7043);
+}
+
+/// Cool theme - calm blue/teal tones
+class CoolModeTheme extends AppTheme {
+  @Deprecated('Use primary instead')
+  Color get primaryColor => primary;
+  @Deprecated('Use secondary instead')
+  Color get secondaryColor => secondary;
+  @Deprecated('Use tertiary instead')
+  Color get tertiaryColor => tertiary;
+
+  late Color primary = const Color(0xFF00ACC1);       // Cyan
+  late Color secondary = const Color(0xFF4DD0E1);     // Light cyan
+  late Color tertiary = const Color(0xFF0277BD);      // Blue
+  late Color alternate = const Color(0xFFD6E6ED);     // Cool gray-blue
+  late Color primaryText = const Color(0xFF0D47A1);   // Dark blue
+  late Color secondaryText = const Color(0xFF37474F); // Blue-gray
+  late Color primaryBackground = const Color(0xFFE3F2FD); // Light blue
+  late Color secondaryBackground = const Color(0xFFF5FAFF); // Very light blue
+  late Color accent1 = const Color(0x4C00ACC1);
+  late Color accent2 = const Color(0x4C4DD0E1);
+  late Color accent3 = const Color(0x4C0277BD);
+  late Color accent4 = const Color(0xB3F5FAFF);
+  late Color success = const Color(0xFF00897B);       // Teal
+  late Color warning = const Color(0xFFFFA726);       // Orange
+  late Color error = const Color(0xFFE53935);         // Red
+  late Color info = const Color(0xFFFFFFFF);
+
+  late Color primaryBtnText = const Color(0xFFFFFFFF);
+  late Color lineColor = const Color(0xFF90A4AE);     // Blue-gray
+  late Color overlay = const Color(0xFF455A64);
+  late Color tertiary400 = const Color(0xFF29B6F6);
+}
+
+/// Deuteranopia theme - optimized for red-green color blindness
+/// Uses blue/yellow/orange palette that's distinguishable for most colorblind users
+class DeuteranopiaTheme extends AppTheme {
+  @Deprecated('Use primary instead')
+  Color get primaryColor => primary;
+  @Deprecated('Use secondary instead')
+  Color get secondaryColor => secondary;
+  @Deprecated('Use tertiary instead')
+  Color get tertiaryColor => tertiary;
+
+  late Color primary = const Color(0xFF0077BB);       // Blue (safe)
+  late Color secondary = const Color(0xFF33BBEE);     // Light blue (safe)
+  late Color tertiary = const Color(0xFFEE7733);      // Orange (safe)
+  late Color alternate = const Color(0xFFE0E0E0);     // Neutral gray
+  late Color primaryText = const Color(0xFF1A1A1A);   // Near black
+  late Color secondaryText = const Color(0xFF555555); // Dark gray
+  late Color primaryBackground = const Color(0xFFFAFAFA); // Off-white
+  late Color secondaryBackground = const Color(0xFFFFFFFF); // White
+  late Color accent1 = const Color(0x4C0077BB);
+  late Color accent2 = const Color(0x4C33BBEE);
+  late Color accent3 = const Color(0x4CEE7733);
+  late Color accent4 = const Color(0xB3FFFFFF);
+  late Color success = const Color(0xFF009988);       // Teal (distinguishable from red)
+  late Color warning = const Color(0xFFEECC66);       // Yellow (safe)
+  late Color error = const Color(0xFFCC3311);         // Orange-red (more visible)
+  late Color info = const Color(0xFFFFFFFF);
+
+  late Color primaryBtnText = const Color(0xFFFFFFFF);
+  late Color lineColor = const Color(0xFF0077BB);     // Blue for visibility
+  late Color overlay = const Color(0xFF004488);
+  late Color tertiary400 = const Color(0xFFEE7733);
 }
 
 extension TextStyleHelper on TextStyle {

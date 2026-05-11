@@ -1,3 +1,5 @@
+import 'package:bina_system/components/tooltip_wrapper/tooltip_wrapper_widget.dart';
+
 import '/components/diagnose_page/diagnose_card/diagnose_card_widget.dart';
 import '/app_core/app_animations.dart';
 import '/app_core/app_icon_button.dart';
@@ -229,7 +231,8 @@ class _MainDiagnoseWidgetState extends State<MainDiagnoseWidget>
                                           ).animateOnPageLoad(animationsMap[
                                               'textOnPageLoadAnimation']!),
                                         ),
-                                        AppIconButton(
+                                        TooltipWrapper(message: "External Bina Camera Connection",
+                                            child: AppIconButton(
                                           borderColor: Colors.transparent,
                                           borderRadius: 30.0,
                                           borderWidth: 1.0,
@@ -245,7 +248,7 @@ class _MainDiagnoseWidgetState extends State<MainDiagnoseWidget>
                                             context.pushNamed(
                                                 CameraConnectionWidget.routeName);
                                           },
-                                        ),
+                                        )),
                                       ],
                                     ),
                                   ),

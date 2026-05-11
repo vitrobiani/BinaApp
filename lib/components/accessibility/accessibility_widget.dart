@@ -3,10 +3,12 @@ import '/app_core/app_icon_button.dart';
 import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
 import '/index.dart';
+import '/services/accessibility_settings_service.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'accessibility_model.dart';
 export 'accessibility_model.dart';
 
@@ -476,40 +478,57 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget>
                                 Padding(
                                   padding: EdgeInsetsDirectional.fromSTEB(
                                       0.0, 0.0, 0.0, 1.0),
-                                  child: Container(
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(0.0),
-                                      shape: BoxShape.rectangle,
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          24.0, 12.0, 16.0, 12.0),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Icon(
-                                            Icons.question_mark_sharp,
-                                            color: AppTheme.of(context)
-                                                .secondaryText,
-                                            size: 24.0,
-                                          ),
-                                          Expanded(
-                                            child: Padding(
-                                              padding: EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      12.0, 0.0, 0.0, 0.0),
-                                              child: Text(
-                                                AppLocalizations.of(context)
-                                                    .getText(
-                                                  's60yfg0g' /* Help and Support */,
-                                                ),
-                                                style:
-                                                    AppTheme.of(context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      context.pushNamed(HelpSupportWidget.routeName);
+                                    },
+                                    child: Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(0.0),
+                                        shape: BoxShape.rectangle,
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            24.0, 12.0, 16.0, 12.0),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.max,
+                                          children: [
+                                            Icon(
+                                              Icons.question_mark_sharp,
+                                              color: AppTheme.of(context)
+                                                  .secondaryText,
+                                              size: 24.0,
+                                            ),
+                                            Expanded(
+                                              child: Padding(
+                                                padding: EdgeInsetsDirectional
+                                                    .fromSTEB(
+                                                        12.0, 0.0, 0.0, 0.0),
+                                                child: Text(
+                                                  AppLocalizations.of(context)
+                                                      .getText(
+                                                    's60yfg0g' /* Help and Support */,
+                                                  ),
+                                                  style:
+                                                      AppTheme.of(context)
+                                                          .bodySmall
+                                                          .override(
+                                                            font:
+                                                                GoogleFonts.inter(
+                                                              fontWeight:
+                                                                  AppTheme.of(
+                                                                          context)
+                                                                      .bodySmall
+                                                                      .fontWeight,
+                                                              fontStyle:
+                                                                  AppTheme.of(
+                                                                          context)
+                                                                      .bodySmall
+                                                                      .fontStyle,
+                                                            ),
+                                                            letterSpacing: 0.0,
                                                             fontWeight:
                                                                 AppTheme.of(
                                                                         context)
@@ -521,33 +540,100 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget>
                                                                     .bodySmall
                                                                     .fontStyle,
                                                           ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .bodySmall
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .bodySmall
-                                                                  .fontStyle,
-                                                        ),
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: AppTheme.of(context)
-                                                .secondaryText,
-                                            size: 18.0,
-                                          ),
-                                        ],
+                                            Icon(
+                                              Icons.arrow_forward_ios,
+                                              color: AppTheme.of(context)
+                                                  .secondaryText,
+                                              size: 18.0,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ],
+                            ),
+                            // Hints Mode Toggle
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 8.0, 0.0, 0.0),
+                              child: Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.of(context)
+                                      .secondaryBackground,
+                                  borderRadius: BorderRadius.circular(0.0),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      24.0, 12.0, 16.0, 12.0),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      Icon(
+                                        Icons.lightbulb_outline,
+                                        color: AppTheme.of(context)
+                                            .secondaryText,
+                                        size: 24.0,
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: EdgeInsetsDirectional
+                                              .fromSTEB(12.0, 0.0, 0.0, 0.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Hints Mode',
+                                                style: AppTheme.of(context)
+                                                    .bodySmall
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            AppTheme.of(context)
+                                                                .bodySmall
+                                                                .fontWeight,
+                                                      ),
+                                                      letterSpacing: 0.0,
+                                                    ),
+                                              ),
+                                              Text(
+                                                'Show tooltips on long-press',
+                                                style: AppTheme.of(context)
+                                                    .labelSmall
+                                                    .override(
+                                                      font: GoogleFonts.inter(),
+                                                      color: AppTheme.of(context)
+                                                          .secondaryText,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Switch(
+                                        value: context
+                                            .watch<AccessibilitySettingsService>()
+                                            .hintsEnabled,
+                                        onChanged: (value) async {
+                                          await AccessibilitySettingsService
+                                              .instance
+                                              .setHintsEnabled(value);
+                                        },
+                                        activeTrackColor:
+                                            AppTheme.of(context).primary.withValues(alpha: 0.5),
+                                        activeThumbColor:
+                                            AppTheme.of(context).primary,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
