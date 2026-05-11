@@ -6,6 +6,7 @@ import '/backend/sqlite/sqlite_manager.dart';
 import '/app_core/app_util.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/custom_code/actions/index.dart' as actions;
+import '/services/accessibility_settings_service.dart';
 import 'package:flutter/material.dart';
 
 Future<int?> calculateFamilyLastChecked(BuildContext context) async {
@@ -104,4 +105,19 @@ Future updateSessionFamily(BuildContext context) async {
   AppState().update(() {});
 
   await action_blocks.calculateFamilyLastChecked(context);
+
+  // Apply age-based accessibility auto-adjustments for admin user
+  final adminMember = familyList.firstWhere(
+    (m) => m.admin == true,
+    orElse: () => FamilyMemberStruct(),
+  );
+
+  if (adminMember.birthday != null) {
+    final now = DateTime.now();
+    final age = now.year - adminMember.birthday!.year -
+        (now.month < adminMember.birthday!.month ||
+         (now.month == adminMember.birthday!.month && now.day < adminMember.birthday!.day) ? 1 : 0);
+
+    await AccessibilitySettingsService.instance.applyAutoAdjustmentsForAge(age);
+  }
 }

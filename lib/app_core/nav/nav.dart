@@ -229,7 +229,27 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               name: CameraConnectionWidget.routeName,
               path: CameraConnectionWidget.routePath,
               builder: (context, params) => CameraConnectionWidget(),
-            )
+            ),
+            AppRoute(
+              name: TextSettingsWidget.routeName,
+              path: TextSettingsWidget.routePath,
+              builder: (context, params) => TextSettingsWidget(),
+            ),
+            AppRoute(
+              name: ThemeSettingsWidget.routeName,
+              path: ThemeSettingsWidget.routePath,
+              builder: (context, params) => ThemeSettingsWidget(),
+            ),
+            AppRoute(
+              name: HelpSupportWidget.routeName,
+              path: HelpSupportWidget.routePath,
+              builder: (context, params) => HelpSupportWidget(),
+            ),
+            AppRoute(
+              name: LanguageSettingsWidget.routeName,
+              path: LanguageSettingsWidget.routePath,
+              builder: (context, params) => LanguageSettingsWidget(),
+            ),
           ].map((r) => r.toRoute(appStateNotifier)).toList(),
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),

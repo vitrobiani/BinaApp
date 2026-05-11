@@ -1,8 +1,8 @@
 import '/app_core/app_util.dart';
-import 'accessability_widget.dart' show AccessabilityWidget;
+import 'text_settings_widget.dart' show TextSettingsWidget;
 import 'package:flutter/material.dart';
 
-class AccessabilityModel extends AppModel<AccessabilityWidget> {
+class TextSettingsModel extends AppModel<TextSettingsWidget> {
   @override
   void initState(BuildContext context) {}
 

@@ -103,7 +103,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error initializing session: $e'),
+          content: Text('${AppLocalizations.of(context).getText('phts024' /* Error initializing session: */)} $e'),
           backgroundColor: AppTheme.of(context).error,
         ),
       );
@@ -114,7 +114,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
     if (kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Camera is not available on web.'),
+          content: Text(AppLocalizations.of(context).getText('phts020' /* Camera is not available on web. */)),
           backgroundColor: AppTheme.of(context).warning,
         ),
       );
@@ -157,7 +157,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
     if (!cameraConnection.isCameraConnected()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Bina Camera is not connected.'),
+          content: Text(AppLocalizations.of(context).getText('phts021' /* Bina Camera is not connected. */)),
           backgroundColor: AppTheme.of(context).warning,
         ),
       );
@@ -198,7 +198,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
     if (kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Diagnosis is not available on web.'),
+          content: Text(AppLocalizations.of(context).getText('phts022' /* Diagnosis is not available on web. */)),
           backgroundColor: AppTheme.of(context).warning,
         ),
       );
@@ -219,7 +219,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Diagnosis is not available on web.'),
+            content: Text(AppLocalizations.of(context).getText('phts022' /* Diagnosis is not available on web. */)),
             backgroundColor: AppTheme.of(context).warning,
           ),
         );
@@ -278,7 +278,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error processing image: $e'),
+          content: Text('${AppLocalizations.of(context).getText('phts025' /* Error processing image: */)} $e'),
           backgroundColor: AppTheme.of(context).error,
         ),
       );
@@ -351,7 +351,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
     if (_sessionImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please capture at least one image before finishing.'),
+          content: Text(AppLocalizations.of(context).getText('phts023' /* Please capture at least one image... */)),
           backgroundColor: AppTheme.of(context).warning,
         ),
       );
@@ -443,7 +443,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error finishing session: $e'),
+          content: Text('${AppLocalizations.of(context).getText('phts026' /* Error finishing session: */)} $e'),
           backgroundColor: AppTheme.of(context).error,
         ),
       );
@@ -566,7 +566,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Photo Session',
+                                            AppLocalizations.of(context).getText('phts001' /* Photo Session */),
                                             style: AppTheme.of(context)
                                                 .headlineMedium
                                                 .override(
@@ -587,7 +587,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                                           ),
                                           if (widget.memberName != null)
                                             Text(
-                                              'Patient: ${widget.memberName}',
+                                              '${AppLocalizations.of(context).getText('phts014' /* Patient: */)} ${widget.memberName}',
                                               style:
                                                   AppTheme.of(context)
                                                       .labelMedium
@@ -620,7 +620,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                                       borderRadius: BorderRadius.circular(20.0),
                                     ),
                                     child: Text(
-                                      '${_sessionImages.length} images',
+                                      '${_sessionImages.length} ${AppLocalizations.of(context).getText('phts015' /* images */)}',
                                       style: AppTheme.of(context)
                                           .bodySmall
                                           .override(
@@ -660,7 +660,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                                           ),
                                           SizedBox(height: 16.0),
                                           Text(
-                                            'No images yet',
+                                            AppLocalizations.of(context).getText('phts016' /* No images yet */),
                                             style: AppTheme.of(context)
                                                 .titleMedium
                                                 .override(
@@ -684,7 +684,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                                           ),
                                           SizedBox(height: 8.0),
                                           Text(
-                                            'Capture dental images using the buttons below',
+                                            AppLocalizations.of(context).getText('phts017' /* Capture dental images... */),
                                             style: AppTheme.of(context)
                                                 .bodySmall
                                                 .override(
@@ -801,7 +801,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                                   ),
                                   SizedBox(width: 12.0),
                                   Text(
-                                    'Processing image...',
+                                    AppLocalizations.of(context).getText('phts018' /* Processing image... */),
                                     style: AppTheme.of(context)
                                         .bodyMedium
                                         .override(
@@ -842,7 +842,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                                         onPressed: (_isProcessing || !_isInitialized)
                                             ? null
                                             : _captureFromCamera,
-                                        text: 'Camera',
+                                        text: AppLocalizations.of(context).getText('phts013' /* Camera */),
                                         icon: Icon(
                                           Icons.camera_alt,
                                           size: 20.0,
@@ -893,7 +893,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                                         onPressed: (_isProcessing || !_isInitialized)
                                             ? null
                                             : _selectFromGallery,
-                                        text: 'Gallery',
+                                        text: AppLocalizations.of(context).getText('phts012' /* Gallery */),
                                         icon: Icon(
                                           Icons.photo_library,
                                           size: 20.0,
@@ -947,7 +947,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                                   onPressed: (_isProcessing || !_isInitialized)
                                       ? null
                                       : _finishSession,
-                                  text: 'Finish Session',
+                                  text: AppLocalizations.of(context).getText('phts019' /* Finish Session */),
                                   icon: Icon(
                                     Icons.check_circle,
                                     size: 20.0,
