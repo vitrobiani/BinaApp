@@ -561,7 +561,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ms': 'Tukar kata laluan',
     },
     'b1lw0hfu': {
-      'en': 'Prefrences and Accessability',
+      'en': 'Preferences and Accessibility',
       'id': 'Sunting profil',
       'ms': 'Sunting profil',
     },
@@ -1108,10 +1108,10 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ms': 'Profil',
     },
   },
-  // Accessability
+  // Accessibility
   {
     'pw6kvl1f': {
-      'en': 'Prefrences and Accessabiliry',
+      'en': 'Preferences and Accessibility',
       'id': 'tautan langsung',
       'ms': 'Pautan Pantas',
     },

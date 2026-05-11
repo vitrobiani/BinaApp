@@ -1,5 +1,5 @@
 import '/auth/supabase_auth/auth_util.dart';
-import '/components/accessability/accessability_widget.dart';
+import '/components/accessibility/accessibility_widget.dart';
 import '/app_core/app_animations.dart';
 import '/app_core/app_icon_button.dart';
 import '/app_core/app_theme.dart';
@@ -843,7 +843,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                                       return Padding(
                                         padding:
                                             MediaQuery.viewInsetsOf(context),
-                                        child: AccessabilityWidget(),
+                                        child: AccessibilityWidget(),
                                       );
                                     },
                                   ).then((value) => safeSetState(() {}));

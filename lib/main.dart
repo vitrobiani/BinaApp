@@ -10,6 +10,7 @@ import 'auth/supabase_auth/auth_util.dart';
 
 import '/backend/supabase/supabase.dart';
 import '/services/gemma_service.dart';
+import '/services/accessibility_settings_service.dart';
 import '/backend/sqlite/sqlite_manager.dart';
 import '/app_core/app_theme.dart';
 import 'app_core/app_util.dart';
@@ -25,6 +26,7 @@ void main() async {
 
   await SQLiteManager.initialize();
   await AppTheme.initialize();
+  await AccessibilitySettingsService.instance.init();
 
   // Load the Gemma model so it's ready before the user reaches any chat screen.
   await GemmaService.instance.init();
@@ -32,8 +34,11 @@ void main() async {
   final appState = AppState(); // Initialize AppState
   await appState.initializePersistedState();
 
-  runApp(ChangeNotifierProvider(
-    create: (context) => appState,
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (context) => appState),
+      ChangeNotifierProvider.value(value: AccessibilitySettingsService.instance),
+    ],
     child: MyApp(),
   ));
 }

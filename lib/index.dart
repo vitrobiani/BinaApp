@@ -42,3 +42,5 @@ export '/pages/chatbot_pages/chat_room/chat_room_widget.dart'
     show ChatRoomWidget;
 export '/pages/other_pages/camera_connection/camera_connection_widget.dart'
     show CameraConnectionWidget;
+export '/pages/accessibility_pages/text_settings/text_settings_widget.dart'
+    show TextSettingsWidget;

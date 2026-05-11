@@ -2,23 +2,24 @@ import '/app_core/app_animations.dart';
 import '/app_core/app_icon_button.dart';
 import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
+import '/index.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'accessability_model.dart';
-export 'accessability_model.dart';
+import 'accessibility_model.dart';
+export 'accessibility_model.dart';
 
-class AccessabilityWidget extends StatefulWidget {
-  const AccessabilityWidget({super.key});
+class AccessibilityWidget extends StatefulWidget {
+  const AccessibilityWidget({super.key});
 
   @override
-  State<AccessabilityWidget> createState() => _AccessabilityWidgetState();
+  State<AccessibilityWidget> createState() => _AccessibilityWidgetState();
 }
 
-class _AccessabilityWidgetState extends State<AccessabilityWidget>
+class _AccessibilityWidgetState extends State<AccessibilityWidget>
     with TickerProviderStateMixin {
-  late AccessabilityModel _model;
+  late AccessibilityModel _model;
 
   final animationsMap = <String, AnimationInfo>{};
 
@@ -31,7 +32,7 @@ class _AccessabilityWidgetState extends State<AccessabilityWidget>
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => AccessabilityModel());
+    _model = createModel(context, () => AccessibilityModel());
 
     animationsMap.addAll({
       'containerOnPageLoadAnimation1': AnimationInfo(
@@ -177,7 +178,7 @@ class _AccessabilityWidgetState extends State<AccessabilityWidget>
                                   24.0, 12.0, 0.0, 12.0),
                               child: Text(
                                 AppLocalizations.of(context).getText(
-                                  'pw6kvl1f' /* Prefrences and Accessabiliry */,
+                                  'pw6kvl1f' /* Preferences and Accessibility */,
                                 ),
                                 style: AppTheme.of(context)
                                     .bodyMedium
@@ -200,50 +201,67 @@ class _AccessabilityWidgetState extends State<AccessabilityWidget>
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
                                   0.0, 0.0, 0.0, 1.0),
-                              child: Container(
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.of(context)
-                                      .secondaryBackground,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      blurRadius: 0.0,
-                                      color: AppTheme.of(context)
-                                          .lineColor,
-                                      offset: Offset(
-                                        0.0,
-                                        1.0,
-                                      ),
-                                    )
-                                  ],
-                                  borderRadius: BorderRadius.circular(0.0),
-                                  shape: BoxShape.rectangle,
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      24.0, 12.0, 16.0, 12.0),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Icon(
-                                        Icons.text_fields,
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  context.pushNamed(TextSettingsWidget.routeName);
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.of(context)
+                                        .secondaryBackground,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 0.0,
                                         color: AppTheme.of(context)
-                                            .secondaryText,
-                                        size: 24.0,
-                                      ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  12.0, 0.0, 0.0, 0.0),
-                                          child: Text(
-                                            AppLocalizations.of(context).getText(
-                                              'gckukxjv' /* Text Settings */,
-                                            ),
-                                            style: AppTheme.of(context)
-                                                .bodySmall
-                                                .override(
-                                                  font: GoogleFonts.inter(
+                                            .lineColor,
+                                        offset: Offset(
+                                          0.0,
+                                          1.0,
+                                        ),
+                                      )
+                                    ],
+                                    borderRadius: BorderRadius.circular(0.0),
+                                    shape: BoxShape.rectangle,
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        24.0, 12.0, 16.0, 12.0),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      children: [
+                                        Icon(
+                                          Icons.text_fields,
+                                          color: AppTheme.of(context)
+                                              .secondaryText,
+                                          size: 24.0,
+                                        ),
+                                        Expanded(
+                                          child: Padding(
+                                            padding:
+                                                EdgeInsetsDirectional.fromSTEB(
+                                                    12.0, 0.0, 0.0, 0.0),
+                                            child: Text(
+                                              AppLocalizations.of(context).getText(
+                                                'gckukxjv' /* Text Settings */,
+                                              ),
+                                              style: AppTheme.of(context)
+                                                  .bodySmall
+                                                  .override(
+                                                    font: GoogleFonts.inter(
+                                                      fontWeight:
+                                                          AppTheme.of(
+                                                                  context)
+                                                              .bodySmall
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          AppTheme.of(
+                                                                  context)
+                                                              .bodySmall
+                                                              .fontStyle,
+                                                    ),
+                                                    letterSpacing: 0.0,
                                                     fontWeight:
                                                         AppTheme.of(
                                                                 context)
@@ -255,28 +273,17 @@ class _AccessabilityWidgetState extends State<AccessabilityWidget>
                                                             .bodySmall
                                                             .fontStyle,
                                                   ),
-                                                  letterSpacing: 0.0,
-                                                  fontWeight:
-                                                      AppTheme.of(
-                                                              context)
-                                                          .bodySmall
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      AppTheme.of(
-                                                              context)
-                                                          .bodySmall
-                                                          .fontStyle,
-                                                ),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      Icon(
-                                        Icons.arrow_forward_ios,
-                                        color: AppTheme.of(context)
-                                            .secondaryText,
-                                        size: 18.0,
-                                      ),
-                                    ],
+                                        Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: AppTheme.of(context)
+                                              .secondaryText,
+                                          size: 18.0,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),

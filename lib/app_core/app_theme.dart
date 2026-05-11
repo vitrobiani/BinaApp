@@ -2,8 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '/services/accessibility_settings_service.dart';
 
 const kThemeModeKey = '__theme_mode__';
 
@@ -223,109 +224,122 @@ class ThemeTypography extends Typography {
 
   final AppTheme theme;
 
+  /// Get the current text scale factor from AccessibilitySettingsService
+  /// Returns 1.0 if service not initialized (safe fallback)
+  double get _scaleFactor {
+    try {
+      return AccessibilitySettingsService.instance.textScale.scaleFactor;
+    } catch (_) {
+      return 1.0; // Fallback if service not initialized
+    }
+  }
+
+  /// Apply text scale to a base font size
+  double _scaled(double baseSize) => baseSize * _scaleFactor;
+
   String get displayLargeFamily => 'Readex Pro';
   bool get displayLargeIsCustom => false;
   TextStyle get displayLarge => GoogleFonts.readexPro(
         color: theme.primaryText,
         fontWeight: FontWeight.normal,
-        fontSize: 60.0,
+        fontSize: _scaled(60.0),
       );
   String get displayMediumFamily => 'Readex Pro';
   bool get displayMediumIsCustom => false;
   TextStyle get displayMedium => GoogleFonts.readexPro(
         color: theme.primaryText,
         fontWeight: FontWeight.normal,
-        fontSize: 45.0,
+        fontSize: _scaled(45.0),
       );
   String get displaySmallFamily => 'Readex Pro';
   bool get displaySmallIsCustom => false;
   TextStyle get displaySmall => GoogleFonts.readexPro(
         color: theme.primaryText,
         fontWeight: FontWeight.w600,
-        fontSize: 32.0,
+        fontSize: _scaled(32.0),
       );
   String get headlineLargeFamily => 'Readex Pro';
   bool get headlineLargeIsCustom => false;
   TextStyle get headlineLarge => GoogleFonts.readexPro(
         color: theme.primaryText,
         fontWeight: FontWeight.normal,
-        fontSize: 32.0,
+        fontSize: _scaled(32.0),
       );
   String get headlineMediumFamily => 'Readex Pro';
   bool get headlineMediumIsCustom => false;
   TextStyle get headlineMedium => GoogleFonts.readexPro(
         color: theme.primaryText,
         fontWeight: FontWeight.w500,
-        fontSize: 22.0,
+        fontSize: _scaled(22.0),
       );
   String get headlineSmallFamily => 'Readex Pro';
   bool get headlineSmallIsCustom => false;
   TextStyle get headlineSmall => GoogleFonts.readexPro(
         color: theme.primaryText,
         fontWeight: FontWeight.w500,
-        fontSize: 20.0,
+        fontSize: _scaled(20.0),
       );
   String get titleLargeFamily => 'Readex Pro';
   bool get titleLargeIsCustom => false;
   TextStyle get titleLarge => GoogleFonts.readexPro(
         color: theme.primaryText,
         fontWeight: FontWeight.w500,
-        fontSize: 22.0,
+        fontSize: _scaled(22.0),
       );
   String get titleMediumFamily => 'Readex Pro';
   bool get titleMediumIsCustom => false;
   TextStyle get titleMedium => GoogleFonts.readexPro(
         color: theme.info,
         fontWeight: FontWeight.w500,
-        fontSize: 18.0,
+        fontSize: _scaled(18.0),
       );
   String get titleSmallFamily => 'Inter';
   bool get titleSmallIsCustom => false;
   TextStyle get titleSmall => GoogleFonts.inter(
         color: theme.info,
         fontWeight: FontWeight.w500,
-        fontSize: 16.0,
+        fontSize: _scaled(16.0),
       );
   String get labelLargeFamily => 'Inter';
   bool get labelLargeIsCustom => false;
   TextStyle get labelLarge => GoogleFonts.inter(
         color: theme.secondaryText,
         fontWeight: FontWeight.w500,
-        fontSize: 16.0,
+        fontSize: _scaled(16.0),
       );
   String get labelMediumFamily => 'Inter';
   bool get labelMediumIsCustom => false;
   TextStyle get labelMedium => GoogleFonts.inter(
         color: theme.secondaryText,
         fontWeight: FontWeight.w500,
-        fontSize: 14.0,
+        fontSize: _scaled(14.0),
       );
   String get labelSmallFamily => 'Inter';
   bool get labelSmallIsCustom => false;
   TextStyle get labelSmall => GoogleFonts.inter(
         color: theme.secondaryText,
         fontWeight: FontWeight.w500,
-        fontSize: 12.0,
+        fontSize: _scaled(12.0),
       );
   String get bodyLargeFamily => 'Inter';
   bool get bodyLargeIsCustom => false;
   TextStyle get bodyLarge => GoogleFonts.inter(
         color: theme.primaryText,
-        fontSize: 16.0,
+        fontSize: _scaled(16.0),
       );
   String get bodyMediumFamily => 'Inter';
   bool get bodyMediumIsCustom => false;
   TextStyle get bodyMedium => GoogleFonts.inter(
         color: theme.primaryText,
         fontWeight: FontWeight.normal,
-        fontSize: 14.0,
+        fontSize: _scaled(14.0),
       );
   String get bodySmallFamily => 'Inter';
   bool get bodySmallIsCustom => false;
   TextStyle get bodySmall => GoogleFonts.inter(
         color: theme.primaryText,
         fontWeight: FontWeight.normal,
-        fontSize: 12.0,
+        fontSize: _scaled(12.0),
       );
 }
 
