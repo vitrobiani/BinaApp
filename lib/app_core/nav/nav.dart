@@ -235,6 +235,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               path: TextSettingsWidget.routePath,
               builder: (context, params) => TextSettingsWidget(),
             ),
+            AppRoute(
+              name: ThemeSettingsWidget.routeName,
+              path: ThemeSettingsWidget.routePath,
+              builder: (context, params) => ThemeSettingsWidget(),
+            ),
           ].map((r) => r.toRoute(appStateNotifier)).toList(),
         ),
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
