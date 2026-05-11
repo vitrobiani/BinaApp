@@ -8,6 +8,8 @@ import '/app_core/app_util.dart';
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
 import '/index.dart';
 import '/components/diagnose_page/multi_select_action_bar.dart';
+import '/components/dialogs/loading_dialog.dart';
+import '/components/dialogs/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -431,28 +433,16 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
 
   Future<void> _showDeleteConfirmation() async {
     final count = _model.selectedCount;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await ConfirmDialog.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Delete $count ${count == 1 ? 'diagnosis' : 'diagnoses'}?'),
-        content: Text('This action cannot be undone. All associated images will also be deleted.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              'Delete',
-              style: TextStyle(color: AppTheme.of(context).error),
-            ),
-          ),
-        ],
-      ),
+      title: 'Delete $count ${count == 1 ? 'diagnosis' : 'diagnoses'}?',
+      message: 'This action cannot be undone. All associated images will also be deleted.',
+      confirmText: 'Delete',
+      isDestructive: true,
+      icon: Icons.delete_outline,
     );
 
-    if (confirmed == true) {
+    if (confirmed) {
       await _deleteSelectedSessions();
     }
   }
@@ -460,6 +450,12 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
   Future<void> _deleteSelectedSessions() async {
     final sessionIds = _model.selectedSessionIds.toList();
     if (sessionIds.isEmpty) return;
+
+    // Show loading indicator
+    LoadingDialog.show(
+      context: context,
+      message: 'Deleting ${sessionIds.length} ${sessionIds.length == 1 ? 'diagnosis' : 'diagnoses'}...',
+    );
 
     try {
       final isLocal = AppState().UserSession.isLocalSession;
@@ -481,6 +477,11 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
         }
       }
 
+      // Hide loading indicator
+      if (mounted) {
+        LoadingDialog.hide(context);
+      }
+
       // Exit multi-select mode
       _model.exitMultiSelectMode();
 
@@ -500,6 +501,11 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
         );
       }
     } catch (e) {
+      // Hide loading indicator on error
+      if (mounted) {
+        LoadingDialog.hide(context);
+      }
+
       debugPrint('Error deleting sessions: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

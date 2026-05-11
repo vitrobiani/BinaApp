@@ -111,7 +111,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
     if (!success && mounted) {
       setState(() {
         _isScanning = false;
-        _errorMessage = 'Failed to start discovery. Check permissions.';
+        _errorMessage = AppLocalizations.of(context).getText('camc023' /* Failed to start discovery... */);
       });
     } else {
       // Keep scanning for a few seconds then stop
@@ -148,7 +148,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
 
     if (!success && mounted) {
       setState(() {
-        _errorMessage = 'Failed to connect to ${device.deviceName}';
+        _errorMessage = '${AppLocalizations.of(context).getText('camc024' /* Failed to connect to */)} ${device.deviceName}';
       });
     }
   }
@@ -175,7 +175,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
         return AlertDialog(
           backgroundColor: AppTheme.of(context).secondaryBackground,
           title: Text(
-            'Enter Camera IP Address',
+            AppLocalizations.of(context).getText('camc022' /* Enter Camera IP Address */),
             style: AppTheme.of(context).headlineSmall,
           ),
           content: TextField(
@@ -195,7 +195,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
           actions: <Widget>[
             TextButton(
               child: Text(
-                'Cancel',
+                AppLocalizations.of(context).getText('camc026' /* Cancel */),
                 style: AppTheme.of(context).bodyMedium,
               ),
               onPressed: () => Navigator.of(context).pop(),
@@ -222,7 +222,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                 padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
               ),
               child: Text(
-                'Connect',
+                AppLocalizations.of(context).getText('camc006' /* Connect */),
                 style: AppTheme.of(context).titleSmall.override(
                       font: GoogleFonts.inter(),
                       color: Colors.white,
@@ -294,7 +294,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Connect'),
+                    : Text(AppLocalizations.of(context).getText('camc006' /* Connect */)),
               )
             : null,
       ),
@@ -333,7 +333,9 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isConnected ? 'Connected' : 'Not Connected',
+                  isConnected
+                      ? AppLocalizations.of(context).getText('camc008' /* Connected */)
+                      : AppLocalizations.of(context).getText('camc012' /* Not Connected */),
                   style: AppTheme.of(context).titleSmall.override(
                         font: GoogleFonts.inter(),
                         color: isConnected
@@ -385,7 +387,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: Text(
-            'Camera Connection',
+            AppLocalizations.of(context).getText('camc001' /* Camera Connection */),
             style: AppTheme.of(context).headlineSmall,
           ),
           centerTitle: true,
@@ -425,7 +427,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                                   ),
                                   const SizedBox(height: 8.0),
                                   Text(
-                                    'No camera connected',
+                                    AppLocalizations.of(context).getText('camc013' /* No camera connected */),
                                     style: AppTheme.of(context).bodyMedium.override(
                                           font: GoogleFonts.inter(),
                                           color: AppTheme.of(context).secondaryText,
@@ -482,7 +484,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                     child: AppButtonWidget(
                       onPressed: _disconnect,
                       showLoadingIndicator: false,
-                      text: 'Disconnect',
+                      text: AppLocalizations.of(context).getText('camc007' /* Disconnect */),
                       options: AppButtonOptions(
                         width: double.infinity,
                         height: 48.0,
@@ -506,7 +508,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Nearby Devices',
+                          AppLocalizations.of(context).getText('camc014' /* Nearby Devices */),
                           style: AppTheme.of(context).titleMedium.override(
                                 font: GoogleFonts.inter(),
                                 letterSpacing: 0.0,
@@ -525,7 +527,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Scanning...',
+                                AppLocalizations.of(context).getText('camc015' /* Scanning... */),
                                 style: AppTheme.of(context).bodySmall.override(
                                       font: GoogleFonts.inter(),
                                       color: AppTheme.of(context).primary,
@@ -553,7 +555,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                           ),
                           const SizedBox(height: 8.0),
                           Text(
-                            'No devices found',
+                            AppLocalizations.of(context).getText('camc016' /* No devices found */),
                             style: AppTheme.of(context).bodyMedium.override(
                                   font: GoogleFonts.inter(),
                                   color: AppTheme.of(context).secondaryText,
@@ -562,7 +564,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                           ),
                           const SizedBox(height: 4.0),
                           Text(
-                            'Tap "Scan" to search for nearby cameras',
+                            AppLocalizations.of(context).getText('camc017' /* Tap "Scan" to search... */),
                             style: AppTheme.of(context).bodySmall.override(
                                   font: GoogleFonts.inter(),
                                   color: AppTheme.of(context).secondaryText,
@@ -579,7 +581,9 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                     child: AppButtonWidget(
                       onPressed: _isScanning ? _stopScan : _startScan,
                       showLoadingIndicator: false,
-                      text: _isScanning ? 'Stop Scan' : 'Scan for Devices',
+                      text: _isScanning
+                          ? AppLocalizations.of(context).getText('camc019' /* Stop Scan */)
+                          : AppLocalizations.of(context).getText('camc018' /* Scan for Devices */),
                       icon: Icon(
                         _isScanning ? Icons.stop : Icons.wifi_find,
                         color: Colors.white,
@@ -611,7 +615,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: Text(
-                            'OR',
+                            AppLocalizations.of(context).getText('camc020' /* OR */),
                             style: AppTheme.of(context).bodySmall.override(
                                   font: GoogleFonts.inter(),
                                   color: AppTheme.of(context).secondaryText,
@@ -632,7 +636,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                     child: AppButtonWidget(
                       onPressed: _showManualConnectDialog,
                       showLoadingIndicator: false,
-                      text: 'Enter IP Manually',
+                      text: AppLocalizations.of(context).getText('camc021' /* Enter IP Manually */),
                       icon: Icon(
                         Icons.edit,
                         color: AppTheme.of(context).primaryText,
@@ -676,7 +680,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                           const SizedBox(width: 12.0),
                           Expanded(
                             child: Text(
-                              'WiFi Direct is not available on this device. Use manual IP entry to connect.',
+                              AppLocalizations.of(context).getText('camc025' /* WiFi Direct is not available... */),
                               style: AppTheme.of(context).bodySmall.override(
                                     font: GoogleFonts.inter(),
                                     color: AppTheme.of(context).primaryText,

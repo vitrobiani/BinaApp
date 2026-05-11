@@ -128,7 +128,7 @@ flutter:
     - assets/jsons/
     - assets/sqlite_db_files/
     - assets/yolo11n_float16.tflite
-    - assets/gemma3-1b-it-int4.task
+    # - assets/gemma3-1b-it-int4.task  # Commented out - too large, causes integer overflow
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
