@@ -181,16 +181,27 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
   }
 
   Future<void> _selectFromGallery() async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1920,
-      maxHeight: 1920,
-      imageQuality: 90,
-    );
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 90,
+      );
 
-    if (image != null) {
-      await _processImage(image.path);
+      if (image != null) {
+        await _processImage(image.path);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not access gallery: $e'),
+            backgroundColor: AppTheme.of(context).error,
+          ),
+        );
+      }
     }
   }
 

@@ -38,6 +38,8 @@ class AccessibilitySettingsService extends ChangeNotifier {
   static const String _keyHintsEnabled = 'accessibility_hints_enabled';
   static const String _keyAutoAdjustEnabled = 'accessibility_auto_adjust';
   static const String _keyHasAppliedAutoAdjust = 'accessibility_has_applied_auto_adjust';
+  static const String _keyReduceMotion = 'accessibility_reduce_motion';
+  static const String _keyHapticEnabled = 'accessibility_haptic_enabled';
 
   // Settings with defaults
   TextScale _textScale = TextScale.medium;
@@ -46,6 +48,8 @@ class AccessibilitySettingsService extends ChangeNotifier {
   bool _hintsEnabled = true; // Tooltips on long-press
   bool _autoAdjustEnabled = true; // Age-based auto adjustments
   bool _hasAppliedAutoAdjust = false; // Track if we've already applied auto-adjust
+  bool _reduceMotion = false; // Disable animations and transitions
+  bool _hapticEnabled = true; // Vibration feedback
 
   bool _isInitialized = false;
 
@@ -55,6 +59,8 @@ class AccessibilitySettingsService extends ChangeNotifier {
   double get contrastLevel => _contrastLevel;
   bool get hintsEnabled => _hintsEnabled;
   bool get autoAdjustEnabled => _autoAdjustEnabled;
+  bool get reduceMotion => _reduceMotion;
+  bool get hapticEnabled => _hapticEnabled;
   bool get isInitialized => _isInitialized;
 
   /// Initialize the service and load saved settings
@@ -71,6 +77,8 @@ class AccessibilitySettingsService extends ChangeNotifier {
       _hintsEnabled = prefs.getBool(_keyHintsEnabled) ?? true;
       _autoAdjustEnabled = prefs.getBool(_keyAutoAdjustEnabled) ?? true;
       _hasAppliedAutoAdjust = prefs.getBool(_keyHasAppliedAutoAdjust) ?? false;
+      _reduceMotion = prefs.getBool(_keyReduceMotion) ?? false;
+      _hapticEnabled = prefs.getBool(_keyHapticEnabled) ?? true;
 
       _isInitialized = true;
       debugPrint('AccessibilitySettingsService: initialized');
@@ -79,6 +87,8 @@ class AccessibilitySettingsService extends ChangeNotifier {
       debugPrint('  contrast: $_contrastLevel');
       debugPrint('  hints: $_hintsEnabled');
       debugPrint('  autoAdjust: $_autoAdjustEnabled');
+      debugPrint('  reduceMotion: $_reduceMotion');
+      debugPrint('  hapticEnabled: $_hapticEnabled');
     } catch (e) {
       debugPrint('AccessibilitySettingsService init error: $e');
       _isInitialized = true; // Continue with defaults
@@ -183,6 +193,28 @@ class AccessibilitySettingsService extends ChangeNotifier {
     debugPrint('AccessibilitySettingsService: autoAdjust ${enabled ? 'enabled' : 'disabled'}');
   }
 
+  Future<void> setReduceMotion(bool enabled) async {
+    if (_reduceMotion == enabled) return;
+
+    _reduceMotion = enabled;
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyReduceMotion, enabled);
+    debugPrint('AccessibilitySettingsService: reduceMotion ${enabled ? 'enabled' : 'disabled'}');
+  }
+
+  Future<void> setHapticEnabled(bool enabled) async {
+    if (_hapticEnabled == enabled) return;
+
+    _hapticEnabled = enabled;
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyHapticEnabled, enabled);
+    debugPrint('AccessibilitySettingsService: haptic ${enabled ? 'enabled' : 'disabled'}');
+  }
+
   // ============================================================
   // Convenience methods
   // ============================================================
@@ -209,6 +241,8 @@ class AccessibilitySettingsService extends ChangeNotifier {
     _hintsEnabled = true;
     _autoAdjustEnabled = true;
     _hasAppliedAutoAdjust = false;
+    _reduceMotion = false;
+    _hapticEnabled = true;
 
     notifyListeners();
 
@@ -219,6 +253,8 @@ class AccessibilitySettingsService extends ChangeNotifier {
     await prefs.remove(_keyHintsEnabled);
     await prefs.remove(_keyAutoAdjustEnabled);
     await prefs.remove(_keyHasAppliedAutoAdjust);
+    await prefs.remove(_keyReduceMotion);
+    await prefs.remove(_keyHapticEnabled);
 
     debugPrint('AccessibilitySettingsService: reset to defaults');
   }

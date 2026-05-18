@@ -1,5 +1,4 @@
 import '/auth/supabase_auth/auth_util.dart';
-import '/components/accessibility/accessibility_widget.dart';
 import '/app_core/app_util.dart';
 import '/app_core/app_theme_type.dart';
 import '/bina_design/bina_design.dart';
@@ -40,13 +39,12 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
     super.dispose();
   }
 
-  void _showAccessibilitySheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const AccessibilityWidget(),
-    );
+  void _openAccessibility() {
+    context.pushNamed(AccessibilityWidget.routeName);
+  }
+
+  void _openHelpSupport() {
+    context.pushNamed(HelpSupportWidget.routeName);
   }
 
   void _showSignOutDialog() {
@@ -174,7 +172,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                                       style: BinaType.labelMd,
                                     ),
                                     GestureDetector(
-                                      onTap: _showAccessibilitySheet,
+                                      onTap: _openAccessibility,
                                       child: Text(
                                         'More options →',
                                         style: BinaType.labelSm.copyWith(
@@ -255,7 +253,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                                 label: 'Accessibility',
                                 subtitle: 'Theme · text size · hints',
                                 tone: _HubRowTone.aqua,
-                                onTap: _showAccessibilitySheet,
+                                onTap: _openAccessibility,
                               ),
                               _HubRow(
                                 icon: Icons.help_outline_rounded,
@@ -263,9 +261,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                                 subtitle: 'FAQ, contact, send feedback',
                                 tone: _HubRowTone.coral,
                                 isLast: true,
-                                onTap: () {
-                                  // TODO: Open help
-                                },
+                                onTap: _openHelpSupport,
                               ),
                             ],
                           ),

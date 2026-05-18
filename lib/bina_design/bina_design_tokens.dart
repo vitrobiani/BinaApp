@@ -83,6 +83,26 @@ class BinaColors {
     }
   }
 
+  static Color get aqua100 {
+    switch (_id) {
+      case BinaThemeId.dark:         return const Color(0xFF152836);
+      case BinaThemeId.warm:         return const Color(0xFFFDE2D6);
+      case BinaThemeId.cool:         return const Color(0xFFE0F7FA);
+      case BinaThemeId.deuteranopia: return const Color(0xFFD4EFFC);
+      case BinaThemeId.light:        return const Color(0xFFE5F4FF);
+    }
+  }
+
+  static Color get aqua700 {
+    switch (_id) {
+      case BinaThemeId.dark:         return const Color(0xFF4BA8D4);
+      case BinaThemeId.warm:         return const Color(0xFFB33311);
+      case BinaThemeId.cool:         return const Color(0xFF00ACC1);
+      case BinaThemeId.deuteranopia: return const Color(0xFF2299CC);
+      case BinaThemeId.light:        return const Color(0xFF4A9CD6);
+    }
+  }
+
   static Color get coral {
     switch (_id) {
       case BinaThemeId.dark:         return const Color(0xFFF0A47F);

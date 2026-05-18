@@ -188,10 +188,11 @@ class _FamilyWidgetState extends State<FamilyWidget>
                                 child: _FamilyMemberRow(
                                   member: member,
                                   onTap: () {
-                                    // TODO: Navigate to member detail or show details
-                                    // For now, go to scan
                                     context.pushNamed(
-                                      MainDIagnosticsWidget.routeName,
+                                      MemberDetailWidget.routeName,
+                                      extra: <String, dynamic>{
+                                        'member': member,
+                                      },
                                     );
                                   },
                                 ),

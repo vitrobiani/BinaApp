@@ -2,6 +2,7 @@ import '/app_core/app_util.dart';
 import '/backend/schema/structs/index.dart';
 import '/bina_design/bina_design.dart';
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
+import '/pages/family/family_member/family_member_widget.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,27 @@ class _MainHomeWidgetState extends State<MainHomeWidget>
   void dispose() {
     _model.maybeDispose();
     super.dispose();
+  }
+
+  void _showAddMemberSheet() async {
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
+      context: context,
+      builder: (context) {
+        return GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          child: Padding(
+            padding: MediaQuery.viewInsetsOf(context),
+            child: const FamilyMemberWidget(),
+          ),
+        );
+      },
+    ).then((value) => safeSetState(() {}));
   }
 
   @override
@@ -118,9 +140,7 @@ class _MainHomeWidgetState extends State<MainHomeWidget>
                               // Navigate to family screen - member detail is embedded there
                               context.pushNamed(FamilyWidget.routeName);
                             },
-                            onAddMember: () {
-                              // TODO: Show add member sheet
-                            },
+                            onAddMember: _showAddMemberSheet,
                             onSeeAll: () {
                               context.pushNamed(FamilyWidget.routeName);
                             },

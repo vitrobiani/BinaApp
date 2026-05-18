@@ -1,8 +1,10 @@
 import '/app_core/app_util.dart';
+import '/backend/schema/structs/index.dart';
 import '/bina_design/bina_design.dart';
 import '/services/chat_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import 'chat_history_model.dart';
 export 'chat_history_model.dart';
 
@@ -20,6 +22,7 @@ class ChatHistoryWidget extends StatefulWidget {
 
 class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
   late ChatHistoryModel _model;
+  String? _selectedMemberId;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -28,6 +31,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
     super.initState();
     _model = createModel(context, () => ChatHistoryModel());
     ChatManager.instance.initialize();
+    _selectedMemberId = widget.familyMemberId;
   }
 
   @override
@@ -37,8 +41,8 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
   }
 
   void _createNewChat() {
-    if (widget.familyMemberId == null) return;
-    final conversation = ChatManager.instance.createConversation(widget.familyMemberId!);
+    if (_selectedMemberId == null) return;
+    final conversation = ChatManager.instance.createConversation(_selectedMemberId!);
     context.pushNamed(
       'ChatRoom',
       extra: <String, dynamic>{
@@ -61,11 +65,20 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<AppState>();
+
+    final family = AppState().UserSession.family;
+
+    // If no member is selected, show member selection
+    if (_selectedMemberId == null && family.isNotEmpty) {
+      return _buildMemberSelectionScreen(family);
+    }
+
     return ListenableBuilder(
       listenable: ChatManager.instance,
       builder: (context, _) {
-        final conversations = widget.familyMemberId != null
-            ? ChatManager.instance.getMembersConversations(widget.familyMemberId!)
+        final conversations = _selectedMemberId != null
+            ? ChatManager.instance.getMembersConversations(_selectedMemberId!)
             : <ChatConversation>[];
 
         return GestureDetector(
@@ -108,17 +121,43 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                                 ),
                               ],
                             ),
-                            BinaIconButton(
-                              icon: Icons.search_rounded,
-                              onPressed: () {
-                                // TODO: Implement search
-                              },
+                            Row(
+                              children: [
+                                // Switch member button
+                                BinaIconButton(
+                                  icon: Icons.people_outline_rounded,
+                                  onPressed: () {
+                                    setState(() => _selectedMemberId = null);
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                BinaIconButton(
+                                  icon: Icons.search_rounded,
+                                  onPressed: () {
+                                    // TODO: Implement search
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ).animate()
                           .fadeIn(duration: 400.ms)
                           .moveY(begin: 20, end: 0, duration: 400.ms),
+
+                      // Selected member indicator
+                      if (_selectedMemberId != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                          child: _SelectedMemberChip(
+                            member: family.firstWhere(
+                              (m) => m.id == _selectedMemberId,
+                              orElse: () => FamilyMemberStruct(name: 'Unknown'),
+                            ),
+                            onTap: () => setState(() => _selectedMemberId = null),
+                          ),
+                        ).animate()
+                            .fadeIn(delay: 100.ms, duration: 300.ms),
 
                       // Conversations list
                       if (conversations.isEmpty)
@@ -165,7 +204,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                         ),
 
                       // New chat button
-                      if (widget.familyMemberId != null)
+                      if (_selectedMemberId != null)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                           child: _NewChatButton(onTap: _createNewChat),
@@ -188,6 +227,86 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMemberSelectionScreen(List<FamilyMemberStruct> family) {
+    return Scaffold(
+      backgroundColor: BinaColors.surfaceAlt,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 54, bottom: 120),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Chat with Gemma',
+                        style: BinaType.displaySm,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Select a family member to start or continue a conversation.',
+                        style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+                      ),
+                    ],
+                  ),
+                ).animate()
+                    .fadeIn(duration: 400.ms)
+                    .moveY(begin: 20, end: 0, duration: 400.ms),
+
+                // Member list
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                  child: Column(
+                    children: family.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final member = entry.value;
+                      final conversationCount = ChatManager.instance
+                          .getMembersConversations(member.id)
+                          .length;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _MemberSelectCard(
+                          member: member,
+                          conversationCount: conversationCount,
+                          onTap: () {
+                            setState(() => _selectedMemberId = member.id);
+                          },
+                        ),
+                      ).animate()
+                          .fadeIn(
+                            delay: Duration(milliseconds: 200 + (index * 100)),
+                            duration: 400.ms,
+                          )
+                          .moveY(
+                            begin: 20,
+                            end: 0,
+                            delay: Duration(milliseconds: 200 + (index * 100)),
+                            duration: 400.ms,
+                          );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (responsiveVisibility(
+            context: context,
+            tablet: false,
+            tabletLandscape: false,
+            desktop: false,
+          ))
+            const BinaFloatingNav(currentTab: BinaNavTab.chat),
+        ],
+      ),
     );
   }
 
@@ -263,6 +382,130 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SELECTED MEMBER CHIP
+// ═══════════════════════════════════════════════════════════════
+
+class _SelectedMemberChip extends StatelessWidget {
+  const _SelectedMemberChip({
+    required this.member,
+    required this.onTap,
+  });
+
+  final FamilyMemberStruct member;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: BinaColors.primary100,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            BinaAvatar(
+              name: member.name,
+              size: 24,
+              tone: BinaAvatarTone.blue,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              member.name,
+              style: BinaType.labelMd.copyWith(color: BinaColors.primary700),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.close_rounded,
+              size: 16,
+              color: BinaColors.primary700,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MEMBER SELECT CARD
+// ═══════════════════════════════════════════════════════════════
+
+class _MemberSelectCard extends StatelessWidget {
+  const _MemberSelectCard({
+    required this.member,
+    required this.conversationCount,
+    required this.onTap,
+  });
+
+  final FamilyMemberStruct member;
+  final int conversationCount;
+  final VoidCallback onTap;
+
+  BinaAvatarTone get _avatarTone {
+    final hash = member.name.hashCode;
+    final tones = BinaAvatarTone.values;
+    return tones[hash.abs() % (tones.length - 1)];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: BinaColors.line),
+          boxShadow: BinaElevation.sh2,
+        ),
+        child: Row(
+          children: [
+            BinaAvatar(
+              name: member.name,
+              size: 48,
+              tone: _avatarTone,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(member.name, style: BinaType.titleLg),
+                  const SizedBox(height: 2),
+                  Text(
+                    conversationCount > 0
+                        ? '$conversationCount conversation${conversationCount == 1 ? '' : 's'}'
+                        : 'No conversations yet',
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: BinaColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.chat_bubble_outline_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -396,7 +639,7 @@ class _NewChatButtonState extends State<_NewChatButton> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.auto_awesome,
               color: Colors.white,
               size: 18,
