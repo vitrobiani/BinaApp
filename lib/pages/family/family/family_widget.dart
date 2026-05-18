@@ -1,17 +1,12 @@
-import '/backend/schema/enums/enums.dart';
-import '/app_core/app_animations.dart';
-import '/app_core/app_icon_button.dart';
-import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
-import '/components/tooltip_wrapper/tooltip_wrapper_widget.dart';
+import '/backend/schema/structs/index.dart';
+import '/bina_design/bina_design.dart';
 import '/pages/family/family_member/family_member_widget.dart';
-import '/pages/family/family_row_detail/family_row_detail_widget.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'family_model.dart';
 export 'family_model.dart';
@@ -32,44 +27,13 @@ class _FamilyWidgetState extends State<FamilyWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final animationsMap = <String, AnimationInfo>{};
+  // Filter state
+  int _selectedFilterIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => FamilyModel());
-
-    _model.emailAddressTextController ??= TextEditingController();
-    _model.emailAddressFocusNode ??= FocusNode();
-
-    animationsMap.addAll({
-      'textOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          FadeEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: Offset(0.0, 20.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-    });
-    setupAnimations(
-      animationsMap.values.where((anim) =>
-          anim.trigger == AnimationTrigger.onActionTrigger ||
-          !anim.applyInitialState),
-      this,
-    );
 
     // Refresh family data on page load
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -81,13 +45,66 @@ class _FamilyWidgetState extends State<FamilyWidget>
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
+  }
+
+  List<FamilyMemberStruct> _getFilteredFamily(List<FamilyMemberStruct> family) {
+    switch (_selectedFilterIndex) {
+      case 1: // Due now
+        return family.where((m) => !m.hasLastChecked()).toList();
+      case 2: // Adults (18+)
+        return family.where((m) {
+          if (!m.hasBirthday()) return true;
+          final age = DateTime.now().difference(m.birthday!).inDays ~/ 365;
+          return age >= 18;
+        }).toList();
+      case 3: // Kids (<18)
+        return family.where((m) {
+          if (!m.hasBirthday()) return false;
+          final age = DateTime.now().difference(m.birthday!).inDays ~/ 365;
+          return age < 18;
+        }).toList();
+      default: // All
+        return family;
+    }
+  }
+
+  void _showAddMemberSheet() async {
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
+      context: context,
+      builder: (context) {
+        return GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          child: Padding(
+            padding: MediaQuery.viewInsetsOf(context),
+            child: const FamilyMemberWidget(),
+          ),
+        );
+      },
+    ).then((value) => safeSetState(() {}));
   }
 
   @override
   Widget build(BuildContext context) {
     context.watch<AppState>();
+
+    final session = AppState().UserSession;
+    final allFamily = session.family;
+    final filteredFamily = _getFilteredFamily(allFamily);
+    final dueCount = allFamily.where((m) => !m.hasLastChecked()).length;
+
+    final filters = [
+      'All ${allFamily.length}',
+      'Due now $dueCount',
+      'Adults',
+      'Kids',
+    ];
 
     return GestureDetector(
       onTap: () {
@@ -96,417 +113,327 @@ class _FamilyWidgetState extends State<FamilyWidget>
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: AppTheme.of(context).primaryBackground,
-        floatingActionButton: TooltipWrapper(
-          message: AppLocalizations.of(context).getText('tip003' /* Add a new family member */),
-          child: FloatingActionButton(
-            onPressed: () async {
-              await showModalBottomSheet(
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                enableDrag: false,
-                context: context,
-                builder: (context) {
-                  return GestureDetector(
-                    onTap: () {
-                      FocusScope.of(context).unfocus();
-                      FocusManager.instance.primaryFocus?.unfocus();
-                    },
-                    child: Padding(
-                      padding: MediaQuery.viewInsetsOf(context),
-                      child: FamilyMemberWidget(),
+        backgroundColor: BinaColors.surfaceAlt,
+        body: Stack(
+          children: [
+            // Scrollable content
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                top: 54,
+                bottom: 120, // Space for floating nav
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Family',
+                          style: BinaType.displaySm,
+                        ).animate()
+                            .fadeIn(duration: 600.ms)
+                            .moveY(begin: 20, end: 0, duration: 600.ms),
+                        _AddButton(onTap: _showAddMemberSheet),
+                      ],
                     ),
-                  );
-                },
-              ).then((value) => safeSetState(() {}));
-            },
-            backgroundColor: AppTheme.of(context).primary,
-            child: Icon(
-              Icons.add,
-              color: Colors.white,
-              size: 24.0,
-            ),
-          ),
-        ),
-        body: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 10,
-                        child: SingleChildScrollView(
-                          primary: false,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (responsiveVisibility(
-                                context: context,
-                                tablet: false,
-                                tabletLandscape: false,
-                                desktop: false,
-                              ))
-                                Container(
-                                  width: double.infinity,
-                                  height: 34.0,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.of(context)
-                                        .primaryBackground,
-                                  ),
-                                ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    12.0, 1.0, 0.0, 0.0),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.of(context)
-                                        .primaryBackground,
-                                  ),
-                                  alignment: AlignmentDirectional(-1.0, 0.0),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      if (responsiveVisibility(
-                                        context: context,
-                                        phone: false,
-                                        tablet: false,
-                                      ))
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 10.0, 0.0),
-                                          child: AppIconButton(
-                                            borderColor: Colors.transparent,
-                                            borderRadius: 30.0,
-                                            borderWidth: 1.0,
-                                            buttonSize: 60.0,
-                                            icon: Icon(
-                                              Icons.arrow_back_ios_rounded,
-                                              color:
-                                                  AppTheme.of(context)
-                                                      .primaryText,
-                                              size: 35.0,
-                                            ),
-                                            onPressed: () async {
-                                              context.pushNamed(
-                                                  MainProfilePageWidget
-                                                      .routeName);
-                                            },
-                                          ),
-                                        ),
-                                      Expanded(
-                                        flex: 7,
-                                        child: Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  16.0, 16.0, 0.0, 16.0),
-                                          child: Text(
-                                            AppLocalizations.of(context).getText(
-                                              '609lph0v' /* My Family */,
-                                            ),
-                                            textAlign: TextAlign.start,
-                                            style: AppTheme.of(context)
-                                                .displaySmall
-                                                .override(
-                                                  font: GoogleFonts.readexPro(
-                                                    fontWeight:
-                                                        AppTheme.of(
-                                                                context)
-                                                            .displaySmall
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        AppTheme.of(
-                                                                context)
-                                                            .displaySmall
-                                                            .fontStyle,
-                                                  ),
-                                                  letterSpacing: 0.0,
-                                                  fontWeight:
-                                                      AppTheme.of(
-                                                              context)
-                                                          .displaySmall
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      AppTheme.of(
-                                                              context)
-                                                          .displaySmall
-                                                          .fontStyle,
-                                                ),
-                                          ).animateOnPageLoad(animationsMap[
-                                              'textOnPageLoadAnimation']!),
-                                        ),
-                                      ),
-                                      if (responsiveVisibility(
-                                        context: context,
-                                        phone: false,
-                                        tablet: false,
-                                      ))
-                                        Expanded(
-                                          flex: 4,
-                                          child: Padding(
-                                            padding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    0.0, 8.0, 16.0, 8.0),
-                                            child: TextFormField(
-                                              controller: _model
-                                                  .emailAddressTextController,
-                                              focusNode:
-                                                  _model.emailAddressFocusNode,
-                                              obscureText: false,
-                                              decoration: InputDecoration(
-                                                labelStyle:
-                                                    AppTheme.of(context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                AppTheme.of(
-                                                                        context)
-                                                                    .bodySmall
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                AppTheme.of(
-                                                                        context)
-                                                                    .bodySmall
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .bodySmall
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .bodySmall
-                                                                  .fontStyle,
-                                                        ),
-                                                hintStyle: AppTheme.of(
-                                                        context)
-                                                    .bodyMedium
-                                                    .override(
-                                                      font: GoogleFonts
-                                                          .lexendDeca(
-                                                        fontWeight:
-                                                            FontWeight.normal,
-                                                        fontStyle:
-                                                            AppTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
-                                                      color: Color(0xFF57636C),
-                                                      fontSize: 14.0,
-                                                      letterSpacing: 0.0,
-                                                      fontWeight:
-                                                          FontWeight.normal,
-                                                      fontStyle:
-                                                          AppTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontStyle,
-                                                    ),
-                                                enabledBorder:
-                                                    OutlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                    color: AppTheme.of(
-                                                            context)
-                                                        .lineColor,
-                                                    width: 2.0,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          40.0),
-                                                ),
-                                                focusedBorder:
-                                                    OutlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                    color: Color(0x00000000),
-                                                    width: 2.0,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          40.0),
-                                                ),
-                                                errorBorder: OutlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                    color: Color(0x00000000),
-                                                    width: 2.0,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          40.0),
-                                                ),
-                                                focusedErrorBorder:
-                                                    OutlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                    color: Color(0x00000000),
-                                                    width: 2.0,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          40.0),
-                                                ),
-                                                filled: true,
-                                                fillColor:
-                                                    AppTheme.of(context)
-                                                        .secondaryBackground,
-                                                contentPadding:
-                                                    EdgeInsetsDirectional
-                                                        .fromSTEB(24.0, 12.0,
-                                                            20.0, 12.0),
-                                                prefixIcon: Icon(
-                                                  Icons.search_rounded,
-                                                  color: AppTheme.of(
-                                                          context)
-                                                      .secondaryText,
-                                                ),
-                                              ),
-                                              style:
-                                                  AppTheme.of(context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            AppTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            AppTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
-                                              validator: _model
-                                                  .emailAddressTextControllerValidator
-                                                  .asValidator(context),
-                                            ),
-                                          ),
-                                        ),
-                                      if (responsiveVisibility(
-                                        context: context,
-                                        tabletLandscape: false,
-                                        desktop: false,
-                                      ))
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 10.0, 0.0),
-                                          child: AppIconButton(
-                                            borderColor: Colors.transparent,
-                                            borderRadius: 30.0,
-                                            borderWidth: 1.0,
-                                            buttonSize: 60.0,
-                                            icon: Icon(
-                                              Icons.arrow_forward_ios_rounded,
-                                              color:
-                                                  AppTheme.of(context)
-                                                      .primaryText,
-                                              size: 30.0,
-                                            ),
-                                            onPressed: () async {
-                                              context.pushNamed(
-                                                  MainProfilePageWidget
-                                                      .routeName);
-                                            },
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    16.0, 12.0, 16.0, 0.0),
-                                child: Container(
-                                  width: MediaQuery.sizeOf(context).width * 1.0,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.of(context)
-                                        .secondaryBackground,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        blurRadius: 4.0,
-                                        color: Color(0x1F000000),
-                                        offset: Offset(
-                                          0.0,
-                                          2.0,
-                                        ),
-                                      )
-                                    ],
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    border: Border.all(
-                                      color: AppTheme.of(context)
-                                          .primaryBackground,
-                                      width: 1.0,
-                                    ),
-                                  ),
-                                  child: Builder(
-                                    builder: (context) {
-                                      final fam = AppState()
-                                          .UserSession
-                                          .family
-                                          .toList();
+                  ),
 
-                                      return Column(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: List.generate(fam.length,
-                                            (famIndex) {
-                                          final famItem = fam[famIndex];
-                                          return wrapWithModel(
-                                            model: _model.familyRowDetailModels
-                                                .getModel(
-                                              famIndex.toString(),
-                                              famIndex,
-                                            ),
-                                            updateCallback: () =>
-                                                safeSetState(() {}),
-                                            child: FamilyRowDetailWidget(
-                                              key: Key(
-                                                'Key9n9_${famIndex.toString()}',
-                                              ),
-                                              name: famItem.name,
-                                              score: famItem.score,
-                                              lastChecked: famItem.lastChecked!,
-                                              age: 0,
-                                              gender: Genders.RND,
-                                            ),
-                                          );
-                                        }),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                  // Filter chips
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: SizedBox(
+                      height: 40,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: filters.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemBuilder: (context, index) {
+                          return BinaFilterChip(
+                            label: filters[index],
+                            isSelected: _selectedFilterIndex == index,
+                            onTap: () {
+                              setState(() {
+                                _selectedFilterIndex = index;
+                              });
+                            },
+                          );
+                        },
                       ),
+                    ),
+                  ).animate()
+                      .fadeIn(delay: 200.ms, duration: 400.ms)
+                      .moveY(begin: 20, end: 0, delay: 200.ms, duration: 400.ms),
+
+                  // Family list
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    child: filteredFamily.isEmpty
+                        ? _EmptyState(
+                            onAddMember: _showAddMemberSheet,
+                          )
+                        : Column(
+                            children: filteredFamily
+                                .asMap()
+                                .entries
+                                .map((entry) {
+                              final index = entry.key;
+                              final member = entry.value;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _FamilyMemberRow(
+                                  member: member,
+                                  onTap: () {
+                                    // TODO: Navigate to member detail or show details
+                                    // For now, go to scan
+                                    context.pushNamed(
+                                      MainDIagnosticsWidget.routeName,
+                                    );
+                                  },
+                                ),
+                              ).animate()
+                                  .fadeIn(
+                                    delay: Duration(milliseconds: 300 + (index * 100)),
+                                    duration: 400.ms,
+                                  )
+                                  .moveY(
+                                    begin: 30,
+                                    end: 0,
+                                    delay: Duration(milliseconds: 300 + (index * 100)),
+                                    duration: 400.ms,
+                                  );
+                            }).toList(),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+            // Floating bottom nav (phone only)
+            if (responsiveVisibility(
+              context: context,
+              tablet: false,
+              tabletLandscape: false,
+              desktop: false,
+            ))
+              const BinaFloatingNav(currentTab: BinaNavTab.family),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ADD BUTTON
+// ═══════════════════════════════════════════════════════════════
+
+class _AddButton extends StatefulWidget {
+  const _AddButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_AddButton> createState() => _AddButtonState();
+}
+
+class _AddButtonState extends State<_AddButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: BinaMotion.d1,
+        width: 44,
+        height: 44,
+        transform: _isPressed
+            ? (Matrix4.identity()..scale(0.95, 0.95))
+            : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: BinaColors.primary,
+          shape: BoxShape.circle,
+          boxShadow: BinaElevation.sh2,
+        ),
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+          size: 22,
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FAMILY MEMBER ROW
+// ═══════════════════════════════════════════════════════════════
+
+class _FamilyMemberRow extends StatelessWidget {
+  const _FamilyMemberRow({
+    required this.member,
+    required this.onTap,
+  });
+
+  final FamilyMemberStruct member;
+  final VoidCallback onTap;
+
+  int? get _age {
+    if (!member.hasBirthday()) return null;
+    return DateTime.now().difference(member.birthday!).inDays ~/ 365;
+  }
+
+  DxChipKind get _diagnosisKind {
+    if (!member.hasLastChecked()) return DxChipKind.due;
+    if (member.score >= 80) return DxChipKind.good;
+    if (member.score >= 50) return DxChipKind.plaque;
+    return DxChipKind.cavity;
+  }
+
+  BinaAvatarTone get _avatarTone {
+    final hash = member.name.hashCode;
+    final tones = BinaAvatarTone.values;
+    return tones[hash.abs() % (tones.length - 1)];
+  }
+
+  String get _lastCheckedStr {
+    if (!member.hasLastChecked()) return 'Never checked';
+    final date = member.lastChecked!;
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inDays == 0) {
+      return 'Last checked today';
+    } else if (diff.inDays == 1) {
+      return 'Last checked yesterday';
+    } else if (diff.inDays < 7) {
+      return 'Last checked ${diff.inDays} days ago';
+    } else {
+      return 'Last checked ${DateFormat('d MMM').format(date)}';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: BinaColors.line),
+          boxShadow: BinaElevation.sh2,
+        ),
+        child: Row(
+          children: [
+            // Avatar
+            BinaAvatar(
+              name: member.name,
+              size: 52,
+              tone: _avatarTone,
+              imageUrl: member.profilePic.isNotEmpty ? member.profilePic : null,
+            ),
+            const SizedBox(width: 14),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Name and age
+                  Row(
+                    children: [
+                      Text(
+                        member.name,
+                        style: BinaType.titleLg,
+                      ),
+                      if (_age != null) ...[
+                        Text(
+                          ' · $_age yrs',
+                          style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                        ),
+                      ],
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  // Last checked
+                  Text(
+                    _lastCheckedStr,
+                    style: BinaType.bodySm,
+                  ),
+                  const SizedBox(height: 8),
+                  // Diagnosis chip
+                  DxChip(kind: _diagnosisKind, size: DxChipSize.sm),
+                ],
+              ),
             ),
+            // Chevron
+            Icon(
+              Icons.chevron_right_rounded,
+              color: BinaColors.ink3,
+              size: 24,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EMPTY STATE
+// ═══════════════════════════════════════════════════════════════
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.onAddMember});
+
+  final VoidCallback onAddMember;
+
+  @override
+  Widget build(BuildContext context) {
+    return BinaCard(
+      padding: const EdgeInsets.all(BinaSpace.s6),
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: BinaColors.primary100,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.groups_rounded,
+              color: BinaColors.primary,
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: BinaSpace.s4),
+          Text(
+            'No family members yet',
+            style: BinaType.titleLg,
+          ),
+          const SizedBox(height: BinaSpace.s2),
+          Text(
+            'Add your first family member to start tracking dental health.',
+            style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: BinaSpace.s5),
+          BinaButton(
+            label: 'Add member',
+            icon: Icons.add,
+            onPressed: onAddMember,
+          ),
+        ],
       ),
     );
   }
