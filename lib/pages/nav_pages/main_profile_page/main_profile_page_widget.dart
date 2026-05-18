@@ -1,18 +1,13 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/components/accessibility/accessibility_widget.dart';
-import '/components/dialogs/confirm_dialog.dart';
-import '/components/dialogs/loading_dialog.dart';
-import '/app_core/app_animations.dart';
-import '/app_core/app_icon_button.dart';
-import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
-import '/app_core/app_widgets.dart';
+import '/app_core/app_theme_type.dart';
+import '/bina_design/bina_design.dart';
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
 import '/index.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '/services/accessibility_settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'main_profile_page_model.dart';
 export 'main_profile_page_model.dart';
@@ -32,657 +27,590 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
   late MainProfilePageModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  final animationsMap = <String, AnimationInfo>{};
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => MainProfilePageModel());
-
-    animationsMap.addAll({
-      'textOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          FadeEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: Offset(0.0, 20.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-    });
-    setupAnimations(
-      animationsMap.values.where((anim) =>
-          anim.trigger == AnimationTrigger.onActionTrigger ||
-          !anim.applyInitialState),
-      this,
-    );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
+  }
+
+  void _showAccessibilitySheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AccessibilityWidget(),
+    );
+  }
+
+  void _showSignOutDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: BinaColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BinaRadius.lg),
+        ),
+        title: Text(
+          'Sign out?',
+          style: BinaType.headlineSm,
+        ),
+        content: Text(
+          'You will need to sign in again to access your account.',
+          style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'Cancel',
+              style: BinaType.labelLg.copyWith(color: BinaColors.ink2),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              GoRouter.of(context).prepareAuthEvent();
+              await authManager.signOut();
+              GoRouter.of(context).clearRedirectLocation();
+              context.goNamedAuth(Auth2LoginWidget.routeName, context.mounted);
+            },
+            child: Text(
+              'Sign out',
+              style: BinaType.labelLg.copyWith(color: BinaColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     context.watch<AppState>();
 
-    return Scaffold(
-      key: scaffoldKey,
-      backgroundColor: AppTheme.of(context).primaryBackground,
-      body: Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                if (responsiveVisibility(
-                  context: context,
-                  phone: false,
-                  tablet: false,
-                ))
-                  wrapWithModel(
-                    model: _model.webNavModel,
-                    updateCallback: () => safeSetState(() {}),
-                    child: WebNavWidget(
-                      iconOne: Icon(
-                        Icons.home_rounded,
-                        color: AppTheme.of(context).secondaryText,
-                      ),
-                      iconTwo: Icon(
-                        Icons.remove_red_eye,
-                        color: AppTheme.of(context).secondaryText,
-                      ),
-                      iconThree: Icon(
-                        Icons.camera_alt,
-                        color: AppTheme.of(context).secondaryText,
-                      ),
-                      iconFour: Icon(
-                        Icons.account_circle,
-                        color: AppTheme.of(context).primary,
-                      ),
-                      colorBgOne:
-                          AppTheme.of(context).secondaryBackground,
-                      colorBgTwo:
-                          AppTheme.of(context).secondaryBackground,
-                      colorBgThree:
-                          AppTheme.of(context).secondaryBackground,
-                      colorBgFour:
-                          AppTheme.of(context).primaryBackground,
-                      textOne: AppTheme.of(context).primaryText,
-                      textTwo: AppTheme.of(context).secondaryText,
-                      textThree: AppTheme.of(context).secondaryText,
-                      textFour: AppTheme.of(context).secondaryText,
-                      iconFive: Icon(
-                        Icons.reduce_capacity,
-                        color: AppTheme.of(context).secondaryText,
-                      ),
-                      colorBgFive:
-                          AppTheme.of(context).secondaryBackground,
-                      textFive: AppTheme.of(context).secondaryText,
-                    ),
-                  ),
-                Expanded(
-                  child: Container(
-                    width: 100.0,
-                    decoration: BoxDecoration(
-                      color: AppTheme.of(context).primaryBackground,
+    final user = AppState().UserSession;
+    final currentThemeType = AccessibilitySettingsService.instance.themeType;
+    // Map AppThemeType to BinaThemeId for display
+    final currentBinaTheme = _mapToBinaTheme(currentThemeType);
+
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        key: scaffoldKey,
+        backgroundColor: BinaColors.surfaceAlt,
+        body: Row(
+          children: [
+            // Web nav for larger screens
+            if (responsiveVisibility(
+              context: context,
+              phone: false,
+              tablet: false,
+            ))
+              wrapWithModel(
+                model: _model.webNavModel,
+                updateCallback: () => safeSetState(() {}),
+                child: const WebNavWidget(),
+              ),
+            // Main content
+            Expanded(
+              child: Stack(
+                children: [
+                  // Scrollable content
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.only(
+                      top: 54,
+                      bottom: 120,
                     ),
                     child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (responsiveVisibility(
-                          context: context,
-                          tablet: false,
-                          tabletLandscape: false,
-                          desktop: false,
-                        ))
-                          Container(
-                            width: double.infinity,
-                            height: 34.0,
-                            decoration: BoxDecoration(
-                              color: AppTheme.of(context)
-                                  .secondaryBackground,
-                            ),
+                        // Title
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                          child: Text(
+                            'Profile',
+                            style: BinaType.displaySm,
                           ),
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: AppTheme.of(context)
-                                .secondaryBackground,
+                        ).animate()
+                            .fadeIn(duration: 400.ms)
+                            .moveY(begin: 20, end: 0, duration: 400.ms),
+
+                        // Identity card
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          child: _IdentityCard(
+                            name: user.name,
+                            email: user.email,
+                            onTap: () {
+                              // TODO: Open account settings
+                            },
                           ),
-                          alignment: AlignmentDirectional(-1.0, 0.0),
+                        ).animate()
+                            .fadeIn(delay: 100.ms, duration: 400.ms)
+                            .moveY(begin: 20, end: 0, delay: 100.ms, duration: 400.ms),
+
+                        // Appearance section
+                        _ProfileGroup(
+                          title: 'APPEARANCE',
                           child: Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 0.0, 16.0, 0.0),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            padding: const EdgeInsets.all(14),
+                            child: Column(
                               children: [
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      16.0, 16.0, 0.0, 16.0),
-                                  child: Text(
-                                    AppLocalizations.of(context).getText(
-                                      'qrxn5crt' /* My Profile */,
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Theme',
+                                      style: BinaType.labelMd,
                                     ),
-                                    textAlign: TextAlign.start,
-                                    style: AppTheme.of(context)
-                                        .displaySmall
-                                        .override(
-                                          font: GoogleFonts.readexPro(
-                                            fontWeight:
-                                                AppTheme.of(context)
-                                                    .displaySmall
-                                                    .fontWeight,
-                                            fontStyle:
-                                                AppTheme.of(context)
-                                                    .displaySmall
-                                                    .fontStyle,
-                                          ),
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              AppTheme.of(context)
-                                                  .displaySmall
-                                                  .fontWeight,
-                                          fontStyle:
-                                              AppTheme.of(context)
-                                                  .displaySmall
-                                                  .fontStyle,
+                                    GestureDetector(
+                                      onTap: _showAccessibilitySheet,
+                                      child: Text(
+                                        'More options →',
+                                        style: BinaType.labelSm.copyWith(
+                                          color: BinaColors.primary,
+                                          fontWeight: FontWeight.w600,
                                         ),
-                                  ).animateOnPageLoad(animationsMap[
-                                      'textOnPageLoadAnimation']!),
-                                ),
-                                if (responsiveVisibility(
-                                  context: context,
-                                  tabletLandscape: false,
-                                  desktop: false,
-                                ))
-                                  AppIconButton(
-                                    borderRadius: 30.0,
-                                    borderWidth: 1.0,
-                                    buttonSize: 60.0,
-                                    icon: Icon(
-                                      Icons.power_settings_new,
-                                      color: AppTheme.of(context)
-                                          .primaryText,
-                                      size: 30.0,
+                                      ),
                                     ),
-                                    onPressed: () {
-                                      print('IconButton pressed ...');
-                                    },
-                                  ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    _ThemeSwatch(
+                                      label: 'Light',
+                                      themeId: BinaThemeId.light,
+                                      isActive: currentBinaTheme == BinaThemeId.light,
+                                      colors: [const Color(0xFFFBFAF6), const Color(0xFF1F5BFF)],
+                                      onTap: () => _setTheme(BinaThemeId.light),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _ThemeSwatch(
+                                      label: 'Dark',
+                                      themeId: BinaThemeId.dark,
+                                      isActive: currentBinaTheme == BinaThemeId.dark,
+                                      colors: [const Color(0xFF0C0F1A), const Color(0xFF5B8BFF)],
+                                      onTap: () => _setTheme(BinaThemeId.dark),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _ThemeSwatch(
+                                      label: 'Warm',
+                                      themeId: BinaThemeId.warm,
+                                      isActive: currentBinaTheme == BinaThemeId.warm,
+                                      colors: [const Color(0xFFFFF8E1), const Color(0xFFEF8B1A)],
+                                      onTap: () => _setTheme(BinaThemeId.warm),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _ThemeSwatch(
+                                      label: 'Cool',
+                                      themeId: BinaThemeId.cool,
+                                      isActive: currentBinaTheme == BinaThemeId.cool,
+                                      colors: [const Color(0xFFE3F2FD), const Color(0xFF0099B3)],
+                                      onTap: () => _setTheme(BinaThemeId.cool),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _ThemeSwatch(
+                                      label: 'A11y',
+                                      themeId: BinaThemeId.deuteranopia,
+                                      isActive: currentBinaTheme == BinaThemeId.deuteranopia,
+                                      colors: [const Color(0xFFFFFFFF), const Color(0xFF0077BB)],
+                                      onTap: () => _setTheme(BinaThemeId.deuteranopia),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
-                        ),
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: AppTheme.of(context)
-                                .secondaryBackground,
-                            boxShadow: [
-                              BoxShadow(
-                                blurRadius: 1.0,
-                                color: AppTheme.of(context)
-                                    .primaryBackground,
-                                offset: Offset(
-                                  0.0,
-                                  0.0,
-                                ),
-                              )
+                        ).animate()
+                            .fadeIn(delay: 200.ms, duration: 400.ms)
+                            .moveY(begin: 20, end: 0, delay: 200.ms, duration: 400.ms),
+
+                        // Settings section
+                        _ProfileGroup(
+                          title: 'SETTINGS',
+                          child: Column(
+                            children: [
+                              _HubRow(
+                                icon: Icons.person_outline_rounded,
+                                label: 'Account',
+                                subtitle: 'Personal info, password, data',
+                                tone: _HubRowTone.blue,
+                                onTap: () {
+                                  // TODO: Open account settings
+                                },
+                              ),
+                              _HubRow(
+                                icon: Icons.accessibility_new_rounded,
+                                label: 'Accessibility',
+                                subtitle: 'Theme · text size · hints',
+                                tone: _HubRowTone.aqua,
+                                onTap: _showAccessibilitySheet,
+                              ),
+                              _HubRow(
+                                icon: Icons.help_outline_rounded,
+                                label: 'Help & support',
+                                subtitle: 'FAQ, contact, send feedback',
+                                tone: _HubRowTone.coral,
+                                isLast: true,
+                                onTap: () {
+                                  // TODO: Open help
+                                },
+                              ),
                             ],
                           ),
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                24.0, 12.0, 24.0, 12.0),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              children: [
-                                Card(
-                                  clipBehavior: Clip.antiAliasWithSaveLayer,
-                                  color: AppTheme.of(context)
-                                      .secondaryBackground,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(50.0),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(2.0),
-                                    child: Container(
-                                      width: 76.0,
-                                      height: 76.0,
-                                      clipBehavior: Clip.antiAlias,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: CachedNetworkImage(
-                                        fadeInDuration:
-                                            Duration(milliseconds: 500),
-                                        fadeOutDuration:
-                                            Duration(milliseconds: 500),
-                                        imageUrl:
-                                            'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      16.0, 0.0, 0.0, 0.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.max,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 8.0, 0.0, 0.0),
-                                        child: Text(
-                                          AppState().UserSession.name,
-                                          style: AppTheme.of(context)
-                                              .headlineSmall
-                                              .override(
-                                                font: GoogleFonts.readexPro(
-                                                  fontWeight:
-                                                      AppTheme.of(
-                                                              context)
-                                                          .headlineSmall
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      AppTheme.of(
-                                                              context)
-                                                          .headlineSmall
-                                                          .fontStyle,
-                                                ),
-                                                letterSpacing: 0.0,
-                                                fontWeight:
-                                                    AppTheme.of(context)
-                                                        .headlineSmall
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    AppTheme.of(context)
-                                                        .headlineSmall
-                                                        .fontStyle,
-                                              ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 8.0, 0.0, 0.0),
-                                        child: Text(
-                                          AppState().UserSession.email,
-                                          style: AppTheme.of(context)
-                                              .bodySmall
-                                              .override(
-                                                font: GoogleFonts.outfit(
-                                                  fontWeight: FontWeight.normal,
-                                                  fontStyle:
-                                                      AppTheme.of(
-                                                              context)
-                                                          .bodySmall
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    AppTheme.of(context)
-                                                        .primary,
-                                                fontSize: 14.0,
-                                                letterSpacing: 0.0,
-                                                fontWeight: FontWeight.normal,
-                                                fontStyle:
-                                                    AppTheme.of(context)
-                                                        .bodySmall
-                                                        .fontStyle,
-                                              ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                        ).animate()
+                            .fadeIn(delay: 300.ms, duration: 400.ms)
+                            .moveY(begin: 20, end: 0, delay: 300.ms, duration: 400.ms),
+
+                        // About section
+                        _ProfileGroup(
+                          title: 'ABOUT',
+                          child: _HubRow(
+                            icon: Icons.info_outline_rounded,
+                            label: 'About Bina',
+                            subtitle: 'Version 1.0.0',
+                            tone: _HubRowTone.blue,
+                            isLast: true,
+                            onTap: () {
+                              // TODO: Open about
+                            },
+                          ),
+                        ).animate()
+                            .fadeIn(delay: 400.ms, duration: 400.ms)
+                            .moveY(begin: 20, end: 0, delay: 400.ms, duration: 400.ms),
+
+                        // Sign out button
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: BinaButton(
+                              label: 'Sign out',
+                              variant: BinaButtonVariant.ghost,
+                              onPressed: _showSignOutDialog,
                             ),
                           ),
-                        ),
-                        Column(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  24.0, 12.0, 0.0, 12.0),
-                              child: Text(
-                                AppLocalizations.of(context).getText(
-                                  'fyxsf6vn' /* Account Settings */,
-                                ),
-                                style: AppTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: AppTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                        fontStyle: AppTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: AppTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: AppTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  20.0, 0.0, 20.0, 0.0),
-                              child: InkWell(
-                                splashColor: Colors.transparent,
-                                focusColor: Colors.transparent,
-                                hoverColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                onTap: () async {
-                                  context.pushNamed(FamilyWidget.routeName);
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 60.0,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.of(context)
-                                        .secondaryBackground,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        blurRadius: 3.0,
-                                        color: Color(0x3416202A),
-                                        offset: Offset(
-                                          0.0,
-                                          1.0,
-                                        ),
-                                      )
-                                    ],
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    shape: BoxShape.rectangle,
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  12.0, 0.0, 0.0, 0.0),
-                                          child: Text(
-                                            AppLocalizations.of(context).getText(
-                                            'h43llaan' /* Manage Family */,
-                                            ),
-                                            style: AppTheme.of(context)
-                                                .bodySmall
-                                                .override(
-                                            font: GoogleFonts.inter(
-                                            fontWeight:
-                                            AppTheme.of(
-                                            context)
-                                                .bodySmall
-                                                .fontWeight,
-                                            fontStyle:
-                                            AppTheme.of(
-                                            context)
-                                                .bodySmall
-                                                .fontStyle,
-                                            ),
-                                            letterSpacing: 0.0,
-                                            fontWeight:
-                                            AppTheme.of(
-                                            context)
-                                                .bodySmall
-                                                .fontWeight,
-                                            fontStyle:
-                                            AppTheme.of(
-                                            context)
-                                                .bodySmall
-                                                .fontStyle,
-                                            ),
-                                        )
-                                        ),
-                                        Expanded(
-                                          child: Align(
-                                            alignment:
-                                                AlignmentDirectional(0.9, 0.0),
-                                            child: Icon(
-                                              Icons.arrow_forward_ios,
-                                              color:
-                                                  AppTheme.of(context)
-                                                      .secondaryText,
-                                              size: 18.0,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  20.0, 12.0, 20.0, 0.0),
-                              child: InkWell(
-                                splashColor: Colors.transparent,
-                                focusColor: Colors.transparent,
-                                hoverColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                onTap: () async {
-                                  await showModalBottomSheet(
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    enableDrag: false,
-                                    context: context,
-                                    builder: (context) {
-                                      return Padding(
-                                        padding:
-                                            MediaQuery.viewInsetsOf(context),
-                                        child: AccessibilityWidget(),
-                                      );
-                                    },
-                                  ).then((value) => safeSetState(() {}));
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 60.0,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.of(context)
-                                        .secondaryBackground,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        blurRadius: 3.0,
-                                        color: Color(0x3416202A),
-                                        offset: Offset(
-                                          0.0,
-                                          1.0,
-                                        ),
-                                      )
-                                    ],
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    shape: BoxShape.rectangle,
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  12.0, 0.0, 0.0, 0.0),
-                                          child: Text(
-                                            AppLocalizations.of(context).getText(
-                                              'b1lw0hfu' /* Prefrences and Accessability */,
-                                            ),
-                                            style: AppTheme.of(context)
-                                                .bodySmall
-                                                .override(
-                                                  font: GoogleFonts.inter(
-                                                    fontWeight:
-                                                        AppTheme.of(
-                                                                context)
-                                                            .bodySmall
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        AppTheme.of(
-                                                                context)
-                                                            .bodySmall
-                                                            .fontStyle,
-                                                  ),
-                                                  letterSpacing: 0.0,
-                                                  fontWeight:
-                                                      AppTheme.of(
-                                                              context)
-                                                          .bodySmall
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      AppTheme.of(
-                                                              context)
-                                                          .bodySmall
-                                                          .fontStyle,
-                                                ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Align(
-                                            alignment:
-                                                AlignmentDirectional(0.9, 0.0),
-                                            child: Icon(
-                                              Icons.arrow_forward_ios,
-                                              color:
-                                                  AppTheme.of(context)
-                                                      .secondaryText,
-                                              size: 18.0,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 20.0, 0.0, 20.0),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  AppButtonWidget(
-                                    onPressed: () async {
-                                      // Show confirmation dialog
-                                      final confirmed = await ConfirmDialog.show(
-                                        context: context,
-                                        title: AppLocalizations.of(context).getText('dlg005' /* Log Out? */),
-                                        message: AppLocalizations.of(context).getText('dlg006' /* Are you sure you want to log out of your account? */),
-                                        confirmText: AppLocalizations.of(context).getText('dlg007' /* Log Out */),
-                                        cancelText: AppLocalizations.of(context).getText('dlg003' /* Cancel */),
-                                        isDestructive: true,
-                                        icon: Icons.logout,
-                                      );
-
-                                      if (!confirmed || !context.mounted) return;
-
-                                      // Show loading and perform logout
-                                      LoadingDialog.show(
-                                        context: context,
-                                        message: AppLocalizations.of(context).getText('dlg008' /* Logging out... */),
-                                      );
-
-                                      GoRouter.of(context).prepareAuthEvent();
-                                      await authManager.signOut();
-                                      GoRouter.of(context)
-                                          .clearRedirectLocation();
-
-                                      if (context.mounted) {
-                                        LoadingDialog.hide(context);
-                                        context.goNamedAuth(
-                                            Auth2LoginWidget.routeName,
-                                            context.mounted);
-                                      }
-                                    },
-                                    text: AppLocalizations.of(context).getText(
-                                      'abqf147c' /* Log Out */,
-                                    ),
-                                    options: AppButtonOptions(
-                                      width: 90.0,
-                                      height: 40.0,
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 0.0, 0.0, 0.0),
-                                      iconPadding:
-                                          EdgeInsetsDirectional.fromSTEB(
-                                              0.0, 0.0, 0.0, 0.0),
-                                      color: AppTheme.of(context)
-                                          .secondaryBackground,
-                                      textStyle: AppTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            font: GoogleFonts.inter(
-                                              fontWeight:
-                                                  AppTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontWeight,
-                                              fontStyle:
-                                                  AppTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontStyle,
-                                            ),
-                                            letterSpacing: 0.0,
-                                            fontWeight:
-                                                AppTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                AppTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                      elevation: 1.0,
-                                      borderSide: BorderSide(
-                                        color: Colors.transparent,
-                                        width: 1.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(40.0),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                        ).animate()
+                            .fadeIn(delay: 500.ms, duration: 400.ms)
+                            .moveY(begin: 20, end: 0, delay: 500.ms, duration: 400.ms),
                       ],
                     ),
                   ),
-                ),
-              ],
+                  // Floating bottom nav
+                  if (responsiveVisibility(
+                    context: context,
+                    tablet: false,
+                    tabletLandscape: false,
+                    desktop: false,
+                  ))
+                    const BinaFloatingNav(currentTab: BinaNavTab.profile),
+                ],
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  BinaThemeId _mapToBinaTheme(AppThemeType appTheme) {
+    switch (appTheme) {
+      case AppThemeType.light:
+        return BinaThemeId.light;
+      case AppThemeType.dark:
+        return BinaThemeId.dark;
+      case AppThemeType.warm:
+        return BinaThemeId.warm;
+      case AppThemeType.cool:
+        return BinaThemeId.cool;
+      case AppThemeType.deuteranopia:
+        return BinaThemeId.deuteranopia;
+    }
+  }
+
+  AppThemeType _mapToAppTheme(BinaThemeId binaTheme) {
+    switch (binaTheme) {
+      case BinaThemeId.light:
+        return AppThemeType.light;
+      case BinaThemeId.dark:
+        return AppThemeType.dark;
+      case BinaThemeId.warm:
+        return AppThemeType.warm;
+      case BinaThemeId.cool:
+        return AppThemeType.cool;
+      case BinaThemeId.deuteranopia:
+        return AppThemeType.deuteranopia;
+    }
+  }
+
+  void _setTheme(BinaThemeId themeId) {
+    setState(() {
+      BinaColors.use(themeId);
+      AccessibilitySettingsService.instance.setThemeType(_mapToAppTheme(themeId));
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// IDENTITY CARD
+// ═══════════════════════════════════════════════════════════════
+
+class _IdentityCard extends StatelessWidget {
+  const _IdentityCard({
+    required this.name,
+    required this.email,
+    required this.onTap,
+  });
+
+  final String name;
+  final String email;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: BinaColors.line),
+          boxShadow: BinaElevation.sh2,
+        ),
+        child: Row(
+          children: [
+            BinaAvatar(
+              name: name,
+              size: 62,
+              tone: BinaAvatarTone.blue,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name.isNotEmpty ? name : 'User',
+                    style: BinaType.titleLg,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    email.isNotEmpty ? email : 'No email',
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'View account →',
+                    style: BinaType.labelSm.copyWith(color: BinaColors.primary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROFILE GROUP
+// ═══════════════════════════════════════════════════════════════
+
+class _ProfileGroup extends StatelessWidget {
+  const _ProfileGroup({
+    required this.title,
+    required this.child,
+  });
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 8),
+            child: Text(title, style: BinaType.overline),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: BinaColors.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: BinaColors.line),
+              boxShadow: BinaElevation.sh2,
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: child,
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HUB ROW
+// ═══════════════════════════════════════════════════════════════
+
+enum _HubRowTone { blue, coral, aqua }
+
+class _HubRow extends StatelessWidget {
+  const _HubRow({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.tone,
+    required this.onTap,
+    this.isLast = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final _HubRowTone tone;
+  final VoidCallback onTap;
+  final bool isLast;
+
+  Color get _backgroundColor {
+    switch (tone) {
+      case _HubRowTone.blue: return BinaColors.primary100;
+      case _HubRowTone.coral: return BinaColors.coral100;
+      case _HubRowTone.aqua: return BinaColors.aqua.withValues(alpha: 0.2);
+    }
+  }
+
+  Color get _foregroundColor {
+    switch (tone) {
+      case _HubRowTone.blue: return BinaColors.primary700;
+      case _HubRowTone.coral: return BinaColors.coral700;
+      case _HubRowTone.aqua: return BinaColors.primary700;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          border: isLast
+              ? null
+              : Border(bottom: BorderSide(color: BinaColors.line)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _backgroundColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: _foregroundColor,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: BinaType.titleMd),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: BinaColors.ink3,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// THEME SWATCH
+// ═══════════════════════════════════════════════════════════════
+
+class _ThemeSwatch extends StatelessWidget {
+  const _ThemeSwatch({
+    required this.label,
+    required this.themeId,
+    required this.isActive,
+    required this.colors,
+    required this.onTap,
+  });
+
+  final String label;
+  final BinaThemeId themeId;
+  final bool isActive;
+  final List<Color> colors;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          children: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: AnimatedContainer(
+                duration: BinaMotion.d2,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: colors,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  border: isActive
+                      ? Border.all(color: BinaColors.primary, width: 3)
+                      : null,
+                  boxShadow: isActive ? BinaElevation.sh2 : BinaElevation.sh1,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: BinaType.labelSm.copyWith(
+                color: isActive ? BinaColors.primary : BinaColors.ink2,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

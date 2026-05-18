@@ -1,9 +1,8 @@
-import '/app_core/app_icon_button.dart';
-import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
+import '/bina_design/bina_design.dart';
 import '/services/chat_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'chat_history_model.dart';
 export 'chat_history_model.dart';
 
@@ -14,6 +13,7 @@ class ChatHistoryWidget extends StatefulWidget {
   static String routePath = 'chatHistory';
 
   final String? familyMemberId;
+
   @override
   State<ChatHistoryWidget> createState() => _ChatHistoryWidgetState();
 }
@@ -37,6 +37,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
   }
 
   void _createNewChat() {
+    if (widget.familyMemberId == null) return;
     final conversation = ChatManager.instance.createConversation(widget.familyMemberId!);
     context.pushNamed(
       'ChatRoom',
@@ -46,12 +47,26 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
     );
   }
 
+  String _formatTimeAgo(DateTime time) {
+    final now = DateTime.now();
+    final diff = now.difference(time);
+
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    return DateFormat('d MMM').format(time);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: ChatManager.instance,
       builder: (context, _) {
-        final conversations = ChatManager.instance.getMembersConversations(widget.familyMemberId!);
+        final conversations = widget.familyMemberId != null
+            ? ChatManager.instance.getMembersConversations(widget.familyMemberId!)
+            : <ChatConversation>[];
 
         return GestureDetector(
           onTap: () {
@@ -60,66 +75,114 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
           },
           child: Scaffold(
             key: scaffoldKey,
-            backgroundColor: AppTheme.of(context).primaryBackground,
-            floatingActionButton: FloatingActionButton(
-              onPressed: _createNewChat,
-              backgroundColor: AppTheme.of(context).primary,
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
-                size: 24.0,
-              ),
-            ),
-            appBar: AppBar(
-              backgroundColor:
-                  AppTheme.of(context).secondaryBackground,
-              automaticallyImplyLeading: false,
-              leading: AppIconButton(
-                borderColor: Colors.transparent,
-                borderRadius: 30.0,
-                borderWidth: 1.0,
-                buttonSize: 60.0,
-                icon: Icon(
-                  Icons.arrow_back_rounded,
-                  color: AppTheme.of(context).primaryText,
-                  size: 30.0,
-                ),
-                onPressed: () async {
-                  context.safePop();
-                },
-              ),
-              title: Text(
-                AppLocalizations.of(context).getText('chat001' /* Chats */),
-                style: AppTheme.of(context).headlineMedium.override(
-                      font: GoogleFonts.readexPro(
-                        fontWeight: AppTheme.of(context)
-                            .headlineMedium
-                            .fontWeight,
-                        fontStyle: AppTheme.of(context)
-                            .headlineMedium
-                            .fontStyle,
-                      ),
-                      letterSpacing: 0.0,
-                    ),
-              ),
-              centerTitle: false,
-              elevation: 0.0,
-            ),
-            body: Column(
+            backgroundColor: BinaColors.surfaceAlt,
+            body: Stack(
               children: [
-                Expanded(
-                  child: conversations.isEmpty
-                      ? _buildEmptyState(context)
-                      : ListView.builder(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
-                          itemCount: conversations.length,
-                          itemBuilder: (context, index) {
-                            final conversation = conversations[index];
-                            return _buildConversationTile(
-                                context, conversation);
-                          },
+                // Content
+                SingleChildScrollView(
+                  padding: const EdgeInsets.only(
+                    top: 54,
+                    bottom: 120,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Chats',
+                                  style: BinaType.displaySm,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'On-device · Gemma 3',
+                                  style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+                                ),
+                              ],
+                            ),
+                            BinaIconButton(
+                              icon: Icons.search_rounded,
+                              onPressed: () {
+                                // TODO: Implement search
+                              },
+                            ),
+                          ],
                         ),
+                      ).animate()
+                          .fadeIn(duration: 400.ms)
+                          .moveY(begin: 20, end: 0, duration: 400.ms),
+
+                      // Conversations list
+                      if (conversations.isEmpty)
+                        _buildEmptyState()
+                      else
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          child: Column(
+                            children: conversations.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final conversation = entry.value;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: _ConversationCard(
+                                  conversation: conversation,
+                                  timeAgo: conversation.messages.isNotEmpty
+                                      ? _formatTimeAgo(conversation.messages.last.timestamp)
+                                      : 'New',
+                                  onTap: () {
+                                    context.pushNamed(
+                                      'ChatRoom',
+                                      extra: <String, dynamic>{
+                                        'conversationId': conversation.id,
+                                      },
+                                    );
+                                  },
+                                  onDelete: () {
+                                    _showDeleteDialog(conversation);
+                                  },
+                                ),
+                              ).animate()
+                                  .fadeIn(
+                                    delay: Duration(milliseconds: 200 + (index * 80)),
+                                    duration: 400.ms,
+                                  )
+                                  .moveY(
+                                    begin: 20,
+                                    end: 0,
+                                    delay: Duration(milliseconds: 200 + (index * 80)),
+                                    duration: 400.ms,
+                                  );
+                            }).toList(),
+                          ),
+                        ),
+
+                      // New chat button
+                      if (widget.familyMemberId != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                          child: _NewChatButton(onTap: _createNewChat),
+                        ).animate()
+                            .fadeIn(delay: 400.ms, duration: 400.ms)
+                            .moveY(begin: 20, end: 0, delay: 400.ms, duration: 400.ms),
+                    ],
+                  ),
                 ),
+                // Floating bottom nav
+                if (responsiveVisibility(
+                  context: context,
+                  tablet: false,
+                  tabletLandscape: false,
+                  desktop: false,
+                ))
+                  const BinaFloatingNav(currentTab: BinaNavTab.chat),
               ],
             ),
           ),
@@ -128,186 +191,222 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            color: AppTheme.of(context).secondaryText,
-            size: 72.0,
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.all(40),
+      child: Center(
+        child: Column(
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: BinaColors.primary100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.chat_bubble_outline_rounded,
+                color: BinaColors.primary,
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No conversations yet',
+              style: BinaType.titleLg,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Start a new chat to ask questions about dental health.',
+              style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    ).animate()
+        .fadeIn(delay: 300.ms, duration: 400.ms);
+  }
+
+  void _showDeleteDialog(ChatConversation conversation) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: BinaColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BinaRadius.lg),
+        ),
+        title: Text(
+          'Delete conversation?',
+          style: BinaType.headlineSm,
+        ),
+        content: Text(
+          'This will permanently delete this conversation and all its messages.',
+          style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'Cancel',
+              style: BinaType.labelLg.copyWith(color: BinaColors.ink2),
+            ),
           ),
-          SizedBox(height: 16.0),
-          Text(
-            AppLocalizations.of(context).getText('chat002' /* No conversations yet */),
-            style: AppTheme.of(context).titleMedium.override(
-                  font: GoogleFonts.inter(
-                    fontWeight: AppTheme.of(context)
-                        .titleMedium
-                        .fontWeight,
-                    fontStyle: AppTheme.of(context)
-                        .titleMedium
-                        .fontStyle,
-                  ),
-                  color: AppTheme.of(context).secondaryText,
-                  letterSpacing: 0.0,
-                ),
-          ),
-          SizedBox(height: 8.0),
-          Text(
-            AppLocalizations.of(context).getText('chat003' /* Tap + to start a new chat */),
-            style: AppTheme.of(context).bodySmall.override(
-                  font: GoogleFonts.inter(
-                    fontWeight:
-                        AppTheme.of(context).bodySmall.fontWeight,
-                    fontStyle:
-                        AppTheme.of(context).bodySmall.fontStyle,
-                  ),
-                  letterSpacing: 0.0,
-                ),
-            textAlign: TextAlign.center,
+          TextButton(
+            onPressed: () {
+              ChatManager.instance.deleteConversation(conversation.id);
+              Navigator.of(ctx).pop();
+            },
+            child: Text(
+              'Delete',
+              style: BinaType.labelLg.copyWith(color: BinaColors.error),
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildConversationTile(
-      BuildContext context, ChatConversation conversation) {
-    final lastMessage = conversation.messages.isNotEmpty
-        ? conversation.messages.last.content
-        : AppLocalizations.of(context).getText('chat007' /* No messages yet */);
-    final preview = lastMessage.length > 60
-        ? '${lastMessage.substring(0, 60)}...'
-        : lastMessage;
+// ═══════════════════════════════════════════════════════════════
+// CONVERSATION CARD
+// ═══════════════════════════════════════════════════════════════
 
-    return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(16.0, 4.0, 16.0, 4.0),
-      child: InkWell(
-        onTap: () {
-          context.pushNamed(
-            'ChatRoom',
-            extra: <String, dynamic>{
-              'conversationId': conversation.id,
-            },
-          );
-        },
-        onLongPress: () {
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text(AppLocalizations.of(context).getText('chat004' /* Delete conversation? */)),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(AppLocalizations.of(context).getText('chat005' /* Cancel */)),
-                ),
-                TextButton(
-                  onPressed: () {
-                    ChatManager.instance
-                        .deleteConversation(conversation.id);
-                    Navigator.of(ctx).pop();
-                  },
-                  child: Text(
-                    AppLocalizations.of(context).getText('chat006' /* Delete */),
-                    style: TextStyle(
-                        color: AppTheme.of(context).error),
-                  ),
-                ),
-              ],
+class _ConversationCard extends StatelessWidget {
+  const _ConversationCard({
+    required this.conversation,
+    required this.timeAgo,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  final ChatConversation conversation;
+  final String timeAgo;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  String get _preview {
+    if (conversation.messages.isEmpty) return 'No messages yet';
+    final lastMessage = conversation.messages.last.content;
+    if (lastMessage.length > 60) {
+      return '${lastMessage.substring(0, 60)}...';
+    }
+    return lastMessage;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: onDelete,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: BinaColors.line),
+          boxShadow: BinaElevation.sh1,
+        ),
+        child: Row(
+          children: [
+            // Avatar placeholder (using chat icon for now)
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: BinaColors.primary100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.auto_awesome,
+                color: BinaColors.primary,
+                size: 22,
+              ),
             ),
-          );
-        },
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: AppTheme.of(context).secondaryBackground,
-            borderRadius: BorderRadius.circular(12.0),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 3.0,
-                color: Color(0x20000000),
-                offset: Offset(0.0, 1.0),
+            const SizedBox(width: 12),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    conversation.title,
+                    style: BinaType.titleMd,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _preview,
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.chat_bubble_outline,
-                color: AppTheme.of(context).primary,
-                size: 24.0,
-              ),
-              SizedBox(width: 12.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      conversation.title,
-                      style: AppTheme.of(context)
-                          .titleSmall
-                          .override(
-                            font: GoogleFonts.inter(
-                              fontWeight: AppTheme.of(context)
-                                  .titleSmall
-                                  .fontWeight,
-                              fontStyle: AppTheme.of(context)
-                                  .titleSmall
-                                  .fontStyle,
-                            ),
-                            color: AppTheme.of(context).primaryText,
-                            letterSpacing: 0.0,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 4.0),
-                    Text(
-                      preview,
-                      style: AppTheme.of(context)
-                          .bodySmall
-                          .override(
-                            font: GoogleFonts.inter(
-                              fontWeight: AppTheme.of(context)
-                                  .bodySmall
-                                  .fontWeight,
-                              fontStyle: AppTheme.of(context)
-                                  .bodySmall
-                                  .fontStyle,
-                            ),
-                            color: AppTheme.of(context)
-                                .secondaryText,
-                            letterSpacing: 0.0,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 8.0),
-              Text(
-                dateTimeFormat('relative', conversation.lastUpdatedAt),
-                style:
-                    AppTheme.of(context).bodySmall.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: AppTheme.of(context)
-                                .bodySmall
-                                .fontWeight,
-                            fontStyle: AppTheme.of(context)
-                                .bodySmall
-                                .fontStyle,
-                          ),
-                          color: AppTheme.of(context)
-                              .secondaryText,
-                          letterSpacing: 0.0,
-                        ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 12),
+            // Time
+            Text(
+              timeAgo,
+              style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NEW CHAT BUTTON
+// ═══════════════════════════════════════════════════════════════
+
+class _NewChatButton extends StatefulWidget {
+  const _NewChatButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_NewChatButton> createState() => _NewChatButtonState();
+}
+
+class _NewChatButtonState extends State<_NewChatButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: BinaMotion.d1,
+        transform: _isPressed
+            ? (Matrix4.identity()..scale(0.98, 0.98))
+            : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          gradient: BinaColors.gradHero,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: BinaElevation.shHero,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.auto_awesome,
+              color: Colors.white,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Start a new conversation',
+              style: BinaType.labelLg.copyWith(color: Colors.white),
+            ),
+          ],
         ),
       ),
     );
