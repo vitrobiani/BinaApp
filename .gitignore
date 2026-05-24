@@ -2,3 +2,5 @@
 .dart_tool/
 build/
 *.apk
+design
+*.md
