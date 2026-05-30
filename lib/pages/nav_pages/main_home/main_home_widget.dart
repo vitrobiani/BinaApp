@@ -77,6 +77,10 @@ class _MainHomeWidgetState extends State<MainHomeWidget>
     final percentage = familyAmount > 0 ? (sumChecked / familyAmount) * 100 : 0.0;
     final unchecked = familyAmount - sumChecked;
 
+    final bp = BinaBreakpoints.fromContext(context);
+    final isWide = bp != BinaBreakpoint.phone;
+    final isDesktop = bp == BinaBreakpoint.desktop;
+
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -87,104 +91,244 @@ class _MainHomeWidgetState extends State<MainHomeWidget>
         backgroundColor: BinaColors.surfaceAlt,
         body: Row(
           children: [
-            // Web nav for larger screens (tablet)
-            if (responsiveVisibility(
-              context: context,
-              phone: false,
-              tablet: false,
-            ))
+            // Web nav for larger screens
+            if (isWide)
               wrapWithModel(
                 model: _model.webNavModel,
                 updateCallback: () => safeSetState(() {}),
-                child: const WebNavWidget(),
+                child: WebNavWidget(currentTab: BinaNavTab.home),
               ),
             // Main content
             Expanded(
               child: Stack(
+                fit: StackFit.expand,
                 children: [
                   // Scrollable content
-                  SingleChildScrollView(
-                    padding: const EdgeInsets.only(
-                      top: 54,
-                      bottom: 120, // Space for floating nav
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Greeting header
-                        _GreetingHeader(userName: session.name)
-                            .animate()
-                            .fadeIn(duration: 600.ms)
-                            .moveY(begin: 20, end: 0, duration: 600.ms),
-
-                        // Hero progress card
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                          child: _HeroProgressCard(
-                            percentage: percentage,
-                            uncheckedCount: unchecked,
-                            onViewFamily: () {
-                              context.pushNamed(FamilyWidget.routeName);
-                            },
-                          ),
-                        ).animate()
-                            .fadeIn(delay: 200.ms, duration: 400.ms)
-                            .moveY(begin: 30, end: 0, delay: 200.ms, duration: 400.ms),
-
-                        // Family ribbon
-                        Padding(
-                          padding: const EdgeInsets.only(top: 24),
-                          child: _FamilyRibbon(
-                            family: family,
-                            onMemberTap: (member) {
-                              // Navigate to family screen - member detail is embedded there
-                              context.pushNamed(FamilyWidget.routeName);
-                            },
-                            onAddMember: _showAddMemberSheet,
-                            onSeeAll: () {
-                              context.pushNamed(FamilyWidget.routeName);
-                            },
-                          ),
-                        ).animate()
-                            .fadeIn(delay: 400.ms, duration: 400.ms)
-                            .moveY(begin: 30, end: 0, delay: 400.ms, duration: 400.ms),
-
-                        // Recent scans
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                          child: _RecentScansSection(
-                            family: family,
-                            onHistoryTap: () {
-                              context.pushNamed(MainDiagnoseWidget.routeName);
-                            },
-                          ),
-                        ).animate()
-                            .fadeIn(delay: 600.ms, duration: 400.ms)
-                            .moveY(begin: 30, end: 0, delay: 600.ms, duration: 400.ms),
-
-                        // Bina tip card
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                          child: const _BinaTipCard(),
-                        ).animate()
-                            .fadeIn(delay: 800.ms, duration: 400.ms)
-                            .moveY(begin: 30, end: 0, delay: 800.ms, duration: 400.ms),
-                      ],
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        top: isWide ? 24 : MediaQuery.of(context).padding.top + 12,
+                        bottom: isWide ? 24 : 120,
+                      ),
+                      child: isWide
+                          ? _buildWideLayout(
+                              context: context,
+                              session: session,
+                              family: family,
+                              percentage: percentage,
+                              unchecked: unchecked,
+                              isDesktop: isDesktop,
+                            )
+                          : _buildPhoneLayout(
+                              context: context,
+                              session: session,
+                              family: family,
+                              percentage: percentage,
+                              unchecked: unchecked,
+                            ),
                     ),
                   ),
                   // Floating bottom nav (phone only)
-                  if (responsiveVisibility(
-                    context: context,
-                    tablet: false,
-                    tabletLandscape: false,
-                    desktop: false,
-                  ))
+                  if (!isWide)
                     const BinaFloatingNav(currentTab: BinaNavTab.home),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPhoneLayout({
+    required BuildContext context,
+    required dynamic session,
+    required List<FamilyMemberStruct> family,
+    required double percentage,
+    required int unchecked,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _GreetingHeader(userName: session.name)
+            .animate()
+            .fadeIn(duration: 600.ms)
+            .moveY(begin: 20, end: 0, duration: 600.ms),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          child: _HeroProgressCard(
+            percentage: percentage,
+            uncheckedCount: unchecked,
+            onViewFamily: () => context.pushNamed(FamilyWidget.routeName),
+            onScan: () => context.pushNamed(MainDiagnoseWidget.routeName),
+          ),
+        ).animate()
+            .fadeIn(delay: 200.ms, duration: 400.ms)
+            .moveY(begin: 30, end: 0, delay: 200.ms, duration: 400.ms),
+        Padding(
+          padding: const EdgeInsets.only(top: 24),
+          child: _FamilyRibbon(
+            family: family,
+            onMemberTap: (member) => context.pushNamed(FamilyWidget.routeName),
+            onAddMember: _showAddMemberSheet,
+            onSeeAll: () => context.pushNamed(FamilyWidget.routeName),
+          ),
+        ).animate()
+            .fadeIn(delay: 400.ms, duration: 400.ms)
+            .moveY(begin: 30, end: 0, delay: 400.ms, duration: 400.ms),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+          child: _RecentScansSection(
+            family: family,
+            onHistoryTap: () => context.pushNamed(MainDiagnoseWidget.routeName),
+          ),
+        ).animate()
+            .fadeIn(delay: 600.ms, duration: 400.ms)
+            .moveY(begin: 30, end: 0, delay: 600.ms, duration: 400.ms),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+          child: const _BinaTipCard(),
+        ).animate()
+            .fadeIn(delay: 800.ms, duration: 400.ms)
+            .moveY(begin: 30, end: 0, delay: 800.ms, duration: 400.ms),
+      ],
+    );
+  }
+
+  Widget _buildWideLayout({
+    required BuildContext context,
+    required dynamic session,
+    required List<FamilyMemberStruct> family,
+    required double percentage,
+    required int unchecked,
+    required bool isDesktop,
+  }) {
+    return BinaWidePage(
+      maxWidth: 1180,
+      padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Greeting row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      DateFormat('EEEE · MMM d').format(DateTime.now()),
+                      style: BinaType.overline,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Hello ${session.name.isNotEmpty ? session.name : 'there'}',
+                      style: BinaType.displayMd,
+                    ),
+                  ],
+                ),
+              ),
+              BinaIconButton(
+                icon: Icons.notifications_outlined,
+                onPressed: () {},
+                badge: const BinaDotBadge(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          // Two-column layout for desktop
+          if (isDesktop)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left column - hero + recent scans
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    children: [
+                      _HeroProgressCard(
+                        percentage: percentage,
+                        uncheckedCount: unchecked,
+                        onViewFamily: () => context.pushNamed(FamilyWidget.routeName),
+                        onScan: () => context.pushNamed(MainDiagnoseWidget.routeName),
+                      ),
+                      const SizedBox(height: 20),
+                      BinaSectionCard(
+                        child: _RecentScansSection(
+                          family: family,
+                          onHistoryTap: () => context.pushNamed(MainDiagnoseWidget.routeName),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                // Right column - family + tip
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    children: [
+                      BinaSectionCard(
+                        child: _FamilyListCard(
+                          family: family,
+                          onMemberTap: (member) => context.pushNamed(FamilyWidget.routeName),
+                          onAddMember: _showAddMemberSheet,
+                          onSeeAll: () => context.pushNamed(FamilyWidget.routeName),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const _BinaTipCard(),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          else
+            // Tablet: stacked with 2-column grid
+            Column(
+              children: [
+                _HeroProgressCard(
+                  percentage: percentage,
+                  uncheckedCount: unchecked,
+                  onViewFamily: () => context.pushNamed(FamilyWidget.routeName),
+                  onScan: () => context.pushNamed(MainDiagnoseWidget.routeName),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: BinaSectionCard(
+                        child: _FamilyListCard(
+                          family: family,
+                          onMemberTap: (member) => context.pushNamed(FamilyWidget.routeName),
+                          onAddMember: _showAddMemberSheet,
+                          onSeeAll: () => context.pushNamed(FamilyWidget.routeName),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          BinaSectionCard(
+                            child: _RecentScansSection(
+                              family: family,
+                              onHistoryTap: () => context.pushNamed(MainDiagnoseWidget.routeName),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          const _BinaTipCard(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }
@@ -247,11 +391,13 @@ class _HeroProgressCard extends StatelessWidget {
     required this.percentage,
     required this.uncheckedCount,
     required this.onViewFamily,
+    this.onScan,
   });
 
   final double percentage;
   final int uncheckedCount;
   final VoidCallback onViewFamily;
+  final VoidCallback? onScan;
 
   @override
   Widget build(BuildContext context) {
@@ -308,17 +454,31 @@ class _HeroProgressCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      BinaButton(
-                        label: 'View family',
-                        variant: BinaButtonVariant.glass,
-                        size: BinaButtonSize.sm,
-                        icon: Icons.arrow_forward,
-                        onPressed: onViewFamily,
+                      Row(
+                        children: [
+                          BinaButton(
+                            label: 'View family',
+                            variant: BinaButtonVariant.glass,
+                            size: BinaButtonSize.sm,
+                            icon: Icons.arrow_forward,
+                            onPressed: onViewFamily,
+                          ),
+                          if (onScan != null) ...[
+                            const SizedBox(width: 10),
+                            BinaButton(
+                              label: 'Start a scan',
+                              variant: BinaButtonVariant.glassOutline,
+                              size: BinaButtonSize.sm,
+                              icon: Icons.camera_alt_rounded,
+                              onPressed: onScan,
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
                 ),
-                ProgressRings(
+                BinaProgressRings(
                   percentage: percentage,
                   size: 132,
                 ),
@@ -548,6 +708,136 @@ class _DashedBorderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FAMILY LIST CARD (for wide layouts)
+// ═══════════════════════════════════════════════════════════════
+
+class _FamilyListCard extends StatelessWidget {
+  const _FamilyListCard({
+    required this.family,
+    required this.onMemberTap,
+    required this.onAddMember,
+    required this.onSeeAll,
+  });
+
+  final List<FamilyMemberStruct> family;
+  final void Function(FamilyMemberStruct) onMemberTap;
+  final VoidCallback onAddMember;
+  final VoidCallback onSeeAll;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        BinaSectionHeader(
+          title: 'Your family',
+          action: 'See all',
+          onActionTap: onSeeAll,
+        ),
+        const SizedBox(height: 12),
+        ...family.map((member) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _FamilyRow(
+                member: member,
+                onTap: () => onMemberTap(member),
+              ),
+            )),
+        GestureDetector(
+          onTap: onAddMember,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: BinaColors.lineStrong,
+                width: 2,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add, size: 20, color: BinaColors.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Add member',
+                  style: BinaType.labelMd.copyWith(color: BinaColors.primary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FamilyRow extends StatelessWidget {
+  const _FamilyRow({
+    required this.member,
+    required this.onTap,
+  });
+
+  final FamilyMemberStruct member;
+  final VoidCallback onTap;
+
+  DxChipKind get _diagnosisKind {
+    if (member.lastChecked == null) return DxChipKind.due;
+    if (member.score >= 80) return DxChipKind.good;
+    if (member.score >= 50) return DxChipKind.plaque;
+    return DxChipKind.cavity;
+  }
+
+  BinaAvatarTone get _avatarTone {
+    final hash = member.name.hashCode;
+    final tones = BinaAvatarTone.values;
+    return tones[hash.abs() % (tones.length - 1)];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lastCheckedStr = member.lastChecked != null
+        ? 'Last checked ${DateFormat('d MMM').format(member.lastChecked!)}'
+        : 'Never checked';
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: BorderRadius.circular(BinaRadius.md),
+          border: Border.all(color: BinaColors.line),
+        ),
+        child: Row(
+          children: [
+            BinaAvatar(
+              name: member.name,
+              size: 44,
+              tone: _avatarTone,
+              imageUrl: member.profilePic.isNotEmpty ? member.profilePic : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(member.name, style: BinaType.titleMd),
+                  const SizedBox(height: 2),
+                  Text(
+                    lastCheckedStr,
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                  ),
+                ],
+              ),
+            ),
+            DxChip(kind: _diagnosisKind, size: DxChipSize.sm),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════

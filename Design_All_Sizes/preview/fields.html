@@ -1,0 +1,52 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_base.css">
+<style>
+  body { padding: 24px; background: var(--c-surface); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font: var(--t-label-md); color: var(--c-ink-2); }
+  .field input, .field select {
+    height: 48px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--c-line-strong);
+    background: var(--c-surface);
+    padding: 0 14px;
+    font: var(--t-body-md);
+    color: var(--c-ink);
+    outline: none;
+    transition: border-color 200ms, box-shadow 200ms;
+  }
+  .field input:focus { border-color: var(--c-primary); box-shadow: var(--sh-focus); }
+  .field input.error { border-color: var(--c-error); }
+  .field .hint { font: var(--t-body-sm); color: var(--c-ink-3); }
+  .field .err  { font: var(--t-body-sm); color: var(--c-error); }
+  .search { position: relative; }
+  .search input { padding-left: 40px; height: 44px; background: var(--c-surface-sunken); border-color: transparent; border-radius: var(--r-pill); }
+  .search svg { position: absolute; left: 14px; top: 14px; width: 16px; height: 16px; color: var(--c-ink-3); }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="field">
+      <label>Member name</label>
+      <input value="Avi" />
+      <div class="hint">Used on cards and history</div>
+    </div>
+    <div class="field">
+      <label>Date of birth</label>
+      <input value="2017-03-12" />
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input class="error" value="parent@" />
+      <div class="err">Enter a valid email address.</div>
+    </div>
+    <div class="field">
+      <label>Search</label>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input placeholder="Search scans, members…" />
+      </div>
+    </div>
+  </div>
+</body></html>

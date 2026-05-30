@@ -55,10 +55,14 @@ class BinaFloatingNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Account for device safe area (e.g., iPhone home indicator)
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final bottomOffset = bottomPadding > 0 ? bottomPadding + 8 : 22.0;
+
     return Positioned(
       left: 12,
       right: 12,
-      bottom: 22,
+      bottom: bottomOffset,
       child: Container(
         height: 70,
         decoration: BoxDecoration(

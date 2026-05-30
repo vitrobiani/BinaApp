@@ -1,12 +1,8 @@
-import '/app_core/app_drop_down.dart';
-import '/app_core/app_theme.dart';
+import '/bina_design/bina_design.dart';
 import '/app_core/app_util.dart';
-import '/app_core/app_widgets.dart';
-import '/app_core/form_field_controller.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'edit_profile_auth2_model.dart';
 export 'edit_profile_auth2_model.dart';
 
@@ -16,8 +12,8 @@ class EditProfileAuth2Widget extends StatefulWidget {
     String? title,
     String? confirmButtonText,
     required this.navigateAction,
-  })  : this.title = title ?? 'Edit Profile',
-        this.confirmButtonText = confirmButtonText ?? 'Save Changes';
+  })  : title = title ?? 'Edit Profile',
+        confirmButtonText = confirmButtonText ?? 'Save Changes';
 
   final String title;
   final String confirmButtonText;
@@ -49,16 +45,13 @@ class _EditProfileAuth2WidgetState extends State<EditProfileAuth2Widget> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {
           _model.myBioTextController?.text =
-              AppLocalizations.of(context).getText(
-            'xkqq8b0e' /* [bio] */,
-          );
+              AppLocalizations.of(context).getText('xkqq8b0e');
         }));
   }
 
   @override
   void dispose() {
     _model.maybeDispose();
-
     super.dispose();
   }
 
@@ -68,477 +61,190 @@ class _EditProfileAuth2WidgetState extends State<EditProfileAuth2Widget> {
       key: _model.formKey,
       autovalidateMode: AutovalidateMode.disabled,
       child: Column(
-        mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Title
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(24.0, 0.0, 0.0, 0.0),
+            padding: const EdgeInsets.only(left: 24),
+            child: Text(widget.title, style: BinaType.displaySm),
+          ),
+          // Subtitle
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 0, 0),
             child: Text(
-              widget.title,
-              style: AppTheme.of(context).displaySmall.override(
-                    font: GoogleFonts.readexPro(
-                      fontWeight:
-                          AppTheme.of(context).displaySmall.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).displaySmall.fontStyle,
-                    ),
-                    letterSpacing: 0.0,
-                    fontWeight:
-                        AppTheme.of(context).displaySmall.fontWeight,
-                    fontStyle:
-                        AppTheme.of(context).displaySmall.fontStyle,
-                  ),
+              AppLocalizations.of(context).getText('cfnr4q80'),
+              style: BinaType.labelLg.copyWith(color: BinaColors.ink2),
             ),
           ),
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(24.0, 8.0, 0.0, 0.0),
-            child: Text(
-              AppLocalizations.of(context).getText(
-                'cfnr4q80' /* Adjust the content below to up... */,
-              ),
-              style: AppTheme.of(context).labelLarge.override(
-                    font: GoogleFonts.inter(
-                      fontWeight:
-                          AppTheme.of(context).labelLarge.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).labelLarge.fontStyle,
-                    ),
-                    letterSpacing: 0.0,
-                    fontWeight:
-                        AppTheme.of(context).labelLarge.fontWeight,
-                    fontStyle:
-                        AppTheme.of(context).labelLarge.fontStyle,
-                  ),
-            ),
-          ),
+          // Profile photo
           Align(
-            alignment: AlignmentDirectional(0.0, -1.0),
+            alignment: Alignment.topCenter,
             child: Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
+              padding: const EdgeInsets.only(top: 12),
               child: Container(
-                width: 100.0,
-                height: 100.0,
+                width: 100,
+                height: 100,
                 decoration: BoxDecoration(
-                  color: AppTheme.of(context).accent2,
+                  color: BinaColors.primary100,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppTheme.of(context).secondary,
-                    width: 2.0,
-                  ),
+                  border: Border.all(color: BinaColors.primary, width: 2),
                 ),
-                child: Align(
-                  alignment: AlignmentDirectional(0.0, 0.0),
-                  child: Stack(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(60.0),
-                          child: CachedNetworkImage(
-                            fadeInDuration: Duration(milliseconds: 200),
-                            fadeOutDuration: Duration(milliseconds: 200),
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1499887142886-791eca5918cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NTYyMDF8MHwxfHNlYXJjaHwxN3x8dXNlcnxlbnwwfHx8fDE2OTc4MjQ2MjZ8MA&ixlib=rb-4.0.3&q=80&w=400',
-                            width: 300.0,
-                            height: 200.0,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(60.0),
-                          child: CachedNetworkImage(
-                            fadeInDuration: Duration(milliseconds: 200),
-                            fadeOutDuration: Duration(milliseconds: 200),
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1499887142886-791eca5918cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NTYyMDF8MHwxfHNlYXJjaHwxN3x8dXNlcnxlbnwwfHx8fDE2OTc4MjQ2MjZ8MA&ixlib=rb-4.0.3&q=80&w=400',
-                            width: 300.0,
-                            height: 200.0,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    ],
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(60),
+                    child: CachedNetworkImage(
+                      fadeInDuration: const Duration(milliseconds: 200),
+                      fadeOutDuration: const Duration(milliseconds: 200),
+                      imageUrl:
+                          'https://images.unsplash.com/photo-1499887142886-791eca5918cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NTYyMDF8MHwxfHNlYXJjaHwxN3x8dXNlcnxlbnwwfHx8fDE2OTc4MjQ2MjZ8MA&ixlib=rb-4.0.3&q=80&w=400',
+                      width: 300,
+                      height: 200,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
             ),
           ),
+          // Change photo button
           Align(
-            alignment: AlignmentDirectional(0.0, -1.0),
+            alignment: Alignment.topCenter,
             child: Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 32.0),
-              child: AppButtonWidget(
+              padding: const EdgeInsets.fromLTRB(0, 12, 0, 32),
+              child: BinaButton(
+                label: AppLocalizations.of(context).getText('u42j5t5x'),
+                variant: BinaButtonVariant.secondary,
                 onPressed: () {
-                  print('Button pressed ...');
+                  // Change photo action
                 },
-                text: AppLocalizations.of(context).getText(
-                  'u42j5t5x' /* Change Photo */,
-                ),
-                options: AppButtonOptions(
-                  width: 130.0,
-                  height: 40.0,
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  iconPadding:
-                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: AppTheme.of(context).primaryBackground,
-                  textStyle: AppTheme.of(context).bodyMedium.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: AppTheme.of(context)
-                              .bodyMedium
-                              .fontWeight,
-                          fontStyle:
-                              AppTheme.of(context).bodyMedium.fontStyle,
-                        ),
-                        letterSpacing: 0.0,
-                        fontWeight:
-                            AppTheme.of(context).bodyMedium.fontWeight,
-                        fontStyle:
-                            AppTheme.of(context).bodyMedium.fontStyle,
-                      ),
-                  elevation: 1.0,
-                  borderSide: BorderSide(
-                    color: AppTheme.of(context).alternate,
-                    width: 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
               ),
             ),
           ),
+          // Full Name field
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 12.0),
-            child: TextFormField(
-              controller: _model.yourNameTextController,
-              focusNode: _model.yourNameFocusNode,
-              autofillHints: [AutofillHints.name],
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: _buildTextField(
+              controller: _model.yourNameTextController!,
+              focusNode: _model.yourNameFocusNode!,
+              label: AppLocalizations.of(context).getText('hrubvu4m'),
+              hint: AppLocalizations.of(context).getText('wdugkxi2'),
+              autofillHints: const [AutofillHints.name],
               textCapitalization: TextCapitalization.words,
-              obscureText: false,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context).getText(
-                  'hrubvu4m' /* Full Name */,
-                ),
-                labelStyle: AppTheme.of(context).labelMedium.override(
-                      font: GoogleFonts.inter(
-                        fontWeight:
-                            AppTheme.of(context).labelMedium.fontWeight,
-                        fontStyle:
-                            AppTheme.of(context).labelMedium.fontStyle,
-                      ),
-                      letterSpacing: 0.0,
-                      fontWeight:
-                          AppTheme.of(context).labelMedium.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).labelMedium.fontStyle,
-                    ),
-                hintText: AppLocalizations.of(context).getText(
-                  'wdugkxi2' /* Your full name... */,
-                ),
-                hintStyle: AppTheme.of(context).labelMedium.override(
-                      font: GoogleFonts.inter(
-                        fontWeight:
-                            AppTheme.of(context).labelMedium.fontWeight,
-                        fontStyle:
-                            AppTheme.of(context).labelMedium.fontStyle,
-                      ),
-                      letterSpacing: 0.0,
-                      fontWeight:
-                          AppTheme.of(context).labelMedium.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).labelMedium.fontStyle,
-                    ),
-                errorStyle: AppTheme.of(context).bodyMedium.override(
-                      font: GoogleFonts.inter(
-                        fontWeight:
-                            AppTheme.of(context).bodyMedium.fontWeight,
-                        fontStyle:
-                            AppTheme.of(context).bodyMedium.fontStyle,
-                      ),
-                      color: AppTheme.of(context).error,
-                      letterSpacing: 0.0,
-                      fontWeight:
-                          AppTheme.of(context).bodyMedium.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).bodyMedium.fontStyle,
-                    ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.of(context).alternate,
-                    width: 2.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.of(context).primary,
-                    width: 2.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.of(context).error,
-                    width: 2.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.of(context).error,
-                    width: 2.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                filled: true,
-                fillColor: AppTheme.of(context).primaryBackground,
-                contentPadding:
-                    EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 0.0, 12.0),
-              ),
-              style: AppTheme.of(context).bodyMedium.override(
-                    font: GoogleFonts.inter(
-                      fontWeight:
-                          AppTheme.of(context).bodyMedium.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).bodyMedium.fontStyle,
-                    ),
-                    letterSpacing: 0.0,
-                    fontWeight:
-                        AppTheme.of(context).bodyMedium.fontWeight,
-                    fontStyle:
-                        AppTheme.of(context).bodyMedium.fontStyle,
-                  ),
-              cursorColor: AppTheme.of(context).primary,
-              validator:
-                  _model.yourNameTextControllerValidator.asValidator(context),
-              inputFormatters: [
-                if (!isAndroid && !isiOS)
-                  TextInputFormatter.withFunction((oldValue, newValue) {
-                    return TextEditingValue(
-                      selection: newValue.selection,
-                      text: newValue.text
-                          .toCapitalization(TextCapitalization.words),
-                    );
-                  }),
-              ],
+              validator: _model.yourNameTextControllerValidator.asValidator(context),
             ),
           ),
+          // Role dropdown
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 12.0),
-            child: AppDropDown<String>(
-              controller: _model.dropDownValueController ??=
-                  FormFieldController<String>(null),
-              options: [
-                AppLocalizations.of(context).getText(
-                  'bh82b223' /* Owner/Founder */,
-                ),
-                AppLocalizations.of(context).getText(
-                  'phu34612' /* Director */,
-                ),
-                AppLocalizations.of(context).getText(
-                  '3u84r61z' /* Manager */,
-                ),
-                AppLocalizations.of(context).getText(
-                  'rrippote' /* Mid-Manager */,
-                ),
-                AppLocalizations.of(context).getText(
-                  'pj1vpx8r' /* Employee */,
-                )
-              ],
-              onChanged: (val) =>
-                  safeSetState(() => _model.dropDownValue = val),
-              width: double.infinity,
-              height: 44.0,
-              textStyle: AppTheme.of(context).bodyMedium.override(
-                    font: GoogleFonts.inter(
-                      fontWeight:
-                          AppTheme.of(context).bodyMedium.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).bodyMedium.fontStyle,
-                    ),
-                    letterSpacing: 0.0,
-                    fontWeight:
-                        AppTheme.of(context).bodyMedium.fontWeight,
-                    fontStyle:
-                        AppTheme.of(context).bodyMedium.fontStyle,
-                  ),
-              hintText: AppLocalizations.of(context).getText(
-                'mzpep7jk' /* Your Role */,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: BinaColors.surfaceSunken,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: BinaColors.line, width: 2),
               ),
-              icon: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: AppTheme.of(context).secondaryText,
-                size: 24.0,
+              child: DropdownButtonFormField<String>(
+                value: _model.dropDownValue,
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).getText('mzpep7jk'),
+                  labelStyle: BinaType.labelMd.copyWith(color: BinaColors.ink2),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                style: BinaType.bodyMd,
+                dropdownColor: BinaColors.surface,
+                icon: Icon(Icons.keyboard_arrow_down_rounded, color: BinaColors.ink2),
+                items: [
+                  AppLocalizations.of(context).getText('bh82b223'),
+                  AppLocalizations.of(context).getText('phu34612'),
+                  AppLocalizations.of(context).getText('3u84r61z'),
+                  AppLocalizations.of(context).getText('rrippote'),
+                  AppLocalizations.of(context).getText('pj1vpx8r'),
+                ].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (val) => safeSetState(() => _model.dropDownValue = val),
               ),
-              fillColor: AppTheme.of(context).primaryBackground,
-              elevation: 2.0,
-              borderColor: AppTheme.of(context).alternate,
-              borderWidth: 2.0,
-              borderRadius: 8.0,
-              margin: EdgeInsetsDirectional.fromSTEB(16.0, 4.0, 16.0, 4.0),
-              hidesUnderline: true,
-              isSearchable: false,
-              isMultiSelect: false,
             ),
           ),
+          // Bio field
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 12.0),
-            child: TextFormField(
-              controller: _model.myBioTextController,
-              focusNode: _model.myBioFocusNode,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: _buildTextField(
+              controller: _model.myBioTextController!,
+              focusNode: _model.myBioFocusNode!,
+              label: AppLocalizations.of(context).getText('evezo4gx'),
+              hint: AppLocalizations.of(context).getText('15ubbgyg'),
               textCapitalization: TextCapitalization.sentences,
-              obscureText: false,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context).getText(
-                  'evezo4gx' /* Short Description */,
-                ),
-                labelStyle: AppTheme.of(context).labelMedium.override(
-                      font: GoogleFonts.inter(
-                        fontWeight:
-                            AppTheme.of(context).labelMedium.fontWeight,
-                        fontStyle:
-                            AppTheme.of(context).labelMedium.fontStyle,
-                      ),
-                      letterSpacing: 0.0,
-                      fontWeight:
-                          AppTheme.of(context).labelMedium.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).labelMedium.fontStyle,
-                    ),
-                hintText: AppLocalizations.of(context).getText(
-                  '15ubbgyg' /* A little about you... */,
-                ),
-                hintStyle: AppTheme.of(context).labelMedium.override(
-                      font: GoogleFonts.inter(
-                        fontWeight:
-                            AppTheme.of(context).labelMedium.fontWeight,
-                        fontStyle:
-                            AppTheme.of(context).labelMedium.fontStyle,
-                      ),
-                      letterSpacing: 0.0,
-                      fontWeight:
-                          AppTheme.of(context).labelMedium.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).labelMedium.fontStyle,
-                    ),
-                errorStyle: AppTheme.of(context).bodyMedium.override(
-                      font: GoogleFonts.inter(
-                        fontWeight:
-                            AppTheme.of(context).bodyMedium.fontWeight,
-                        fontStyle:
-                            AppTheme.of(context).bodyMedium.fontStyle,
-                      ),
-                      color: AppTheme.of(context).error,
-                      letterSpacing: 0.0,
-                      fontWeight:
-                          AppTheme.of(context).bodyMedium.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).bodyMedium.fontStyle,
-                    ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.of(context).alternate,
-                    width: 2.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.of(context).primary,
-                    width: 2.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.of(context).error,
-                    width: 2.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppTheme.of(context).error,
-                    width: 2.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                filled: true,
-                fillColor: AppTheme.of(context).primaryBackground,
-                contentPadding:
-                    EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 0.0, 12.0),
-              ),
-              style: AppTheme.of(context).bodyMedium.override(
-                    font: GoogleFonts.inter(
-                      fontWeight:
-                          AppTheme.of(context).bodyMedium.fontWeight,
-                      fontStyle:
-                          AppTheme.of(context).bodyMedium.fontStyle,
-                    ),
-                    letterSpacing: 0.0,
-                    fontWeight:
-                        AppTheme.of(context).bodyMedium.fontWeight,
-                    fontStyle:
-                        AppTheme.of(context).bodyMedium.fontStyle,
-                  ),
-              textAlign: TextAlign.start,
               maxLines: 3,
-              cursorColor: AppTheme.of(context).primary,
-              validator:
-                  _model.myBioTextControllerValidator.asValidator(context),
-              inputFormatters: [
-                if (!isAndroid && !isiOS)
-                  TextInputFormatter.withFunction((oldValue, newValue) {
-                    return TextEditingValue(
-                      selection: newValue.selection,
-                      text: newValue.text
-                          .toCapitalization(TextCapitalization.sentences),
-                    );
-                  }),
-              ],
+              validator: _model.myBioTextControllerValidator.asValidator(context),
             ),
           ),
-          Align(
-            alignment: AlignmentDirectional(0.0, 0.0),
-            child: Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(20.0, 24.0, 20.0, 0.0),
-              child: AppButtonWidget(
-                onPressed: () {
-                  print('Button-Login pressed ...');
+          // Submit button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+            child: SizedBox(
+              width: double.infinity,
+              child: BinaButton(
+                label: widget.confirmButtonText,
+                variant: BinaButtonVariant.primary,
+                onPressed: () async {
+                  if (widget.navigateAction != null) {
+                    await widget.navigateAction!();
+                  }
                 },
-                text: widget.confirmButtonText,
-                options: AppButtonOptions(
-                  width: double.infinity,
-                  height: 44.0,
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  iconPadding:
-                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: AppTheme.of(context).primary,
-                  textStyle: AppTheme.of(context).titleSmall.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: AppTheme.of(context)
-                              .titleSmall
-                              .fontWeight,
-                          fontStyle:
-                              AppTheme.of(context).titleSmall.fontStyle,
-                        ),
-                        letterSpacing: 0.0,
-                        fontWeight:
-                            AppTheme.of(context).titleSmall.fontWeight,
-                        fontStyle:
-                            AppTheme.of(context).titleSmall.fontStyle,
-                      ),
-                  elevation: 3.0,
-                  borderSide: BorderSide(
-                    color: Colors.transparent,
-                    width: 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String label,
+    required String hint,
+    List<String>? autofillHints,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: BinaColors.surfaceSunken,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: BinaColors.line, width: 2),
+      ),
+      child: TextFormField(
+        controller: controller,
+        focusNode: focusNode,
+        autofillHints: autofillHints,
+        textCapitalization: textCapitalization,
+        maxLines: maxLines,
+        style: BinaType.bodyMd,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: BinaType.labelMd.copyWith(color: BinaColors.ink2),
+          hintText: hint,
+          hintStyle: BinaType.bodyMd.copyWith(color: BinaColors.ink3),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        cursorColor: BinaColors.primary,
+        validator: validator,
+        inputFormatters: [
+          if (!isAndroid && !isiOS && textCapitalization != TextCapitalization.none)
+            TextInputFormatter.withFunction((oldValue, newValue) {
+              return TextEditingValue(
+                selection: newValue.selection,
+                text: newValue.text.toCapitalization(textCapitalization),
+              );
+            }),
         ],
       ),
     );

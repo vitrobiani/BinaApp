@@ -111,7 +111,10 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
         key: scaffoldKey,
         backgroundColor: BinaColors.surfaceAlt,
         body: SingleChildScrollView(
-          padding: const EdgeInsets.only(top: 54, bottom: 40),
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 12,
+            bottom: 40,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

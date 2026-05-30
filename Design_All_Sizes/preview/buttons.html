@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_base.css">
+<style>
+  body { padding: 24px; background: var(--c-surface); }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 24px; align-items: center; }
+  .label { font: var(--t-label-md); color: var(--c-ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .btn {
+    font: var(--t-label-lg);
+    height: 48px;
+    padding: 0 var(--s-5);
+    border-radius: var(--r-pill);
+    border: 0;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all 200ms cubic-bezier(.2,.7,.2,1);
+  }
+  .primary { background: var(--c-primary); color: #fff; box-shadow: var(--sh-2); }
+  .primary:hover { background: var(--c-primary-700); box-shadow: var(--sh-3); }
+  .secondary { background: var(--c-primary-100); color: var(--c-primary-700); }
+  .ghost { background: transparent; color: var(--c-primary); border: 1px solid var(--c-line); }
+  .danger { background: var(--c-error); color: #fff; box-shadow: var(--sh-2); }
+  .icon { background: var(--c-primary); color: #fff; width: 56px; height: 56px; border-radius: 50%; padding: 0; display: inline-flex; align-items: center; justify-content: center; box-shadow: var(--sh-hero); }
+  .icon svg { width: 24px; height: 24px; }
+  .disabled { background: var(--c-line); color: var(--c-ink-3); cursor: not-allowed; }
+  .row { display: flex; gap: 14px; align-items: center; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="row"><button class="btn primary">Scan now</button><button class="btn primary" style="height:40px;padding:0 16px;font-size:13px">Continue</button></div>
+    <div class="row"><button class="btn secondary">View history</button><button class="btn ghost">Cancel</button></div>
+    <div class="row"><button class="btn danger">Delete scan</button><button class="btn disabled" disabled>Disabled</button></div>
+    <div class="row">
+      <button class="btn icon" aria-label="Scan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+      <button class="btn primary"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add member</button>
+    </div>
+  </div>
+</body></html>

@@ -1,21 +1,14 @@
-import 'package:bina_system/components/tooltip_wrapper/tooltip_wrapper_widget.dart';
-
-import '/components/diagnose_page/diagnose_card/diagnose_card_widget.dart';
-import '/app_core/app_animations.dart';
-import '/app_core/app_icon_button.dart';
-import '/app_core/app_theme.dart';
+import '/backend/schema/structs/index.dart';
 import '/app_core/app_util.dart';
+import '/bina_design/bina_design.dart';
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
-import '/app_core/custom_functions.dart' as functions;
 import '/actions/actions.dart' as action_blocks;
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'main_diagnose_model.dart';
-import 'package:bina_system/pages/other_pages/camera_connection/camera_connection_widget.dart';
 export 'main_diagnose_model.dart';
 
 class MainDiagnoseWidget extends StatefulWidget {
@@ -34,41 +27,10 @@ class _MainDiagnoseWidgetState extends State<MainDiagnoseWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final animationsMap = <String, AnimationInfo>{};
-
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => MainDiagnoseModel());
-
-    animationsMap.addAll({
-      'textOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          FadeEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: Offset(0.0, 20.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-    });
-    setupAnimations(
-      animationsMap.values.where((anim) =>
-          anim.trigger == AnimationTrigger.onActionTrigger ||
-          !anim.applyInitialState),
-      this,
-    );
 
     // Refresh family data on page load
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -80,13 +42,14 @@ class _MainDiagnoseWidgetState extends State<MainDiagnoseWidget>
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     context.watch<AppState>();
+
+    final familyMembers = AppState().UserSession.family.toList();
 
     return GestureDetector(
       onTap: () {
@@ -95,264 +58,387 @@ class _MainDiagnoseWidgetState extends State<MainDiagnoseWidget>
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: AppTheme.of(context).primaryBackground,
-        body: Column(
-          mainAxisSize: MainAxisSize.max,
+        backgroundColor: BinaColors.surfaceAlt,
+        body: Row(
           children: [
+            // Web nav for larger screens
+            if (responsiveVisibility(
+              context: context,
+              phone: false,
+              tablet: false,
+            ))
+              wrapWithModel(
+                model: _model.webNavModel,
+                updateCallback: () => safeSetState(() {}),
+                child: const WebNavWidget(),
+              ),
+            // Main content
             Expanded(
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
+              child: Stack(
+                fit: StackFit.expand,
                 children: [
-                  if (responsiveVisibility(
-                    context: context,
-                    phone: false,
-                    tablet: false,
-                  ))
-                    wrapWithModel(
-                      model: _model.webNavModel,
-                      updateCallback: () => safeSetState(() {}),
-                      child: WebNavWidget(
-                        iconOne: Icon(
-                          Icons.home_rounded,
-                          color: AppTheme.of(context).secondaryText,
-                        ),
-                        iconTwo: Icon(
-                          Icons.remove_red_eye,
-                          color: AppTheme.of(context).secondaryText,
-                        ),
-                        iconThree: Icon(
-                          Icons.camera_alt,
-                          color: AppTheme.of(context).primary,
-                        ),
-                        iconFour: Icon(
-                          Icons.account_circle,
-                          color: AppTheme.of(context).secondaryText,
-                        ),
-                        colorBgOne:
-                            AppTheme.of(context).secondaryBackground,
-                        colorBgTwo:
-                            AppTheme.of(context).secondaryBackground,
-                        colorBgThree:
-                            AppTheme.of(context).primaryBackground,
-                        colorBgFour:
-                            AppTheme.of(context).secondaryBackground,
-                        textOne: AppTheme.of(context).primaryText,
-                        textTwo: AppTheme.of(context).secondaryText,
-                        textThree: AppTheme.of(context).secondaryText,
-                        textFour: AppTheme.of(context).secondaryText,
-                        iconFive: Icon(
-                          Icons.reduce_capacity,
-                          color: AppTheme.of(context).secondaryText,
-                        ),
-                        colorBgFive:
-                            AppTheme.of(context).secondaryBackground,
-                        textFive: AppTheme.of(context).secondaryText,
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).padding.top + 12,
+                        bottom: 120,
                       ),
-                    ),
-                  Expanded(
-                    child: Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(4.0, 0.0, 0.0, 0.0),
-                      child: Container(
-                        width: 300.0,
-                        decoration: BoxDecoration(
-                          color: AppTheme.of(context).primaryBackground,
-                        ),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (responsiveVisibility(
-                                context: context,
-                                tablet: false,
-                                tabletLandscape: false,
-                                desktop: false,
-                              ))
-                                Container(
-                                  width: double.infinity,
-                                  height: 34.0,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.of(context)
-                                        .primaryBackground,
-                                  ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Diagnose',
+                                  style: BinaType.displaySm,
                                 ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    12.0, 1.0, 0.0, 0.0),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.of(context)
-                                        .primaryBackground,
-                                  ),
-                                  alignment: AlignmentDirectional(-1.0, 0.0),
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        0.0, 0.0, 16.0, 0.0),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Padding(
-                                          padding: EdgeInsetsDirectional.fromSTEB(
-                                              4.0, 16.0, 0.0, 0.0),
-                                          child: Text(
-                                            AppLocalizations.of(context).getText(
-                                              'smh1o93d' /* Diagnose */,
-                                            ),
-                                            textAlign: TextAlign.start,
-                                            style: AppTheme.of(context)
-                                                .displaySmall
-                                                .override(
-                                                  font: GoogleFonts.readexPro(
-                                                    fontWeight:
-                                                        AppTheme.of(
-                                                                context)
-                                                            .displaySmall
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        AppTheme.of(
-                                                                context)
-                                                            .displaySmall
-                                                            .fontStyle,
-                                                  ),
-                                                  letterSpacing: 0.0,
-                                                  fontWeight:
-                                                      AppTheme.of(context)
-                                                          .displaySmall
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      AppTheme.of(context)
-                                                          .displaySmall
-                                                          .fontStyle,
-                                                ),
-                                          ).animateOnPageLoad(animationsMap[
-                                              'textOnPageLoadAnimation']!),
-                                        ),
-                                        TooltipWrapper(message: AppLocalizations.of(context).getText('tip004' /* Connect to external camera */),
-                                            child: AppIconButton(
-                                          borderColor: Colors.transparent,
-                                          borderRadius: 30.0,
-                                          borderWidth: 1.0,
-                                          buttonSize: 60.0,
-                                          icon: Icon(
-                                            Icons.wifi,
-                                            color: AppTheme.of(context)
-                                                .primaryText,
-                                            size: 30.0,
-                                          ),
-                                          showLoadingIndicator: true,
-                                          onPressed: () async {
-                                            context.pushNamed(
-                                                CameraConnectionWidget.routeName);
-                                          },
-                                        )),
-                                      ],
-                                    ),
-                                  ),
+                                BinaIconButton(
+                                  icon: Icons.wifi_rounded,
+                                  onPressed: () {
+                                    context.pushNamed(CameraConnectionWidget.routeName);
+                                  },
                                 ),
-                              ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    16.0, 4.0, 0.0, 10.0),
-                                child: Text(
-                                  AppLocalizations.of(context).getText(
-                                    'dlt46loo' /* Choose a member: */,
-                                  ),
-                                  style: AppTheme.of(context)
-                                      .titleSmall
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight: AppTheme.of(context)
-                                              .titleSmall
-                                              .fontWeight,
-                                          fontStyle: AppTheme.of(context)
-                                              .titleSmall
-                                              .fontStyle,
-                                        ),
-                                        color: AppTheme.of(context)
-                                            .primaryText,
-                                        letterSpacing: 0.0,
-                                        fontWeight: AppTheme.of(context)
-                                            .titleSmall
-                                            .fontWeight,
-                                        fontStyle: AppTheme.of(context)
-                                            .titleSmall
-                                            .fontStyle,
-                                      ),
-                                ),
-                              ),
-                              Builder(
-                                builder: (context) {
-                                  final familyMembers =
-                                      AppState().UserSession.family.toList();
+                              ],
+                            ),
+                          ).animate()
+                              .fadeIn(duration: 400.ms)
+                              .moveY(begin: 20, end: 0, duration: 400.ms),
 
-                                  return Column(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: List.generate(familyMembers.length,
-                                        (familyMembersIndex) {
-                                      final familyMembersItem =
-                                          familyMembers[familyMembersIndex];
-                                      return InkWell(
-                                        splashColor: Colors.transparent,
-                                        focusColor: Colors.transparent,
-                                        hoverColor: Colors.transparent,
-                                        highlightColor: Colors.transparent,
-                                        onTap: () async {
-                                          // Navigate to photo session page with family member info
-                                          context.pushNamed(
-                                            PhotoSessionWidget.routeName,
-                                            extra: <String, dynamic>{
-                                              'memberId': familyMembersItem.id,
-                                              'memberName': familyMembersItem.name,
-                                            },
-                                          );
-                                        },
-                                        child: wrapWithModel(
-                                          model:
-                                              _model.diagnoseCardModels.getModel(
-                                            familyMembersItem.id,
-                                            familyMembersIndex,
-                                          ),
-                                          updateCallback: () =>
-                                              safeSetState(() {}),
-                                          child: DiagnoseCardWidget(
-                                            key: Key(
-                                              'Key0um_${familyMembersItem.id}',
-                                            ),
-                                            name: familyMembersItem.name,
-                                            isHead: familyMembersItem.admin,
-                                            lastChecked: familyMembersItem
-                                                        .lastChecked
-                                                        ?.secondsSinceEpoch !=
-                                                    null
-                                                ? familyMembersItem.lastChecked
-                                                : functions.nullDateTime(
-                                                    AppConstants.NULLDT),
-                                            wasNeverChecked: familyMembersItem
-                                                    .lastChecked
-                                                    ?.secondsSinceEpoch !=
-                                                null,
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                                  );
-                                },
+                          // Quick action card
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                            child: _QuickScanCard(
+                              onTap: () {
+                                context.pushNamed(MainDIagnosticsWidget.routeName);
+                              },
+                            ),
+                          ).animate()
+                              .fadeIn(delay: 100.ms, duration: 400.ms)
+                              .moveY(begin: 20, end: 0, delay: 100.ms, duration: 400.ms),
+
+                          // Family members section
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                            child: BinaSectionHeader(
+                              title: 'Family Members',
+                              action: 'See all',
+                              onActionTap: () => context.pushNamed('Family'),
+                            ),
+                          ).animate()
+                              .fadeIn(delay: 200.ms, duration: 400.ms),
+
+                          // Family list
+                          if (familyMembers.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                              child: _EmptyFamilyCard(
+                                onAddMember: () => context.pushNamed('Family'),
                               ),
-                            ],
-                          ),
-                        ),
+                            ).animate()
+                                .fadeIn(delay: 300.ms, duration: 400.ms)
+                          else
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                              child: Column(
+                                children: familyMembers.asMap().entries.map((entry) {
+                                  final index = entry.key;
+                                  final member = entry.value;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: _FamilyMemberCard(
+                                      member: member,
+                                      onTap: () {
+                                        context.pushNamed(
+                                          PhotoSessionWidget.routeName,
+                                          extra: <String, dynamic>{
+                                            'memberId': member.id,
+                                            'memberName': member.name,
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ).animate()
+                                      .fadeIn(
+                                        delay: Duration(milliseconds: 300 + (index * 80)),
+                                        duration: 400.ms,
+                                      )
+                                      .moveY(
+                                        begin: 20,
+                                        end: 0,
+                                        delay: Duration(milliseconds: 300 + (index * 80)),
+                                        duration: 400.ms,
+                                      );
+                                }).toList(),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
+                  // Floating bottom nav (phone only)
+                  if (responsiveVisibility(
+                    context: context,
+                    tablet: false,
+                    tabletLandscape: false,
+                    desktop: false,
+                  ))
+                    const BinaFloatingNav(currentTab: BinaNavTab.scan),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// QUICK SCAN CARD
+// ═══════════════════════════════════════════════════════════════
+
+class _QuickScanCard extends StatefulWidget {
+  const _QuickScanCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_QuickScanCard> createState() => _QuickScanCardState();
+}
+
+class _QuickScanCardState extends State<_QuickScanCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: BinaMotion.d1,
+        transform: _isPressed
+            ? (Matrix4.identity()..setEntry(0, 0, 0.98)..setEntry(1, 1, 0.98))
+            : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: BinaColors.gradHero,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: BinaElevation.shHero,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.camera_alt_rounded,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Quick Scan',
+                    style: BinaType.titleLg.copyWith(color: Colors.white),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Start a new dental scan session',
+                    style: BinaType.bodySm.copyWith(
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_rounded,
+              color: Colors.white.withValues(alpha: 0.8),
+              size: 24,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FAMILY MEMBER CARD
+// ═══════════════════════════════════════════════════════════════
+
+class _FamilyMemberCard extends StatelessWidget {
+  const _FamilyMemberCard({
+    required this.member,
+    required this.onTap,
+  });
+
+  final FamilyMemberStruct member;
+  final VoidCallback onTap;
+
+  BinaAvatarTone get _avatarTone {
+    final hash = member.name.hashCode;
+    final tones = BinaAvatarTone.values;
+    return tones[hash.abs() % (tones.length - 1)];
+  }
+
+  DxChipKind get _statusKind {
+    if (!member.hasLastChecked()) return DxChipKind.due;
+    if (member.score >= 80) return DxChipKind.good;
+    if (member.score >= 50) return DxChipKind.plaque;
+    return DxChipKind.cavity;
+  }
+
+  String get _lastCheckedStr {
+    if (!member.hasLastChecked()) return 'Never checked';
+    final date = member.lastChecked!;
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inDays == 0) {
+      return 'Checked today';
+    } else if (diff.inDays == 1) {
+      return 'Checked yesterday';
+    } else if (diff.inDays < 7) {
+      return 'Checked ${diff.inDays} days ago';
+    } else {
+      return 'Checked ${DateFormat('d MMM').format(date)}';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: BinaColors.line),
+          boxShadow: BinaElevation.sh1,
+        ),
+        child: Row(
+          children: [
+            BinaAvatar(
+              name: member.name,
+              size: 48,
+              tone: _avatarTone,
+              imageUrl: member.profilePic.isNotEmpty ? member.profilePic : null,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        member.name,
+                        style: BinaType.titleMd,
+                      ),
+                      if (member.admin) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: BinaColors.primary100,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'Admin',
+                            style: BinaType.labelSm.copyWith(
+                              color: BinaColors.primary,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _lastCheckedStr,
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                  ),
+                ],
+              ),
+            ),
+            DxChip(kind: _statusKind, size: DxChipSize.sm),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: BinaColors.ink3,
+              size: 24,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EMPTY FAMILY CARD
+// ═══════════════════════════════════════════════════════════════
+
+class _EmptyFamilyCard extends StatelessWidget {
+  const _EmptyFamilyCard({required this.onAddMember});
+
+  final VoidCallback onAddMember;
+
+  @override
+  Widget build(BuildContext context) {
+    return BinaCard(
+      padding: const EdgeInsets.all(BinaSpace.s6),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: BinaColors.primary100,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.groups_rounded,
+              color: BinaColors.primary,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: BinaSpace.s4),
+          Text(
+            'No family members',
+            style: BinaType.titleMd,
+          ),
+          const SizedBox(height: BinaSpace.s2),
+          Text(
+            'Add family members to start scanning',
+            style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: BinaSpace.s4),
+          BinaButton(
+            label: 'Add member',
+            icon: Icons.add,
+            onPressed: onAddMember,
+          ),
+        ],
       ),
     );
   }

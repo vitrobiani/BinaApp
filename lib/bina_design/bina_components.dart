@@ -10,7 +10,7 @@ import 'bina_design_tokens.dart';
 // ║ BINA BUTTON                                                  ║
 // ╚══════════════════════════════════════════════════════════════╝
 
-enum BinaButtonVariant { primary, secondary, ghost, coral, danger, glass }
+enum BinaButtonVariant { primary, secondary, ghost, coral, danger, glass, glassOutline }
 enum BinaButtonSize { sm, md, lg }
 
 class BinaButton extends StatefulWidget {
@@ -66,23 +66,25 @@ class _BinaButtonState extends State<BinaButton> {
 
   Color get _backgroundColor {
     switch (widget.variant) {
-      case BinaButtonVariant.primary:   return BinaColors.primary;
-      case BinaButtonVariant.secondary: return BinaColors.primary100;
-      case BinaButtonVariant.ghost:     return Colors.transparent;
-      case BinaButtonVariant.coral:     return BinaColors.coral;
-      case BinaButtonVariant.danger:    return BinaColors.error;
-      case BinaButtonVariant.glass:     return Colors.white.withOpacity(0.96);
+      case BinaButtonVariant.primary:      return BinaColors.primary;
+      case BinaButtonVariant.secondary:    return BinaColors.primary100;
+      case BinaButtonVariant.ghost:        return Colors.transparent;
+      case BinaButtonVariant.coral:        return BinaColors.coral;
+      case BinaButtonVariant.danger:       return BinaColors.error;
+      case BinaButtonVariant.glass:        return Colors.white.withOpacity(0.96);
+      case BinaButtonVariant.glassOutline: return Colors.white.withOpacity(0.16);
     }
   }
 
   Color get _foregroundColor {
     switch (widget.variant) {
-      case BinaButtonVariant.primary:   return Colors.white;
-      case BinaButtonVariant.secondary: return BinaColors.primary700;
-      case BinaButtonVariant.ghost:     return BinaColors.primary;
-      case BinaButtonVariant.coral:     return Colors.white;
-      case BinaButtonVariant.danger:    return Colors.white;
-      case BinaButtonVariant.glass:     return BinaColors.primary700;
+      case BinaButtonVariant.primary:      return Colors.white;
+      case BinaButtonVariant.secondary:    return BinaColors.primary700;
+      case BinaButtonVariant.ghost:        return BinaColors.primary;
+      case BinaButtonVariant.coral:        return Colors.white;
+      case BinaButtonVariant.danger:       return Colors.white;
+      case BinaButtonVariant.glass:        return BinaColors.primary700;
+      case BinaButtonVariant.glassOutline: return Colors.white;
     }
   }
 
@@ -90,12 +92,16 @@ class _BinaButtonState extends State<BinaButton> {
     if (widget.variant == BinaButtonVariant.ghost) {
       return Border.all(color: BinaColors.line, width: 1);
     }
+    if (widget.variant == BinaButtonVariant.glassOutline) {
+      return Border.all(color: Colors.white.withOpacity(0.5), width: 1);
+    }
     return null;
   }
 
   List<BoxShadow>? get _shadow {
     if (widget.variant == BinaButtonVariant.ghost ||
-        widget.variant == BinaButtonVariant.secondary) {
+        widget.variant == BinaButtonVariant.secondary ||
+        widget.variant == BinaButtonVariant.glassOutline) {
       return null;
     }
     return BinaElevation.sh2;

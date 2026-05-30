@@ -1,0 +1,349 @@
+/* ============================================================
+   Bina Design System — Foundations
+   ============================================================
+   This is a REFINED evolution of the Bina app's FlutterFlow theme.
+   Original tokens are preserved as `--bina-original-*` for parity;
+   the canonical tokens below relax the corners, warm the neutrals,
+   and let the brand blue breathe.
+   ============================================================ */
+
+@font-face {
+  font-family: "Lexend Deca";
+  src: url("fonts/LexendDeca-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lexend Deca";
+  src: url("fonts/LexendDeca-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+
+/* Readex Pro & Inter pulled from Google Fonts — same families the
+   Flutter app uses via the google_fonts package. */
+@import url("https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  /* ---------- Original Bina tokens (preserved for parity) ---------- */
+  --bina-original-primary: #105dfb;
+  --bina-original-secondary: #8ac7ff;
+  --bina-original-tertiary: #ee8b60;
+  --bina-original-bg: #f6f6f6;
+  --bina-original-text: #12151c;
+
+  /* ---------- Canonical (refined) palette ---------- */
+  /* Brand */
+  --c-primary:        #1f5bff; /* Bina Blue — slightly more saturated, accessible */
+  --c-primary-700:    #1849c9; /* hover / pressed                          */
+  --c-primary-300:    #8ab2ff; /* tints, illustrations                     */
+  --c-primary-100:    #e5edff; /* surface tint                             */
+  --c-primary-050:    #f3f6ff; /* faintest wash                            */
+
+  /* Secondary aqua — paired with primary, used on hero / progress */
+  --c-aqua:           #6ec6ff;
+  --c-aqua-700:       #2f8ed8;
+  --c-aqua-100:       #e3f2fd;
+
+  /* Tertiary warm — coral, retained from original */
+  --c-coral:          #ee8b60;
+  --c-coral-700:      #c96f46;
+  --c-coral-100:      #fde8dc;
+
+  /* Neutrals — warmed off-white surface, navy ink */
+  --c-ink:            #0c1530; /* primary text — modern navy             */
+  --c-ink-2:          #4a516a; /* secondary text                          */
+  --c-ink-3:          #7e859c; /* tertiary text / icons                   */
+  --c-line:           #e6e8f0; /* hairline dividers                       */
+  --c-line-strong:    #c9cdd9; /* keyboard / strong dividers              */
+  --c-surface:        #ffffff; /* cards                                   */
+  --c-surface-alt:    #fbfaf6; /* page background — warm bone             */
+  --c-surface-sunken: #f1eee7; /* sunken zones, search bars              */
+
+  /* Semantic */
+  --c-success:        #1aa971;
+  --c-success-100:    #def5ea;
+  --c-warning:        #e08a3a;
+  --c-warning-100:    #fcecd6;
+  --c-error:          #d94545;
+  --c-error-100:      #fbe1e1;
+  --c-info:           #2f8ed8;
+
+  /* Diagnosis (domain-specific) */
+  --c-dx-good:        #1aa971; /* "Good" diagnosis                        */
+  --c-dx-plaque:      #e0a23a; /* "Plaque" diagnosis                      */
+  --c-dx-cavity:      #d94545; /* "Cavity" diagnosis                      */
+  --c-dx-mixed:       #b8538a; /* "Plaque + Cavity"                       */
+
+  /* Gradients */
+  --g-hero:        linear-gradient(135deg, #1f5bff 0%, #6ec6ff 100%);
+  --g-hero-soft:   linear-gradient(135deg, #e5edff 0%, #e3f2fd 100%);
+  --g-coral:       linear-gradient(135deg, #ee8b60 0%, #f5b48a 100%);
+  --g-progress:    conic-gradient(from -90deg, var(--c-aqua) 0%, var(--c-primary) 60%, var(--c-primary-700) 100%);
+
+  /* ---------- Type ---------- */
+  --f-display: "Readex Pro", "Lexend Deca", system-ui, -apple-system, sans-serif;
+  --f-body:    "Inter", "Lexend Deca", system-ui, -apple-system, sans-serif;
+  --f-mono:    ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
+
+  /* Scale — generated from app's TextTheme, but tightened: */
+  --t-display-lg: 600 56px/1.05 var(--f-display);
+  --t-display-md: 600 44px/1.08 var(--f-display);
+  --t-display-sm: 600 32px/1.15 var(--f-display); /* H1 in app           */
+  --t-headline-lg: 500 28px/1.2  var(--f-display);
+  --t-headline-md: 500 22px/1.25 var(--f-display); /* page section       */
+  --t-headline-sm: 500 20px/1.3  var(--f-display);
+  --t-title-lg:    500 18px/1.3  var(--f-display);
+  --t-title-md:    500 16px/1.4  var(--f-body);    /* card title         */
+  --t-title-sm:    500 14px/1.4  var(--f-body);    /* small caps title   */
+  --t-body-lg:     400 16px/1.55 var(--f-body);
+  --t-body-md:     400 14px/1.55 var(--f-body);    /* default            */
+  --t-body-sm:     400 12px/1.45 var(--f-body);
+  --t-label-lg:    500 14px/1.2  var(--f-body);
+  --t-label-md:    500 12px/1.2  var(--f-body);
+  --t-label-sm:    500 11px/1.2  var(--f-body);    /* tab labels         */
+  --t-overline:    600 11px/1.3  var(--f-body);    /* tracking 0.08em    */
+
+  /* ---------- Spacing ---------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-9: 56px;
+  --s-10: 72px;
+
+  /* ---------- Radii ---------- */
+  --r-xs:    6px;
+  --r-sm:    10px;
+  --r-md:    14px; /* default card / button — softer than app's 8px */
+  --r-lg:    20px;
+  --r-xl:    28px;
+  --r-pill:  999px;
+
+  /* ---------- Shadows (warm-blue tint, not pure black) ---------- */
+  --sh-1: 0 1px 2px rgba(15, 25, 60, 0.06);
+  --sh-2: 0 2px 6px rgba(15, 25, 60, 0.06), 0 1px 2px rgba(15, 25, 60, 0.04);
+  --sh-3: 0 6px 18px rgba(15, 25, 60, 0.08), 0 2px 4px rgba(15, 25, 60, 0.04);
+  --sh-4: 0 16px 36px rgba(15, 25, 60, 0.12), 0 4px 10px rgba(15, 25, 60, 0.05);
+  --sh-hero: 0 24px 60px -10px rgba(31, 91, 255, 0.45);
+  --sh-focus: 0 0 0 4px rgba(31, 91, 255, 0.25);
+
+  /* ---------- Motion ---------- */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --dur-4: 480ms;
+
+  /* ---------- Layout ---------- */
+  --layout-max: 1200px;
+  --safe-top: env(safe-area-inset-top, 0);
+}
+
+/* ============================================================
+   Dark theme — derived from app's DarkModeTheme, refined.
+   Apply via `<html data-theme="dark">` or `body.dark`.
+   ============================================================ */
+[data-theme="dark"],
+.theme-dark {
+  --c-primary:        #5b8bff;
+  --c-primary-700:    #3a6cf2;
+  --c-primary-300:    #7da3ff;
+  --c-primary-100:    #1a2547;
+  --c-primary-050:    #131a32;
+
+  --c-aqua:           #6ec6ff;
+  --c-aqua-700:       #2f8ed8;
+  --c-aqua-100:       #1a2c41;
+
+  --c-coral:          #f0a47f;
+  --c-coral-700:      #e08f63;
+  --c-coral-100:      #3a261a;
+
+  --c-ink:            #f4f5fa;
+  --c-ink-2:          #b7bccd;
+  --c-ink-3:          #7e859c;
+  --c-line:           #232a3d;
+  --c-line-strong:    #38405a;
+  --c-surface:        #161a28;
+  --c-surface-alt:    #0c0f1a;
+  --c-surface-sunken: #0a0d18;
+
+  --c-success-100:    #143a2a;
+  --c-warning-100:    #3a2814;
+  --c-error-100:      #3a1a1a;
+
+  --g-hero-soft:      linear-gradient(135deg, #1a2547 0%, #1a2c41 100%);
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sh-2: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --sh-3: 0 6px 18px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================
+   Warm — cozy amber/cream. Derived from WarmModeTheme.
+   Same refined skeleton (radii, shadow style, spacing) — just
+   different color identity. Surfaces stay warm; primary is amber.
+   ============================================================ */
+[data-theme="warm"],
+.theme-warm {
+  --c-primary:        #ef8b1a;   /* refined amber */
+  --c-primary-700:    #c9710c;
+  --c-primary-300:    #f5b774;
+  --c-primary-100:    #fdebd2;
+  --c-primary-050:    #fcf5e8;
+
+  --c-aqua:           #d84315;   /* deep orange — used as the "second" brand color */
+  --c-aqua-700:       #b03612;
+  --c-aqua-100:       #fae1d4;
+
+  --c-coral:          #c96f46;
+  --c-coral-700:      #a85a37;
+  --c-coral-100:      #fde6da;
+
+  --c-ink:            #3e2723;
+  --c-ink-2:          #6b4d3e;
+  --c-ink-3:          #9c7e6e;
+  --c-line:           #ece1cd;
+  --c-line-strong:    #d4c4ab;
+  --c-surface:        #fffbf5;
+  --c-surface-alt:    #fff5e1;
+  --c-surface-sunken: #f6e9cf;
+
+  --c-success:        #43a047;
+  --c-warning:        #ef6c00;
+  --c-error:          #d32f2f;
+  --c-info:           #1f8aa8;
+
+  --g-hero:           linear-gradient(135deg, #ef8b1a 0%, #f5b774 60%, #d84315 100%);
+  --g-hero-soft:      linear-gradient(135deg, #fdebd2 0%, #fae1d4 100%);
+  --g-coral:          linear-gradient(135deg, #c96f46 0%, #ef8b1a 100%);
+  --sh-hero:          0 24px 60px -10px rgba(239, 139, 26, 0.4);
+  --sh-focus:         0 0 0 4px rgba(239, 139, 26, 0.25);
+}
+
+/* ============================================================
+   Cool — calm cyan/blue. Derived from CoolModeTheme.
+   ============================================================ */
+[data-theme="cool"],
+.theme-cool {
+  --c-primary:        #0099b3;   /* refined cyan */
+  --c-primary-700:    #00768a;
+  --c-primary-300:    #6dd0de;
+  --c-primary-100:    #d3eef3;
+  --c-primary-050:    #ebf7f9;
+
+  --c-aqua:           #4dd0e1;
+  --c-aqua-700:       #00acc1;
+  --c-aqua-100:       #d6f3f7;
+
+  --c-coral:          #0277bd;   /* "tertiary" — deeper blue, replaces coral here */
+  --c-coral-700:      #015a8f;
+  --c-coral-100:      #cfe3f0;
+
+  --c-ink:            #0d3a5e;
+  --c-ink-2:          #37576e;
+  --c-ink-3:          #6a8398;
+  --c-line:           #d4e2eb;
+  --c-line-strong:    #aabfce;
+  --c-surface:        #f9fdff;
+  --c-surface-alt:    #e3f2fd;
+  --c-surface-sunken: #d2e6f1;
+
+  --c-success:        #00897b;
+  --c-warning:        #ffa726;
+  --c-error:          #e53935;
+  --c-info:           #0277bd;
+
+  --g-hero:           linear-gradient(135deg, #0099b3 0%, #4dd0e1 100%);
+  --g-hero-soft:      linear-gradient(135deg, #d3eef3 0%, #d6f3f7 100%);
+  --g-coral:          linear-gradient(135deg, #0277bd 0%, #4dd0e1 100%);
+  --sh-hero:          0 24px 60px -10px rgba(0, 153, 179, 0.4);
+  --sh-focus:         0 0 0 4px rgba(0, 153, 179, 0.25);
+}
+
+/* ============================================================
+   Deuteranopia — accessible blue / orange palette for red-green
+   color blindness. Derived from DeuteranopiaTheme. Diagnosis
+   colors are remapped so "cavity" reads orange instead of red.
+   ============================================================ */
+[data-theme="deuteranopia"],
+.theme-deuteranopia {
+  --c-primary:        #0077bb;
+  --c-primary-700:    #005c91;
+  --c-primary-300:    #6ba7d1;
+  --c-primary-100:    #d3e5f1;
+  --c-primary-050:    #ebf2f8;
+
+  --c-aqua:           #33bbee;
+  --c-aqua-700:       #1d9bcc;
+  --c-aqua-100:       #d6eff8;
+
+  --c-coral:          #ee7733;
+  --c-coral-700:      #c95d1e;
+  --c-coral-100:      #fce0cb;
+
+  --c-ink:            #1a1a1a;
+  --c-ink-2:          #4d4d4d;
+  --c-ink-3:          #7a7a7a;
+  --c-line:           #e0e0e0;
+  --c-line-strong:    #b8b8b8;
+  --c-surface:        #ffffff;
+  --c-surface-alt:    #fafafa;
+  --c-surface-sunken: #f1f1f1;
+
+  --c-success:        #009988;
+  --c-warning:        #eecc66;
+  --c-error:          #cc3311;
+  --c-info:           #0077bb;
+
+  /* Diagnosis colors remapped — no red/green confusion */
+  --c-dx-good:        #009988;   /* teal, distinct from orange */
+  --c-dx-plaque:      #eecc66;   /* yellow */
+  --c-dx-cavity:      #cc3311;   /* orange-red, distinct from teal */
+  --c-dx-mixed:       #aa3377;   /* magenta */
+
+  --g-hero:           linear-gradient(135deg, #0077bb 0%, #33bbee 100%);
+  --g-hero-soft:      linear-gradient(135deg, #d3e5f1 0%, #d6eff8 100%);
+  --g-coral:          linear-gradient(135deg, #ee7733 0%, #eecc66 100%);
+  --sh-hero:          0 24px 60px -10px rgba(0, 119, 187, 0.4);
+  --sh-focus:         0 0 0 4px rgba(0, 119, 187, 0.3);
+}
+
+/* ============================================================
+   Semantic helper classes (optional but useful)
+   ============================================================ */
+.bina-h1 { font: var(--t-display-sm); color: var(--c-ink); letter-spacing: -0.01em; }
+.bina-h2 { font: var(--t-headline-md); color: var(--c-ink); letter-spacing: -0.005em; }
+.bina-h3 { font: var(--t-headline-sm); color: var(--c-ink); }
+.bina-title { font: var(--t-title-md); color: var(--c-ink); }
+.bina-body { font: var(--t-body-md); color: var(--c-ink); }
+.bina-caption { font: var(--t-body-sm); color: var(--c-ink-2); }
+.bina-overline { font: var(--t-overline); color: var(--c-ink-3); letter-spacing: 0.08em; text-transform: uppercase; }
+
+.bina-card {
+  background: var(--c-surface);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-2);
+  border: 1px solid var(--c-line);
+}
+
+.bina-button {
+  font: var(--t-label-lg);
+  height: 48px;
+  padding: 0 var(--s-5);
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+  transition: background var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+  box-shadow: var(--sh-2);
+}
+.bina-button:hover { background: var(--c-primary-700); box-shadow: var(--sh-3); }
+.bina-button:active { transform: translateY(1px) scale(0.99); box-shadow: var(--sh-1); }
+.bina-button:focus-visible { outline: none; box-shadow: var(--sh-focus); }

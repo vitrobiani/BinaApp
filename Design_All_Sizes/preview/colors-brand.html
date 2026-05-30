@@ -1,0 +1,52 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_base.css">
+<style>
+  body { padding: 0; }
+  .wrap { padding: 24px; display: flex; gap: 14px; align-items: stretch; }
+  .swatch {
+    flex: 1;
+    border-radius: var(--r-md);
+    min-height: 130px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #fff;
+    box-shadow: var(--sh-2);
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+  .swatch.dark-on { color: var(--c-ink); }
+  .swatch .name { font: var(--t-title-md); }
+  .swatch .hex { font: 500 11px/1 var(--f-mono); opacity: 0.85; letter-spacing: 0.04em; }
+  .swatch .role { font: var(--t-body-sm); opacity: 0.85; }
+  .swatch.brand-blue   { background: var(--c-primary); }
+  .swatch.brand-deep   { background: var(--c-primary-700); }
+  .swatch.brand-tint   { background: var(--c-primary-100); }
+  .swatch.aqua         { background: var(--c-aqua); }
+  .swatch.coral        { background: var(--c-coral); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="swatch brand-blue">
+      <div class="name">Bina Blue</div>
+      <div><div class="role">Primary · buttons, links, FAB</div><div class="hex">#1F5BFF</div></div>
+    </div>
+    <div class="swatch brand-deep">
+      <div class="name">Deep</div>
+      <div><div class="role">Hover · pressed</div><div class="hex">#1849C9</div></div>
+    </div>
+    <div class="swatch brand-tint dark-on">
+      <div class="name">Tint 100</div>
+      <div><div class="role">Surface wash · pills</div><div class="hex">#E5EDFF</div></div>
+    </div>
+    <div class="swatch aqua dark-on">
+      <div class="name">Aqua</div>
+      <div><div class="role">Hero pair · progress</div><div class="hex">#6EC6FF</div></div>
+    </div>
+    <div class="swatch coral">
+      <div class="name">Coral</div>
+      <div><div class="role">Add · spotlight</div><div class="hex">#EE8B60</div></div>
+    </div>
+  </div>
+</body></html>

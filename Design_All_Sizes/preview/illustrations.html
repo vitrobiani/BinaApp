@@ -1,0 +1,26 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_base.css">
+<style>
+  body { padding: 24px; background: var(--c-surface); display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+  .tile {
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    border: 1px solid var(--c-line);
+    background: var(--c-surface-alt);
+    display: flex; flex-direction: column;
+  }
+  .panel { flex: 1; display: grid; place-items: center; padding: 18px; min-height: 180px; }
+  .tile img { max-width: 100%; max-height: 200px; object-fit: contain; }
+  .meta { padding: 10px 14px; font: var(--t-label-sm); color: var(--c-ink-2); border-top: 1px solid var(--c-line); background: var(--c-surface); display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+  <div class="tile">
+    <div class="panel"><img src="../assets/congrats.png" alt="Congrats" /></div>
+    <div class="meta"><span>Celebratory</span><span>congrats.png · post-scan success</span></div>
+  </div>
+  <div class="tile">
+    <div class="panel"><img src="../assets/addImage.png" alt="Add member" style="width: 110px"/></div>
+    <div class="meta"><span>Empty / add</span><span>addImage.png</span></div>
+  </div>
+</body></html>

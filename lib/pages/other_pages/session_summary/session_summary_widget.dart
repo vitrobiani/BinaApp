@@ -1,14 +1,13 @@
 import '/backend/sqlite/sqlite_manager.dart';
 import '/backend/supabase/supabase.dart';
-import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
-import '/app_core/app_widgets.dart';
+import '/bina_design/bina_design.dart';
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
 import '/services/gemma_service.dart';
 import '/services/llm_prompts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'session_summary_model.dart';
 export 'session_summary_model.dart';
@@ -41,6 +40,10 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
 
   String? _llmSummary;
   bool _isGeneratingSummary = false;
+  bool _isLoadingImages = true;
+  List<_SessionImage> _images = [];
+  int _totalIssues = 0;
+  int _totalTeeth = 0;
 
   @override
   void initState() {
@@ -48,8 +51,115 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
     _model = createModel(context, () => SessionSummaryModel());
 
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      await _loadSessionImages();
       await _generateLlmSummary();
     });
+  }
+
+  Future<void> _loadSessionImages() async {
+    if (widget.sessionId == null) {
+      setState(() => _isLoadingImages = false);
+      return;
+    }
+
+    try {
+      final images = <_SessionImage>[];
+      int totalIssues = 0;
+      int totalTeeth = 0;
+
+      if (AppState().UserSession.isLocalSession) {
+        final rows = await SQLiteManager.instance.getScanImagesBySessionId(
+          sessionId: widget.sessionId!,
+        );
+
+        for (final row in rows) {
+          final detections = <Map<String, dynamic>>[];
+          if (row.rawResponse != null && row.rawResponse!.isNotEmpty) {
+            try {
+              final parsed = jsonDecode(row.rawResponse!) as List<dynamic>;
+              for (final d in parsed) {
+                detections.add(d as Map<String, dynamic>);
+              }
+            } catch (_) {}
+          }
+
+          final issues = detections.where((d) =>
+            !(d['className'] as String? ?? '').startsWith('tooth_')).length;
+          final teeth = detections.where((d) =>
+            (d['className'] as String? ?? '').startsWith('tooth_')).length;
+
+          totalIssues += issues;
+          totalTeeth += teeth;
+
+          images.add(_SessionImage(
+            id: row.id,
+            imageBytes: row.diagnosedImage != null
+                ? Uint8List.fromList(row.diagnosedImage!)
+                : null,
+            originalBytes: row.image != null
+                ? Uint8List.fromList(row.image!)
+                : null,
+            detections: detections,
+            capturedAt: row.capturedAt != null
+                ? DateTime.fromMillisecondsSinceEpoch(row.capturedAt! * 1000)
+                : DateTime.now(),
+            issuesCount: issues,
+            teethCount: teeth,
+          ));
+        }
+      } else {
+        final rows = await ScanImagesTable().queryRows(
+          queryFn: (q) => q
+              .eq('scan_session_id', widget.sessionId!)
+              .order('captured_at'),
+        );
+
+        for (final row in rows) {
+          final detections = <Map<String, dynamic>>[];
+          if (row.rawResponse != null && row.rawResponse!.isNotEmpty) {
+            try {
+              final parsed = jsonDecode(row.rawResponse!) as List<dynamic>;
+              for (final d in parsed) {
+                detections.add(d as Map<String, dynamic>);
+              }
+            } catch (_) {}
+          }
+
+          final issues = detections.where((d) =>
+            !(d['className'] as String? ?? '').startsWith('tooth_')).length;
+          final teeth = detections.where((d) =>
+            (d['className'] as String? ?? '').startsWith('tooth_')).length;
+
+          totalIssues += issues;
+          totalTeeth += teeth;
+
+          // Supabase stores images as Uint8List
+          images.add(_SessionImage(
+            id: row.id,
+            imageBytes: row.diagnosedImage,
+            originalBytes: row.image,
+            detections: detections,
+            capturedAt: row.capturedAt ?? DateTime.now(),
+            issuesCount: issues,
+            teethCount: teeth,
+          ));
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _images = images;
+          _totalIssues = totalIssues;
+          _totalTeeth = totalTeeth;
+          _isLoadingImages = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading session images: $e');
+      if (mounted) {
+        setState(() => _isLoadingImages = false);
+      }
+    }
   }
 
   Future<void> _generateLlmSummary() async {
@@ -61,49 +171,16 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
     });
 
     try {
-      // Load session findings from DB.
-      String findingsJson = '{}';
-
-      if (AppState().UserSession.isLocalSession) {
-        final images = await SQLiteManager.instance.getScanImagesBySessionId(
-          sessionId: widget.sessionId!,
-        );
-        final allDetections = <Map<String, dynamic>>[];
-        for (final image in images) {
-          if (image.rawResponse != null && image.rawResponse!.isNotEmpty) {
-            try {
-              final detections =
-                  jsonDecode(image.rawResponse!) as List<dynamic>;
-              for (final d in detections) {
-                allDetections.add(d as Map<String, dynamic>);
-              }
-            } catch (_) {}
-          }
-        }
-        findingsJson = jsonEncode(allDetections);
-      } else {
-        final images = await ScanImagesTable().queryRows(
-          queryFn: (q) =>
-              q.eq('scan_session_id', widget.sessionId!).order('captured_at'),
-        );
-        final allDetections = <Map<String, dynamic>>[];
-        for (final image in images) {
-          if (image.rawResponse != null && image.rawResponse!.isNotEmpty) {
-            try {
-              final detections =
-                  jsonDecode(image.rawResponse!) as List<dynamic>;
-              for (final d in detections) {
-                allDetections.add(d as Map<String, dynamic>);
-              }
-            } catch (_) {}
-          }
-        }
-        findingsJson = jsonEncode(allDetections);
+      // Build findings from loaded images
+      final allDetections = <Map<String, dynamic>>[];
+      for (final image in _images) {
+        allDetections.addAll(image.detections);
       }
+      final findingsJson = jsonEncode(allDetections);
 
       final prompt = LlmPrompts.buildSessionSummaryPrompt(
         findingsJson: findingsJson,
-        imageCount: widget.imageCount ?? 0,
+        imageCount: widget.imageCount ?? _images.length,
         memberName: widget.memberName ?? 'Patient',
         overallStatus: widget.overallStatus ?? 'unknown',
       );
@@ -115,6 +192,9 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
           _llmSummary = response;
           _isGeneratingSummary = false;
         });
+
+        // Save summary to database
+        await _saveSummaryToDatabase(response);
       } else if (mounted) {
         setState(() {
           _isGeneratingSummary = false;
@@ -130,49 +210,49 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
     }
   }
 
+  Future<void> _saveSummaryToDatabase(String summary) async {
+    if (widget.sessionId == null) return;
+
+    try {
+      if (AppState().UserSession.isLocalSession) {
+        await SQLiteManager.instance.updateScanSessionNotes(
+          id: widget.sessionId,
+          notes: summary,
+        );
+      } else {
+        await ScanSessionsTable().update(
+          data: {'notes': summary},
+          matchingRows: (rows) => rows.eq('id', widget.sessionId!),
+        );
+      }
+      debugPrint('AI summary saved to database');
+    } catch (e) {
+      debugPrint('Error saving summary: $e');
+    }
+  }
+
   @override
   void dispose() {
     _model.dispose();
     super.dispose();
   }
 
-  Color _getStatusColor(BuildContext context) {
-    switch (widget.overallStatus) {
-      case 'healthy':
-        return AppTheme.of(context).success;
-      case 'attention_needed':
-        return AppTheme.of(context).warning;
-      case 'urgent':
-        return AppTheme.of(context).error;
-      default:
-        return AppTheme.of(context).secondaryText;
-    }
+  DxChipKind get _statusKind {
+    if (_totalIssues == 0) return DxChipKind.good;
+    if (_totalIssues < 3) return DxChipKind.plaque;
+    return DxChipKind.cavity;
   }
 
-  String _getStatusText() {
-    switch (widget.overallStatus) {
-      case 'healthy':
-        return 'Healthy';
-      case 'attention_needed':
-        return 'Attention Needed';
-      case 'urgent':
-        return 'Urgent';
-      default:
-        return 'Unknown';
-    }
-  }
-
-  IconData _getStatusIcon() {
-    switch (widget.overallStatus) {
-      case 'healthy':
-        return Icons.check_circle;
-      case 'attention_needed':
-        return Icons.warning;
-      case 'urgent':
-        return Icons.error;
-      default:
-        return Icons.help_outline;
-    }
+  void _showImageDetail(_SessionImage image) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _ImageDetailSheet(
+        image: image,
+        memberName: widget.memberName ?? 'Unknown',
+      ),
+    );
   }
 
   @override
@@ -186,516 +266,794 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: AppTheme.of(context).primaryBackground,
-        body: Column(
-          mainAxisSize: MainAxisSize.max,
+        backgroundColor: BinaColors.surfaceAlt,
+        body: Row(
           children: [
+            // Web navigation sidebar
+            if (responsiveVisibility(
+              context: context,
+              phone: false,
+              tablet: false,
+            ))
+              wrapWithModel(
+                model: _model.webNavModel,
+                updateCallback: () => safeSetState(() {}),
+                child: const WebNavWidget(),
+              ),
+            // Main content
             Expanded(
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
+              child: Stack(
+                fit: StackFit.expand,
                 children: [
-                  // Web navigation sidebar
-                  if (responsiveVisibility(
-                    context: context,
-                    phone: false,
-                    tablet: false,
-                  ))
-                    wrapWithModel(
-                      model: _model.webNavModel,
-                      updateCallback: () => safeSetState(() {}),
-                      child: WebNavWidget(
-                        iconOne: Icon(
-                          Icons.home_rounded,
-                          color: AppTheme.of(context).secondaryText,
-                        ),
-                        iconTwo: Icon(
-                          Icons.remove_red_eye,
-                          color: AppTheme.of(context).secondaryText,
-                        ),
-                        iconThree: Icon(
-                          Icons.camera_alt,
-                          color: AppTheme.of(context).primary,
-                        ),
-                        iconFour: Icon(
-                          Icons.account_circle,
-                          color: AppTheme.of(context).secondaryText,
-                        ),
-                        colorBgOne:
-                            AppTheme.of(context).secondaryBackground,
-                        colorBgTwo:
-                            AppTheme.of(context).secondaryBackground,
-                        colorBgThree:
-                            AppTheme.of(context).primaryBackground,
-                        colorBgFour:
-                            AppTheme.of(context).secondaryBackground,
-                        textOne: AppTheme.of(context).primaryText,
-                        textTwo: AppTheme.of(context).secondaryText,
-                        textThree: AppTheme.of(context).secondaryText,
-                        textFour: AppTheme.of(context).secondaryText,
-                        iconFive: Icon(
-                          Icons.reduce_capacity,
-                          color: AppTheme.of(context).secondaryText,
-                        ),
-                        colorBgFive:
-                            AppTheme.of(context).secondaryBackground,
-                        textFive: AppTheme.of(context).secondaryText,
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).padding.top + 12,
+                        bottom: 120,
                       ),
-                    ),
-                  // Main content
-                  Expanded(
-                    child: SafeArea(
                       child: Column(
-                        mainAxisSize: MainAxisSize.max,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // App bar
-                          Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: AppTheme.of(context)
-                                  .secondaryBackground,
+                          // Header
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                            child: Row(
+                              children: [
+                                BinaIconButton(
+                                  icon: Icons.chevron_left_rounded,
+                                  onPressed: () => context.goNamed('Main_Home'),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  'Session Summary',
+                                  style: BinaType.titleLg,
+                                ),
+                                const Spacer(),
+                                const SizedBox(width: 44),
+                              ],
                             ),
-                            child: Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 12.0, 16.0, 12.0),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment: MainAxisAlignment.center,
+                          ).animate()
+                              .fadeIn(duration: 300.ms),
+
+                          // Status card
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                            child: BinaCard(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
                                 children: [
-                                  Text(
-                                    'Session Complete',
-                                    style: AppTheme.of(context)
-                                        .headlineMedium
-                                        .override(
-                                          font: GoogleFonts.readexPro(
-                                            fontWeight:
-                                                AppTheme.of(context)
-                                                    .headlineMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                AppTheme.of(context)
-                                                    .headlineMedium
-                                                    .fontStyle,
-                                          ),
-                                          letterSpacing: 0.0,
+                                  Row(
+                                    children: [
+                                      BinaAvatar(
+                                        name: widget.memberName ?? '?',
+                                        size: 52,
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              widget.memberName ?? 'Unknown',
+                                              style: BinaType.titleLg,
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              DateFormat('EEEE, d MMMM yyyy').format(DateTime.now()),
+                                              style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+                                            ),
+                                          ],
                                         ),
+                                      ),
+                                      DxChip(kind: _statusKind),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    height: 1,
+                                    color: BinaColors.line,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      _StatColumn(
+                                        icon: Icons.photo_library_rounded,
+                                        label: 'Photos',
+                                        value: '${_images.length}',
+                                        color: BinaColors.primary,
+                                      ),
+                                      _StatColumn(
+                                        icon: Icons.check_circle_rounded,
+                                        label: 'Teeth',
+                                        value: '$_totalTeeth',
+                                        color: BinaColors.dxGood,
+                                      ),
+                                      _StatColumn(
+                                        icon: Icons.warning_amber_rounded,
+                                        label: 'Issues',
+                                        value: '$_totalIssues',
+                                        color: _totalIssues > 0 ? BinaColors.dxCavity : BinaColors.ink3,
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
-                          ),
-                          // Content
-                          Expanded(
-                            child: Center(
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // Success Icon
-                                    Container(
-                                      width: 120.0,
-                                      height: 120.0,
-                                      decoration: BoxDecoration(
-                                        color: _getStatusColor(context)
-                                            .withOpacity(0.1),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        _getStatusIcon(),
-                                        color: _getStatusColor(context),
-                                        size: 64.0,
-                                      ),
+                          ).animate()
+                              .fadeIn(delay: 100.ms, duration: 400.ms)
+                              .moveY(begin: 20, end: 0, delay: 100.ms, duration: 400.ms),
+
+                          // Images section
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                BinaSectionHeader(
+                                  title: 'Captured Images',
+                                  action: null,
+                                ),
+                                const SizedBox(height: 12),
+                                if (_isLoadingImages)
+                                  Container(
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      color: BinaColors.surface,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: BinaColors.line),
                                     ),
-                                    SizedBox(height: 24.0),
-                                    // Member name
-                                    if (widget.memberName != null)
-                                      Text(
-                                        widget.memberName!,
-                                        style: AppTheme.of(context)
-                                            .headlineSmall
-                                            .override(
-                                              font: GoogleFonts.readexPro(
-                                                fontWeight:
-                                                    AppTheme.of(context)
-                                                        .headlineSmall
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    AppTheme.of(context)
-                                                        .headlineSmall
-                                                        .fontStyle,
-                                              ),
-                                              letterSpacing: 0.0,
-                                            ),
-                                      ),
-                                    SizedBox(height: 8.0),
-                                    // Image count
-                                    Text(
-                                      '${widget.imageCount ?? 0} images captured',
-                                      style: AppTheme.of(context)
-                                          .bodyLarge
-                                          .override(
-                                            font: GoogleFonts.inter(
-                                              fontWeight:
-                                                  AppTheme.of(context)
-                                                      .bodyLarge
-                                                      .fontWeight,
-                                              fontStyle:
-                                                  AppTheme.of(context)
-                                                      .bodyLarge
-                                                      .fontStyle,
-                                            ),
-                                            color: AppTheme.of(context)
-                                                .secondaryText,
-                                            letterSpacing: 0.0,
-                                          ),
-                                    ),
-                                    SizedBox(height: 24.0),
-                                    // Status badge
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 20.0, vertical: 10.0),
-                                      decoration: BoxDecoration(
-                                        color: _getStatusColor(context),
-                                        borderRadius:
-                                            BorderRadius.circular(24.0),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          Icon(
-                                            _getStatusIcon(),
-                                            color: Colors.white,
-                                            size: 20.0,
+                                          SizedBox(
+                                            width: 32,
+                                            height: 32,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 3,
+                                              color: BinaColors.primary,
+                                            ),
                                           ),
-                                          SizedBox(width: 8.0),
+                                          const SizedBox(height: 12),
                                           Text(
-                                            _getStatusText(),
-                                            style: AppTheme.of(context)
-                                                .titleSmall
-                                                .override(
-                                                  font: GoogleFonts.inter(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle:
-                                                        AppTheme.of(
-                                                                context)
-                                                            .titleSmall
-                                                            .fontStyle,
-                                                  ),
-                                                  color: Colors.white,
-                                                  letterSpacing: 0.0,
-                                                ),
+                                            'Loading images...',
+                                            style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
                                           ),
                                         ],
                                       ),
                                     ),
-                                    // AI Summary section.
-                                    if (_isGeneratingSummary ||
-                                        (_llmSummary != null &&
-                                            _llmSummary!.isNotEmpty)) ...[
-                                      SizedBox(height: 24.0),
-                                      Container(
-                                        width: double.infinity,
-                                        constraints:
-                                            BoxConstraints(maxWidth: 500.0),
-                                        padding: EdgeInsets.all(16.0),
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.of(context)
-                                              .secondaryBackground,
-                                          borderRadius:
-                                              BorderRadius.circular(12.0),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              blurRadius: 3.0,
-                                              color: Color(0x20000000),
-                                              offset: Offset(0.0, 1.0),
+                                  )
+                                else if (_images.isEmpty)
+                                  Container(
+                                    height: 150,
+                                    decoration: BoxDecoration(
+                                      color: BinaColors.surface,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: BinaColors.line),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        'No images found',
+                                        style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  GridView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 12,
+                                      childAspectRatio: 1,
+                                    ),
+                                    itemCount: _images.length,
+                                    itemBuilder: (context, index) {
+                                      final image = _images[index];
+                                      return _ImageTile(
+                                        image: image,
+                                        onTap: () => _showImageDetail(image),
+                                      );
+                                    },
+                                  ),
+                              ],
+                            ),
+                          ).animate()
+                              .fadeIn(delay: 200.ms, duration: 400.ms)
+                              .moveY(begin: 20, end: 0, delay: 200.ms, duration: 400.ms),
+
+                          // AI Summary section
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                BinaSectionHeader(
+                                  title: 'AI Analysis',
+                                  action: null,
+                                ),
+                                const SizedBox(height: 12),
+                                BinaCard(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: BinaColors.primary100,
+                                              borderRadius: BorderRadius.circular(10),
                                             ),
-                                          ],
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
+                                            child: Icon(
+                                              Icons.auto_awesome_rounded,
+                                              color: BinaColors.primary,
+                                              size: 20,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Icon(
-                                                  Icons.smart_toy,
-                                                  color:
-                                                      AppTheme.of(
-                                                              context)
-                                                          .primary,
-                                                  size: 20.0,
-                                                ),
-                                                SizedBox(width: 8.0),
                                                 Text(
-                                                  'AI Summary',
-                                                  style: AppTheme
-                                                          .of(context)
-                                                      .titleSmall
-                                                      .override(
-                                                        font: GoogleFonts
-                                                            .inter(
-                                                          fontWeight:
-                                                              FontWeight
-                                                                  .w600,
-                                                          fontStyle: AppTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontStyle,
-                                                        ),
-                                                        letterSpacing:
-                                                            0.0,
-                                                      ),
+                                                  'Gemma Analysis',
+                                                  style: BinaType.titleMd,
+                                                ),
+                                                Text(
+                                                  'AI-powered dental assessment',
+                                                  style: BinaType.labelSm.copyWith(color: BinaColors.ink3),
                                                 ),
                                               ],
                                             ),
-                                            SizedBox(height: 8.0),
-                                            if (_isGeneratingSummary)
-                                              Row(
-                                                children: [
-                                                  SizedBox(
-                                                    width: 16.0,
-                                                    height: 16.0,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      strokeWidth: 2.0,
-                                                      color:
-                                                          AppTheme
-                                                                  .of(
-                                                                      context)
-                                                              .primary,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 8.0),
-                                                  Text(
-                                                    'Generating summary...',
-                                                    style: AppTheme
-                                                            .of(context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .inter(
-                                                            fontWeight:
-                                                                AppTheme.of(
-                                                                        context)
-                                                                    .bodySmall
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                AppTheme.of(
-                                                                        context)
-                                                                    .bodySmall
-                                                                    .fontStyle,
-                                                          ),
-                                                          color: AppTheme
-                                                                  .of(
-                                                                      context)
-                                                              .secondaryText,
-                                                          letterSpacing:
-                                                              0.0,
-                                                        ),
-                                                  ),
-                                                ],
-                                              )
-                                            else
-                                              Text(
-                                                _llmSummary!,
-                                                style: AppTheme
-                                                        .of(context)
-                                                    .bodyMedium
-                                                    .override(
-                                                      font:
-                                                          GoogleFonts.inter(
-                                                        fontWeight:
-                                                            AppTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            AppTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
-                                                      letterSpacing: 0.0,
-                                                    ),
-                                              ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
+                                      const SizedBox(height: 16),
+                                      Container(
+                                        height: 1,
+                                        color: BinaColors.line,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      if (_isGeneratingSummary)
+                                        Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 18,
+                                              height: 18,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: BinaColors.primary,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'Analyzing your dental scan...',
+                                                style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      else if (_llmSummary != null && _llmSummary!.isNotEmpty)
+                                        Text(
+                                          _llmSummary!,
+                                          style: BinaType.bodyMd,
+                                        )
+                                      else if (!GemmaService.instance.isModelLoaded)
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: BinaColors.surfaceSunken,
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.info_outline_rounded,
+                                                color: BinaColors.ink2,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: Text(
+                                                  'AI model not loaded. Load Gemma from settings to enable analysis.',
+                                                  style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      else
+                                        Text(
+                                          'No analysis available.',
+                                          style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+                                        ),
                                     ],
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Bottom buttons
-                          Container(
-                            width: double.infinity,
-                            constraints: BoxConstraints(
-                              maxWidth: 570.0,
-                            ),
-                            padding: EdgeInsets.all(16.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AppButtonWidget(
-                                  onPressed: () async {
-                                    context.goNamed('Main_DIagnostics');
-                                  },
-                                  text: 'View Diagnostics History',
-                                  icon: Icon(
-                                    Icons.history,
-                                    size: 20.0,
-                                  ),
-                                  options: AppButtonOptions(
-                                    width: double.infinity,
-                                    height: 52.0,
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        24.0, 0.0, 24.0, 0.0),
-                                    iconPadding:
-                                        EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 0.0, 8.0, 0.0),
-                                    color:
-                                        AppTheme.of(context).primary,
-                                    textStyle: AppTheme.of(context)
-                                        .titleSmall
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                AppTheme.of(context)
-                                                    .titleSmall
-                                                    .fontWeight,
-                                            fontStyle:
-                                                AppTheme.of(context)
-                                                    .titleSmall
-                                                    .fontStyle,
-                                          ),
-                                          color: Colors.white,
-                                          letterSpacing: 0.0,
-                                        ),
-                                    elevation: 3.0,
-                                    borderSide: BorderSide(
-                                      color: Colors.transparent,
-                                      width: 1.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                ),
-                                SizedBox(height: 12.0),
-                                AppButtonWidget(
-                                  onPressed: () async {
-                                    context.goNamed('Main_Diagnose');
-                                  },
-                                  text: 'Back to Diagnose',
-                                  icon: Icon(
-                                    Icons.arrow_back,
-                                    size: 20.0,
-                                  ),
-                                  options: AppButtonOptions(
-                                    width: double.infinity,
-                                    height: 52.0,
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        24.0, 0.0, 24.0, 0.0),
-                                    iconPadding:
-                                        EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 0.0, 8.0, 0.0),
-                                    color: AppTheme.of(context)
-                                        .secondaryBackground,
-                                    textStyle: AppTheme.of(context)
-                                        .titleSmall
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                AppTheme.of(context)
-                                                    .titleSmall
-                                                    .fontWeight,
-                                            fontStyle:
-                                                AppTheme.of(context)
-                                                    .titleSmall
-                                                    .fontStyle,
-                                          ),
-                                          color: AppTheme.of(context)
-                                              .primaryText,
-                                          letterSpacing: 0.0,
-                                        ),
-                                    elevation: 0.0,
-                                    borderSide: BorderSide(
-                                      color: AppTheme.of(context)
-                                          .alternate,
-                                      width: 2.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8.0),
                                   ),
                                 ),
                               ],
                             ),
-                          ),
+                          ).animate()
+                              .fadeIn(delay: 300.ms, duration: 400.ms)
+                              .moveY(begin: 20, end: 0, delay: 300.ms, duration: 400.ms),
+
+                          // Action buttons
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: BinaButton(
+                                    label: 'View History',
+                                    icon: Icons.history_rounded,
+                                    variant: BinaButtonVariant.primary,
+                                    onPressed: () => context.goNamed('Family'),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: BinaButton(
+                                    label: 'Done',
+                                    icon: Icons.check_rounded,
+                                    variant: BinaButtonVariant.ghost,
+                                    onPressed: () => context.goNamed('Main_Home'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ).animate()
+                              .fadeIn(delay: 400.ms, duration: 400.ms),
                         ],
                       ),
+                    ),
+                  ),
+                  // Floating bottom nav (phone only)
+                  if (responsiveVisibility(
+                    context: context,
+                    tablet: false,
+                    tabletLandscape: false,
+                    desktop: false,
+                  ))
+                    const BinaFloatingNav(currentTab: BinaNavTab.scan),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SESSION IMAGE DATA
+// ═══════════════════════════════════════════════════════════════
+
+class _SessionImage {
+  final String id;
+  final Uint8List? imageBytes;
+  final Uint8List? originalBytes;
+  final List<Map<String, dynamic>> detections;
+  final DateTime capturedAt;
+  final int issuesCount;
+  final int teethCount;
+
+  _SessionImage({
+    required this.id,
+    required this.imageBytes,
+    required this.originalBytes,
+    required this.detections,
+    required this.capturedAt,
+    required this.issuesCount,
+    required this.teethCount,
+  });
+
+  DxChipKind get kind {
+    if (issuesCount == 0) return DxChipKind.good;
+    if (issuesCount < 2) return DxChipKind.plaque;
+    return DxChipKind.cavity;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STAT COLUMN
+// ═══════════════════════════════════════════════════════════════
+
+class _StatColumn extends StatelessWidget {
+  const _StatColumn({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 6),
+        Text(value, style: BinaType.headlineSm),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: BinaType.labelSm.copyWith(color: BinaColors.ink3),
+        ),
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// IMAGE TILE
+// ═══════════════════════════════════════════════════════════════
+
+class _ImageTile extends StatelessWidget {
+  const _ImageTile({
+    required this.image,
+    required this.onTap,
+  });
+
+  final _SessionImage image;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: BinaColors.line),
+          boxShadow: BinaElevation.sh1,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Image
+            if (image.imageBytes != null)
+              Image.memory(
+                image.imageBytes!,
+                fit: BoxFit.cover,
+              )
+            else
+              Container(
+                color: BinaColors.surfaceSunken,
+                child: Icon(
+                  Icons.image_rounded,
+                  color: BinaColors.ink3,
+                  size: 40,
+                ),
+              ),
+            // Gradient overlay
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Info overlay
+            Positioned(
+              bottom: 8,
+              left: 8,
+              right: 8,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        image.issuesCount > 0
+                            ? Icons.warning_amber_rounded
+                            : Icons.check_circle_rounded,
+                        color: image.issuesCount > 0
+                            ? BinaColors.dxCavity
+                            : BinaColors.dxGood,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        image.issuesCount > 0
+                            ? '${image.issuesCount} issue${image.issuesCount > 1 ? 's' : ''}'
+                            : 'Clean',
+                        style: BinaType.labelSm.copyWith(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    DateFormat('HH:mm').format(image.capturedAt),
+                    style: BinaType.labelSm.copyWith(
+                      color: Colors.white.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
               ),
             ),
-            // Bottom navigation bar for mobile
-            if (responsiveVisibility(
-              context: context,
-              tabletLandscape: false,
-              desktop: false,
-            ))
-              Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.of(context).secondaryBackground,
-                ),
-                child: BottomNavigationBar(
-                  currentIndex: 2,
-                  onTap: (i) {
-                    final pages = [
-                      'Main_Home',
-                      'Main_DIagnostics',
-                      'Main_Diagnose',
-                      'Main_profilePage',
-                    ];
-                    context.goNamed(pages[i]);
-                  },
-                  backgroundColor:
-                      AppTheme.of(context).secondaryBackground,
-                  selectedItemColor: AppTheme.of(context).primary,
-                  unselectedItemColor:
-                      AppTheme.of(context).secondaryText,
-                  showSelectedLabels: true,
-                  showUnselectedLabels: false,
-                  type: BottomNavigationBarType.fixed,
-                  items: <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.home_outlined, size: 24.0),
-                      activeIcon: Icon(Icons.home, size: 32.0),
-                      label: '__',
-                      tooltip: '',
+            // Issue badge
+            if (image.issuesCount > 0)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: BinaColors.dxCavity,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${image.issuesCount}',
+                    style: BinaType.labelSm.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.remove_red_eye_outlined, size: 24.0),
-                      activeIcon: Icon(Icons.remove_red_eye, size: 32.0),
-                      label: '__',
-                      tooltip: '',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.camera_alt_outlined, size: 24.0),
-                      activeIcon: Icon(Icons.camera_alt, size: 32.0),
-                      label: '__',
-                      tooltip: '',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.account_circle_outlined, size: 24.0),
-                      activeIcon: Icon(Icons.account_circle, size: 32.0),
-                      label: '__',
-                      tooltip: '',
-                    ),
-                  ],
+                  ),
                 ),
               ),
           ],
         ),
       ),
     );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// IMAGE DETAIL SHEET
+// ═══════════════════════════════════════════════════════════════
+
+class _ImageDetailSheet extends StatefulWidget {
+  const _ImageDetailSheet({
+    required this.image,
+    required this.memberName,
+  });
+
+  final _SessionImage image;
+  final String memberName;
+
+  @override
+  State<_ImageDetailSheet> createState() => _ImageDetailSheetState();
+}
+
+class _ImageDetailSheetState extends State<_ImageDetailSheet> {
+  bool _showAnnotated = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      height: screenHeight * 0.85,
+      decoration: BoxDecoration(
+        color: BinaColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        children: [
+          // Handle
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 8),
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: BinaColors.ink3.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Image Detail',
+                      style: BinaType.titleLg,
+                    ),
+                    Text(
+                      DateFormat('d MMM yyyy, HH:mm').format(widget.image.capturedAt),
+                      style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+                    ),
+                  ],
+                ),
+                DxChip(kind: widget.image.kind),
+              ],
+            ),
+          ),
+          // Image view
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (_showAnnotated && widget.image.imageBytes != null)
+                      Image.memory(
+                        widget.image.imageBytes!,
+                        fit: BoxFit.contain,
+                      )
+                    else if (!_showAnnotated && widget.image.originalBytes != null)
+                      Image.memory(
+                        widget.image.originalBytes!,
+                        fit: BoxFit.contain,
+                      )
+                    else
+                      Center(
+                        child: Icon(
+                          Icons.image_rounded,
+                          color: BinaColors.ink3,
+                          size: 64,
+                        ),
+                      ),
+                    // Toggle button
+                    if (widget.image.originalBytes != null && widget.image.imageBytes != null)
+                      Positioned(
+                        bottom: 12,
+                        right: 12,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _showAnnotated = !_showAnnotated),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _showAnnotated ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _showAnnotated ? 'Annotated' : 'Original',
+                                  style: BinaType.labelSm.copyWith(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Detections list
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Detections',
+                  style: BinaType.titleMd,
+                ),
+                const SizedBox(height: 12),
+                if (widget.image.detections.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: BinaColors.dxGood100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: BinaColors.dxGood,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'No issues detected in this image',
+                          style: BinaType.bodyMd.copyWith(color: BinaColors.dxGood),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  SizedBox(
+                    height: 100,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: widget.image.detections.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 10),
+                      itemBuilder: (context, index) {
+                        final detection = widget.image.detections[index];
+                        final className = detection['className'] as String? ?? 'Unknown';
+                        final confidence = detection['confidence'] as double? ?? 0.0;
+                        final isTooth = className.startsWith('tooth_');
+
+                        return Container(
+                          width: 140,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isTooth ? BinaColors.surfaceSunken : BinaColors.dxCavity100,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isTooth
+                                  ? BinaColors.line
+                                  : BinaColors.dxCavity.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isTooth ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                                color: isTooth ? BinaColors.ink2 : BinaColors.dxCavity,
+                                size: 20,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _formatClassName(className),
+                                style: BinaType.titleSm,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                '${(confidence * 100).toStringAsFixed(0)}% confident',
+                                style: BinaType.labelSm.copyWith(color: BinaColors.ink3),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatClassName(String className) {
+    // Convert snake_case to Title Case
+    return className
+        .split('_')
+        .map((word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1)}'
+            : word)
+        .join(' ');
   }
 }

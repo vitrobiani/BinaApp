@@ -1,12 +1,10 @@
-import '/app_core/app_icon_button.dart';
-import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
+import '/bina_design/bina_design.dart';
 import '/services/gemma_service.dart';
 import '/services/chat_manager.dart';
 import '/services/llm_prompts.dart';
 import '/components/gemma_download_progress/gemma_download_progress_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
 import 'chat_room_model.dart';
 export 'chat_room_model.dart';
@@ -50,7 +48,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
       }
@@ -68,7 +66,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
           content: Text(GemmaService.instance.isDownloading
               ? 'AI model is still downloading... (${(GemmaService.instance.downloadProgress * 100).toStringAsFixed(0)}%)'
               : 'AI model is not ready yet. Please wait...'),
-          backgroundColor: AppTheme.of(context).warning,
+          backgroundColor: BinaColors.warning,
         ),
       );
       return;
@@ -166,47 +164,66 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
           },
           child: Scaffold(
             key: scaffoldKey,
-            backgroundColor: AppTheme.of(context).primaryBackground,
-            appBar: AppBar(
-              backgroundColor:
-                  AppTheme.of(context).secondaryBackground,
-              automaticallyImplyLeading: false,
-              leading: AppIconButton(
-                borderColor: Colors.transparent,
-                borderRadius: 30.0,
-                borderWidth: 1.0,
-                buttonSize: 60.0,
-                icon: Icon(
-                  Icons.arrow_back_rounded,
-                  color: AppTheme.of(context).primaryText,
-                  size: 30.0,
-                ),
-                onPressed: () async {
-                  context.safePop();
-                },
-              ),
-              title: Text(
-                conversation?.title ?? 'Chat',
-                style: AppTheme.of(context).headlineMedium.override(
-                      font: GoogleFonts.readexPro(
-                        fontWeight: AppTheme.of(context)
-                            .headlineMedium
-                            .fontWeight,
-                        fontStyle: AppTheme.of(context)
-                            .headlineMedium
-                            .fontStyle,
-                      ),
-                      letterSpacing: 0.0,
-                    ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              centerTitle: false,
-              elevation: 0.0,
-            ),
+            backgroundColor: BinaColors.surfaceAlt,
             body: SafeArea(
               child: Column(
                 children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+                    decoration: BoxDecoration(
+                      color: BinaColors.surface,
+                      border: Border(
+                        bottom: BorderSide(color: BinaColors.line),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        BinaIconButton(
+                          icon: Icons.chevron_left_rounded,
+                          onPressed: () => context.safePop(),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            gradient: BinaColors.gradHero,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.auto_awesome_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                conversation?.title ?? 'Dental Assistant',
+                                style: BinaType.titleMd,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                GemmaService.instance.isModelLoaded
+                                    ? 'Online'
+                                    : 'Loading...',
+                                style: BinaType.labelSm.copyWith(
+                                  color: GemmaService.instance.isModelLoaded
+                                      ? BinaColors.success
+                                      : BinaColors.warning,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   // Show download progress if model is not ready
                   if (!GemmaService.instance.isModelLoaded)
                     GemmaDownloadProgressWidget(
@@ -214,164 +231,122 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                         if (mounted) setState(() {});
                       },
                     ),
-                  // Messages list.
+                  // Messages list
                   Expanded(
                     child: messages.isEmpty
                         ? Center(
-                            child: Text(
-                              'Ask me anything about dental health!',
-                              style: AppTheme.of(context)
-                                  .bodyMedium
-                                  .override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight:
-                                          AppTheme.of(context)
-                                              .bodyMedium
-                                              .fontWeight,
-                                      fontStyle:
-                                          AppTheme.of(context)
-                                              .bodyMedium
-                                              .fontStyle,
-                                    ),
-                                    color: AppTheme.of(context)
-                                        .secondaryText,
-                                    letterSpacing: 0.0,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    color: BinaColors.primary100,
+                                    shape: BoxShape.circle,
                                   ),
+                                  child: Icon(
+                                    Icons.chat_bubble_outline_rounded,
+                                    color: BinaColors.primary,
+                                    size: 36,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Ask me anything!',
+                                  style: BinaType.titleLg,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'I can help with dental health questions',
+                                  style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+                                ),
+                              ],
                             ),
                           )
                         : ListView.builder(
                             controller: _scrollController,
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 12.0),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                             itemCount: messages.length,
                             itemBuilder: (context, index) {
-                              return _buildMessageBubble(
-                                  context, messages[index]);
+                              return _MessageBubble(message: messages[index]);
                             },
                           ),
                   ),
-                  // Generating indicator.
+                  // Generating indicator
                   if (_isGenerating)
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 4.0),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       child: Row(
                         children: [
-                          SizedBox(
-                            width: 16.0,
-                            height: 16.0,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.0,
-                              color:
-                                  AppTheme.of(context).primary,
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              gradient: BinaColors.gradHero,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.auto_awesome_rounded,
+                              color: Colors.white,
+                              size: 16,
                             ),
                           ),
-                          SizedBox(width: 8.0),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: BinaColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Text(
-                            'Generating response...',
-                            style: AppTheme.of(context)
-                                .bodySmall
-                                .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight:
-                                        AppTheme.of(context)
-                                            .bodySmall
-                                            .fontWeight,
-                                    fontStyle:
-                                        AppTheme.of(context)
-                                            .bodySmall
-                                            .fontStyle,
-                                  ),
-                                  color: AppTheme.of(context)
-                                      .secondaryText,
-                                  letterSpacing: 0.0,
-                                ),
+                            'Thinking...',
+                            style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
                           ),
                         ],
                       ),
                     ),
-                  // Input bar.
+                  // Input bar
                   Container(
-                    padding: EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.of(context)
-                          .secondaryBackground,
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 3.0,
-                          color: Color(0x20000000),
-                          offset: Offset(0.0, -1.0),
-                        ),
-                      ],
+                      color: BinaColors.surface,
+                      border: Border(
+                        top: BorderSide(color: BinaColors.line),
+                      ),
                     ),
                     child: Row(
                       children: [
                         Expanded(
-                          child: TextFormField(
-                            controller: _model.messageController,
-                            focusNode: _model.messageFocusNode,
-                            onFieldSubmitted: (_) => _sendMessage(),
-                            decoration: InputDecoration(
-                              hintText: 'Type a message...',
-                              hintStyle: AppTheme.of(context)
-                                  .bodyMedium
-                                  .override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight:
-                                          AppTheme.of(context)
-                                              .bodyMedium
-                                              .fontWeight,
-                                      fontStyle:
-                                          AppTheme.of(context)
-                                              .bodyMedium
-                                              .fontStyle,
-                                    ),
-                                    color: AppTheme.of(context)
-                                        .secondaryText,
-                                    letterSpacing: 0.0,
-                                  ),
-                              filled: true,
-                              fillColor: AppTheme.of(context)
-                                  .primaryBackground,
-                              border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.circular(24.0),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding:
-                                  EdgeInsets.symmetric(
-                                      horizontal: 16.0, vertical: 10.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: BinaColors.surfaceSunken,
+                              borderRadius: BorderRadius.circular(24),
                             ),
-                            style: AppTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight:
-                                        AppTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                    fontStyle:
-                                        AppTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                  ),
-                                  letterSpacing: 0.0,
-                                ),
+                            child: TextField(
+                              controller: _model.messageController,
+                              focusNode: _model.messageFocusNode,
+                              onSubmitted: (_) => _sendMessage(),
+                              decoration: InputDecoration(
+                                hintText: 'Type a message...',
+                                hintStyle: BinaType.bodyMd.copyWith(color: BinaColors.ink3),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                              ),
+                              style: BinaType.bodyMd,
+                            ),
                           ),
                         ),
-                        SizedBox(width: 8.0),
-                        AppIconButton(
-                          borderColor: Colors.transparent,
-                          borderRadius: 24.0,
-                          buttonSize: 48.0,
-                          fillColor:
-                              AppTheme.of(context).primary,
-                          icon: Icon(
-                            Icons.send_rounded,
-                            color: Colors.white,
-                            size: 20.0,
-                          ),
+                        const SizedBox(width: 8),
+                        _SendButton(
                           onPressed: _isGenerating ? null : _sendMessage,
+                          isEnabled: !_isGenerating,
                         ),
                       ],
                     ),
@@ -384,84 +359,131 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
       },
     );
   }
+}
 
-  Widget _buildMessageBubble(BuildContext context, ChatMessage message) {
+// ═══════════════════════════════════════════════════════════════
+// MESSAGE BUBBLE
+// ═══════════════════════════════════════════════════════════════
+
+class _MessageBubble extends StatelessWidget {
+  const _MessageBubble({required this.message});
+
+  final ChatMessage message;
+
+  @override
+  Widget build(BuildContext context) {
     final isUser = message.role == 'user';
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment:
             isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) ...[
-            CircleAvatar(
-              radius: 16.0,
-              backgroundColor: AppTheme.of(context).primary,
-              child: Icon(
-                Icons.smart_toy,
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                gradient: BinaColors.gradHero,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
                 color: Colors.white,
-                size: 18.0,
+                size: 16,
               ),
             ),
-            SizedBox(width: 8.0),
+            const SizedBox(width: 8),
           ],
           Flexible(
             child: Container(
-              padding: EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isUser
-                    ? AppTheme.of(context).primary
-                    : AppTheme.of(context).secondaryBackground,
+                color: isUser ? BinaColors.primary : BinaColors.surface,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16.0),
-                  topRight: Radius.circular(16.0),
-                  bottomLeft:
-                      isUser ? Radius.circular(16.0) : Radius.circular(4.0),
-                  bottomRight:
-                      isUser ? Radius.circular(4.0) : Radius.circular(16.0),
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                  bottomLeft: isUser
+                      ? const Radius.circular(16)
+                      : const Radius.circular(4),
+                  bottomRight: isUser
+                      ? const Radius.circular(4)
+                      : const Radius.circular(16),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 2.0,
-                    color: Color(0x10000000),
-                    offset: Offset(0.0, 1.0),
-                  ),
-                ],
+                border: isUser ? null : Border.all(color: BinaColors.line),
+                boxShadow: BinaElevation.sh1,
               ),
               child: Text(
                 message.content,
-                style: AppTheme.of(context).bodyMedium.override(
-                      font: GoogleFonts.inter(
-                        fontWeight: AppTheme.of(context)
-                            .bodyMedium
-                            .fontWeight,
-                        fontStyle: AppTheme.of(context)
-                            .bodyMedium
-                            .fontStyle,
-                      ),
-                      color: isUser
-                          ? Colors.white
-                          : AppTheme.of(context).primaryText,
-                      letterSpacing: 0.0,
-                    ),
+                style: BinaType.bodyMd.copyWith(
+                  color: isUser ? Colors.white : BinaColors.ink,
+                ),
               ),
             ),
           ),
           if (isUser) ...[
-            SizedBox(width: 8.0),
-            CircleAvatar(
-              radius: 16.0,
-              backgroundColor: AppTheme.of(context).secondary,
-              child: Icon(
-                Icons.person,
-                color: Colors.white,
-                size: 18.0,
-              ),
+            const SizedBox(width: 8),
+            BinaAvatar(
+              name: AppState().UserSession.family.isNotEmpty
+                  ? AppState().UserSession.family.first.name
+                  : 'U',
+              size: 32,
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SEND BUTTON
+// ═══════════════════════════════════════════════════════════════
+
+class _SendButton extends StatefulWidget {
+  const _SendButton({
+    required this.onPressed,
+    required this.isEnabled,
+  });
+
+  final VoidCallback? onPressed;
+  final bool isEnabled;
+
+  @override
+  State<_SendButton> createState() => _SendButtonState();
+}
+
+class _SendButtonState extends State<_SendButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: widget.isEnabled ? (_) => setState(() => _isPressed = true) : null,
+      onTapUp: widget.isEnabled ? (_) => setState(() => _isPressed = false) : null,
+      onTapCancel: widget.isEnabled ? () => setState(() => _isPressed = false) : null,
+      onTap: widget.onPressed,
+      child: AnimatedContainer(
+        duration: BinaMotion.d1,
+        width: 48,
+        height: 48,
+        transform: _isPressed
+            ? (Matrix4.identity()..setEntry(0, 0, 0.95)..setEntry(1, 1, 0.95))
+            : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: widget.isEnabled ? BinaColors.gradHero : null,
+          color: widget.isEnabled ? null : BinaColors.surfaceSunken,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: widget.isEnabled ? BinaElevation.sh2 : null,
+        ),
+        child: Icon(
+          Icons.send_rounded,
+          color: widget.isEnabled ? Colors.white : BinaColors.ink3,
+          size: 20,
+        ),
       ),
     );
   }

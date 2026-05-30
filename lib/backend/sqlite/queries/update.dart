@@ -138,6 +138,19 @@ Future performUpdateScanSessionEnd(
 }
 /// END UPDATESCANSESSIONEND
 
+/// BEGIN UPDATESCANSESSIONNOTES
+Future performUpdateScanSessionNotes(
+  Database database, {
+  String? notes,
+  String? id,
+}) async {
+  return database.rawUpdate(
+    'UPDATE scan_session SET notes = ? WHERE id = ?',
+    [notes, id],
+  );
+}
+/// END UPDATESCANSESSIONNOTES
+
 /// BEGIN CREATENEWCONVERSATION
 Future performCreateNewConversation(
     Database database, {

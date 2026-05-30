@@ -1,11 +1,14 @@
 import '/app_core/app_util.dart';
 import '/backend/schema/structs/index.dart';
+import '/backend/sqlite/sqlite_manager.dart';
+import '/backend/supabase/supabase.dart';
 import '/bina_design/bina_design.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-class MemberDetailWidget extends StatelessWidget {
+class MemberDetailWidget extends StatefulWidget {
   const MemberDetailWidget({
     super.key,
     required this.member,
@@ -16,27 +19,35 @@ class MemberDetailWidget extends StatelessWidget {
 
   final FamilyMemberStruct member;
 
+  @override
+  State<MemberDetailWidget> createState() => _MemberDetailWidgetState();
+}
+
+class _MemberDetailWidgetState extends State<MemberDetailWidget> {
+  List<_SessionData> _sessions = [];
+  bool _isLoading = true;
+
   int? get _age {
-    if (!member.hasBirthday()) return null;
-    return DateTime.now().difference(member.birthday!).inDays ~/ 365;
+    if (!widget.member.hasBirthday()) return null;
+    return DateTime.now().difference(widget.member.birthday!).inDays ~/ 365;
   }
 
   DxChipKind get _diagnosisKind {
-    if (!member.hasLastChecked()) return DxChipKind.due;
-    if (member.score >= 80) return DxChipKind.good;
-    if (member.score >= 50) return DxChipKind.plaque;
+    if (!widget.member.hasLastChecked()) return DxChipKind.due;
+    if (widget.member.score >= 80) return DxChipKind.good;
+    if (widget.member.score >= 50) return DxChipKind.plaque;
     return DxChipKind.cavity;
   }
 
   BinaAvatarTone get _avatarTone {
-    final hash = member.name.hashCode;
+    final hash = widget.member.name.hashCode;
     final tones = BinaAvatarTone.values;
     return tones[hash.abs() % (tones.length - 1)];
   }
 
   String get _lastCheckedStr {
-    if (!member.hasLastChecked()) return 'never checked';
-    final date = member.lastChecked!;
+    if (!widget.member.hasLastChecked()) return 'never checked';
+    final date = widget.member.lastChecked!;
     final now = DateTime.now();
     final diff = now.difference(date);
 
@@ -52,11 +63,134 @@ class MemberDetailWidget extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      await _loadSessions();
+    });
+  }
+
+  Future<void> _loadSessions() async {
+    try {
+      final sessions = <_SessionData>[];
+
+      if (AppState().UserSession.isLocalSession) {
+        final rows = await SQLiteManager.instance.getScanSessionsByMemberId(
+          memberId: widget.member.id,
+        );
+
+        for (final row in rows) {
+          // Load images for this session to get detection counts
+          final images = await SQLiteManager.instance.getScanImagesBySessionId(
+            sessionId: row.id,
+          );
+
+          int issuesCount = 0;
+          int teethCount = 0;
+
+          for (final img in images) {
+            if (img.rawResponse != null && img.rawResponse!.isNotEmpty) {
+              try {
+                final detections = jsonDecode(img.rawResponse!) as List<dynamic>;
+                for (final d in detections) {
+                  final className = d['className'] as String? ?? '';
+                  if (className.startsWith('tooth_')) {
+                    teethCount++;
+                  } else {
+                    issuesCount++;
+                  }
+                }
+              } catch (_) {}
+            }
+          }
+
+          sessions.add(_SessionData(
+            id: row.id,
+            date: row.sessionStart != null
+                ? DateTime.fromMillisecondsSinceEpoch(row.sessionStart! * 1000)
+                : DateTime.now(),
+            imageCount: row.totalImagesCaptured,
+            issuesCount: issuesCount,
+            teethCount: teethCount,
+            status: row.status,
+          ));
+        }
+      } else {
+        final rows = await ScanSessionsTable().queryRows(
+          queryFn: (q) => q
+              .eq('family_member_id', widget.member.id)
+              .order('session_start', ascending: false),
+        );
+
+        for (final row in rows) {
+          // Load images for this session
+          final images = await ScanImagesTable().queryRows(
+            queryFn: (q) => q.eq('scan_session_id', row.id),
+          );
+
+          int issuesCount = 0;
+          int teethCount = 0;
+
+          for (final img in images) {
+            if (img.rawResponse != null && img.rawResponse!.isNotEmpty) {
+              try {
+                final detections = jsonDecode(img.rawResponse!) as List<dynamic>;
+                for (final d in detections) {
+                  final className = d['className'] as String? ?? '';
+                  if (className.startsWith('tooth_')) {
+                    teethCount++;
+                  } else {
+                    issuesCount++;
+                  }
+                }
+              } catch (_) {}
+            }
+          }
+
+          sessions.add(_SessionData(
+            id: row.id,
+            date: row.sessionStart ?? DateTime.now(),
+            imageCount: row.totalImagesCaptured,
+            issuesCount: issuesCount,
+            teethCount: teethCount,
+            status: row.status,
+          ));
+        }
+      }
+
+      // Sort by date descending
+      sessions.sort((a, b) => b.date.compareTo(a.date));
+
+      if (mounted) {
+        setState(() {
+          _sessions = sessions;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading sessions: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Calculate stats from sessions
+  int get _cleanCount => _sessions.where((s) => s.issuesCount == 0 && s.status == 'completed').length;
+  int get _plaqueCount => _sessions.where((s) => s.issuesCount > 0 && s.issuesCount < 3).length;
+  int get _cavityCount => _sessions.where((s) => s.issuesCount >= 3).length;
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BinaColors.surfaceAlt,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.only(top: 54, bottom: 120),
+        padding: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + 12,
+          bottom: 120,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -86,7 +220,7 @@ class MemberDetailWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: _HeroCard(
-                member: member,
+                member: widget.member,
                 age: _age,
                 diagnosisKind: _diagnosisKind,
                 avatarTone: _avatarTone,
@@ -94,9 +228,9 @@ class MemberDetailWidget extends StatelessWidget {
                 onScan: () {
                   context.pushNamed(
                     PhotoSessionWidget.routeName,
-                    pathParameters: {
-                      'memberId': member.id,
-                      'memberName': member.name,
+                    extra: <String, dynamic>{
+                      'memberId': widget.member.id,
+                      'memberName': widget.member.name,
                     },
                   );
                 },
@@ -116,7 +250,7 @@ class MemberDetailWidget extends StatelessWidget {
                   Expanded(
                     child: _StatCard(
                       label: 'Clean',
-                      value: 4, // TODO: Get from actual data
+                      value: _cleanCount,
                       tone: DxChipKind.good,
                     ),
                   ),
@@ -124,7 +258,7 @@ class MemberDetailWidget extends StatelessWidget {
                   Expanded(
                     child: _StatCard(
                       label: 'Plaque',
-                      value: 2,
+                      value: _plaqueCount,
                       tone: DxChipKind.plaque,
                     ),
                   ),
@@ -132,7 +266,7 @@ class MemberDetailWidget extends StatelessWidget {
                   Expanded(
                     child: _StatCard(
                       label: 'Cavity',
-                      value: _diagnosisKind == DxChipKind.cavity ? 1 : 0,
+                      value: _cavityCount,
                       tone: DxChipKind.cavity,
                     ),
                   ),
@@ -155,7 +289,11 @@ class MemberDetailWidget extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 12),
-                  _HistoryList(memberId: member.id),
+                  _HistoryList(
+                    sessions: _sessions,
+                    isLoading: _isLoading,
+                    memberName: widget.member.name,
+                  ),
                 ],
               ),
             ).animate()
@@ -165,6 +303,35 @@ class MemberDetailWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SESSION DATA
+// ═══════════════════════════════════════════════════════════════
+
+class _SessionData {
+  final String id;
+  final DateTime date;
+  final int imageCount;
+  final int issuesCount;
+  final int teethCount;
+  final String status;
+
+  _SessionData({
+    required this.id,
+    required this.date,
+    required this.imageCount,
+    required this.issuesCount,
+    required this.teethCount,
+    required this.status,
+  });
+
+  DxChipKind get kind {
+    if (status != 'completed') return DxChipKind.due;
+    if (issuesCount == 0) return DxChipKind.good;
+    if (issuesCount < 3) return DxChipKind.plaque;
+    return DxChipKind.cavity;
   }
 }
 
@@ -347,20 +514,19 @@ class _StatCard extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════
 
 class _HistoryList extends StatelessWidget {
-  const _HistoryList({required this.memberId});
+  const _HistoryList({
+    required this.sessions,
+    required this.isLoading,
+    required this.memberName,
+  });
 
-  final String memberId;
+  final List<_SessionData> sessions;
+  final bool isLoading;
+  final String memberName;
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Load actual history from database
-    final demoHistory = [
-      {'date': '12 May · 11:24', 'region': 'Upper left incisor', 'kind': DxChipKind.good},
-      {'date': '6 May · 08:11', 'region': 'Lower front', 'kind': DxChipKind.plaque},
-      {'date': '29 Apr · 20:02', 'region': 'Upper molar', 'kind': DxChipKind.good},
-    ];
-
-    if (demoHistory.isEmpty) {
+    if (isLoading) {
       return Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -369,24 +535,70 @@ class _HistoryList extends StatelessWidget {
           border: Border.all(color: BinaColors.line),
         ),
         child: Center(
-          child: Text(
-            'No scan history yet',
-            style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: BinaColors.primary,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (sessions.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: BinaColors.line),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.history_rounded,
+                color: BinaColors.ink3,
+                size: 40,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'No scan history yet',
+                style: BinaType.titleMd,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Start a scan to see results here',
+                style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+              ),
+            ],
           ),
         ),
       );
     }
 
     return Column(
-      children: demoHistory.asMap().entries.map((entry) {
+      children: sessions.asMap().entries.map((entry) {
         final index = entry.key;
-        final item = entry.value;
+        final session = entry.value;
         return Padding(
-          padding: EdgeInsets.only(bottom: index < demoHistory.length - 1 ? 10 : 0),
+          padding: EdgeInsets.only(bottom: index < sessions.length - 1 ? 10 : 0),
           child: _HistoryRow(
-            date: item['date'] as String,
-            region: item['region'] as String,
-            kind: item['kind'] as DxChipKind,
+            session: session,
+            memberName: memberName,
+            onTap: () {
+              context.pushNamed(
+                SessionSummaryWidget.routeName,
+                extra: <String, dynamic>{
+                  'sessionId': session.id,
+                  'imageCount': session.imageCount,
+                  'memberName': memberName,
+                  'overallStatus': session.issuesCount == 0 ? 'healthy' : 'attention_needed',
+                },
+              );
+            },
           ),
         );
       }).toList(),
@@ -396,59 +608,86 @@ class _HistoryList extends StatelessWidget {
 
 class _HistoryRow extends StatelessWidget {
   const _HistoryRow({
-    required this.date,
-    required this.region,
-    required this.kind,
+    required this.session,
+    required this.memberName,
+    required this.onTap,
   });
 
-  final String date;
-  final String region;
-  final DxChipKind kind;
+  final _SessionData session;
+  final String memberName;
+  final VoidCallback onTap;
+
+  String get _dateStr {
+    final date = session.date;
+    final time = DateFormat('HH:mm').format(date);
+    final day = DateFormat('d MMM').format(date);
+    return '$day · $time';
+  }
+
+  String get _summaryStr {
+    if (session.status != 'completed') return 'Session incomplete';
+    if (session.issuesCount == 0) return 'No issues detected';
+    return '${session.issuesCount} issue${session.issuesCount > 1 ? 's' : ''} found';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: BinaColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: BinaColors.line),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF1A1A22), Color(0xFF2C2C38)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.emoji_emotions_outlined,
-              color: Colors.white.withValues(alpha: 0.55),
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(region, style: BinaType.titleMd),
-                const SizedBox(height: 2),
-                Text(
-                  date,
-                  style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: BinaColors.line),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1A1A22), Color(0xFF2C2C38)],
                 ),
-              ],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${session.imageCount}',
+                    style: BinaType.titleMd.copyWith(color: Colors.white),
+                  ),
+                  Text(
+                    'photos',
+                    style: BinaType.labelSm.copyWith(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          DxChip(kind: kind, size: DxChipSize.sm),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_summaryStr, style: BinaType.titleMd),
+                  const SizedBox(height: 2),
+                  Text(
+                    _dateStr,
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                  ),
+                ],
+              ),
+            ),
+            DxChip(kind: session.kind, size: DxChipSize.sm),
+          ],
+        ),
       ),
     );
   }

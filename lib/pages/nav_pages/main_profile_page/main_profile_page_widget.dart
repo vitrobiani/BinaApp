@@ -95,8 +95,10 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
 
     final user = AppState().UserSession;
     final currentThemeType = AccessibilitySettingsService.instance.themeType;
-    // Map AppThemeType to BinaThemeId for display
     final currentBinaTheme = _mapToBinaTheme(currentThemeType);
+
+    final bp = BinaBreakpoints.fromContext(context);
+    final isWide = bp != BinaBreakpoint.phone;
 
     return GestureDetector(
       onTap: () {
@@ -109,207 +111,37 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
         body: Row(
           children: [
             // Web nav for larger screens
-            if (responsiveVisibility(
-              context: context,
-              phone: false,
-              tablet: false,
-            ))
+            if (isWide)
               wrapWithModel(
                 model: _model.webNavModel,
                 updateCallback: () => safeSetState(() {}),
-                child: const WebNavWidget(),
+                child: WebNavWidget(currentTab: BinaNavTab.profile),
               ),
             // Main content
             Expanded(
               child: Stack(
+                fit: StackFit.expand,
                 children: [
                   // Scrollable content
-                  SingleChildScrollView(
-                    padding: const EdgeInsets.only(
-                      top: 54,
-                      bottom: 120,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Title
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                          child: Text(
-                            'Profile',
-                            style: BinaType.displaySm,
-                          ),
-                        ).animate()
-                            .fadeIn(duration: 400.ms)
-                            .moveY(begin: 20, end: 0, duration: 400.ms),
-
-                        // Identity card
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                          child: _IdentityCard(
-                            name: user.name,
-                            email: user.email,
-                            onTap: () {
-                              // TODO: Open account settings
-                            },
-                          ),
-                        ).animate()
-                            .fadeIn(delay: 100.ms, duration: 400.ms)
-                            .moveY(begin: 20, end: 0, delay: 100.ms, duration: 400.ms),
-
-                        // Appearance section
-                        _ProfileGroup(
-                          title: 'APPEARANCE',
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Theme',
-                                      style: BinaType.labelMd,
-                                    ),
-                                    GestureDetector(
-                                      onTap: _openAccessibility,
-                                      child: Text(
-                                        'More options →',
-                                        style: BinaType.labelSm.copyWith(
-                                          color: BinaColors.primary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    _ThemeSwatch(
-                                      label: 'Light',
-                                      themeId: BinaThemeId.light,
-                                      isActive: currentBinaTheme == BinaThemeId.light,
-                                      colors: [const Color(0xFFFBFAF6), const Color(0xFF1F5BFF)],
-                                      onTap: () => _setTheme(BinaThemeId.light),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _ThemeSwatch(
-                                      label: 'Dark',
-                                      themeId: BinaThemeId.dark,
-                                      isActive: currentBinaTheme == BinaThemeId.dark,
-                                      colors: [const Color(0xFF0C0F1A), const Color(0xFF5B8BFF)],
-                                      onTap: () => _setTheme(BinaThemeId.dark),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _ThemeSwatch(
-                                      label: 'Warm',
-                                      themeId: BinaThemeId.warm,
-                                      isActive: currentBinaTheme == BinaThemeId.warm,
-                                      colors: [const Color(0xFFFFF8E1), const Color(0xFFEF8B1A)],
-                                      onTap: () => _setTheme(BinaThemeId.warm),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _ThemeSwatch(
-                                      label: 'Cool',
-                                      themeId: BinaThemeId.cool,
-                                      isActive: currentBinaTheme == BinaThemeId.cool,
-                                      colors: [const Color(0xFFE3F2FD), const Color(0xFF0099B3)],
-                                      onTap: () => _setTheme(BinaThemeId.cool),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _ThemeSwatch(
-                                      label: 'A11y',
-                                      themeId: BinaThemeId.deuteranopia,
-                                      isActive: currentBinaTheme == BinaThemeId.deuteranopia,
-                                      colors: [const Color(0xFFFFFFFF), const Color(0xFF0077BB)],
-                                      onTap: () => _setTheme(BinaThemeId.deuteranopia),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        top: isWide ? 24 : MediaQuery.of(context).padding.top + 12,
+                        bottom: isWide ? 32 : 120,
+                      ),
+                      child: isWide
+                          ? _buildWideContent(
+                              user: user,
+                              currentBinaTheme: currentBinaTheme,
+                            )
+                          : _buildPhoneContent(
+                              user: user,
+                              currentBinaTheme: currentBinaTheme,
                             ),
-                          ),
-                        ).animate()
-                            .fadeIn(delay: 200.ms, duration: 400.ms)
-                            .moveY(begin: 20, end: 0, delay: 200.ms, duration: 400.ms),
-
-                        // Settings section
-                        _ProfileGroup(
-                          title: 'SETTINGS',
-                          child: Column(
-                            children: [
-                              _HubRow(
-                                icon: Icons.person_outline_rounded,
-                                label: 'Account',
-                                subtitle: 'Personal info, password, data',
-                                tone: _HubRowTone.blue,
-                                onTap: () {
-                                  // TODO: Open account settings
-                                },
-                              ),
-                              _HubRow(
-                                icon: Icons.accessibility_new_rounded,
-                                label: 'Accessibility',
-                                subtitle: 'Theme · text size · hints',
-                                tone: _HubRowTone.aqua,
-                                onTap: _openAccessibility,
-                              ),
-                              _HubRow(
-                                icon: Icons.help_outline_rounded,
-                                label: 'Help & support',
-                                subtitle: 'FAQ, contact, send feedback',
-                                tone: _HubRowTone.coral,
-                                isLast: true,
-                                onTap: _openHelpSupport,
-                              ),
-                            ],
-                          ),
-                        ).animate()
-                            .fadeIn(delay: 300.ms, duration: 400.ms)
-                            .moveY(begin: 20, end: 0, delay: 300.ms, duration: 400.ms),
-
-                        // About section
-                        _ProfileGroup(
-                          title: 'ABOUT',
-                          child: _HubRow(
-                            icon: Icons.info_outline_rounded,
-                            label: 'About Bina',
-                            subtitle: 'Version 1.0.0',
-                            tone: _HubRowTone.blue,
-                            isLast: true,
-                            onTap: () {
-                              // TODO: Open about
-                            },
-                          ),
-                        ).animate()
-                            .fadeIn(delay: 400.ms, duration: 400.ms)
-                            .moveY(begin: 20, end: 0, delay: 400.ms, duration: 400.ms),
-
-                        // Sign out button
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: BinaButton(
-                              label: 'Sign out',
-                              variant: BinaButtonVariant.ghost,
-                              onPressed: _showSignOutDialog,
-                            ),
-                          ),
-                        ).animate()
-                            .fadeIn(delay: 500.ms, duration: 400.ms)
-                            .moveY(begin: 20, end: 0, delay: 500.ms, duration: 400.ms),
-                      ],
                     ),
                   ),
-                  // Floating bottom nav
-                  if (responsiveVisibility(
-                    context: context,
-                    tablet: false,
-                    tabletLandscape: false,
-                    desktop: false,
-                  ))
+                  // Floating bottom nav (phone only)
+                  if (!isWide)
                     const BinaFloatingNav(currentTab: BinaNavTab.profile),
                 ],
               ),
@@ -317,6 +149,325 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPhoneContent({
+    required dynamic user,
+    required BinaThemeId currentBinaTheme,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+          child: Text(
+            'Profile',
+            style: BinaType.displaySm,
+          ),
+        ).animate()
+            .fadeIn(duration: 400.ms)
+            .moveY(begin: 20, end: 0, duration: 400.ms),
+
+        // Identity card
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          child: _IdentityCard(
+            name: user.name,
+            email: user.email,
+            onTap: () {
+              // TODO: Open account settings
+            },
+          ),
+        ).animate()
+            .fadeIn(delay: 100.ms, duration: 400.ms)
+            .moveY(begin: 20, end: 0, delay: 100.ms, duration: 400.ms),
+
+        // Appearance section
+        _ProfileGroup(
+          title: 'APPEARANCE',
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Theme',
+                      style: BinaType.labelMd,
+                    ),
+                    GestureDetector(
+                      onTap: _openAccessibility,
+                      child: Text(
+                        'More options →',
+                        style: BinaType.labelSm.copyWith(
+                          color: BinaColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildThemeSwatches(currentBinaTheme),
+              ],
+            ),
+          ),
+        ).animate()
+            .fadeIn(delay: 200.ms, duration: 400.ms)
+            .moveY(begin: 20, end: 0, delay: 200.ms, duration: 400.ms),
+
+        // Settings section
+        _ProfileGroup(
+          title: 'SETTINGS',
+          child: Column(
+            children: [
+              _HubRow(
+                icon: Icons.person_outline_rounded,
+                label: 'Account',
+                subtitle: 'Personal info, password, data',
+                tone: _HubRowTone.blue,
+                onTap: () {
+                  // TODO: Open account settings
+                },
+              ),
+              _HubRow(
+                icon: Icons.accessibility_new_rounded,
+                label: 'Accessibility',
+                subtitle: 'Theme · text size · hints',
+                tone: _HubRowTone.aqua,
+                onTap: _openAccessibility,
+              ),
+              _HubRow(
+                icon: Icons.help_outline_rounded,
+                label: 'Help & support',
+                subtitle: 'FAQ, contact, send feedback',
+                tone: _HubRowTone.coral,
+                isLast: true,
+                onTap: _openHelpSupport,
+              ),
+            ],
+          ),
+        ).animate()
+            .fadeIn(delay: 300.ms, duration: 400.ms)
+            .moveY(begin: 20, end: 0, delay: 300.ms, duration: 400.ms),
+
+        // About section
+        _ProfileGroup(
+          title: 'ABOUT',
+          child: _HubRow(
+            icon: Icons.info_outline_rounded,
+            label: 'About Bina',
+            subtitle: 'Version 1.0.0',
+            tone: _HubRowTone.blue,
+            isLast: true,
+            onTap: () {
+              // TODO: Open about
+            },
+          ),
+        ).animate()
+            .fadeIn(delay: 400.ms, duration: 400.ms)
+            .moveY(begin: 20, end: 0, delay: 400.ms, duration: 400.ms),
+
+        // Sign out button
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+          child: SizedBox(
+            width: double.infinity,
+            child: BinaButton(
+              label: 'Sign out',
+              variant: BinaButtonVariant.ghost,
+              onPressed: _showSignOutDialog,
+            ),
+          ),
+        ).animate()
+            .fadeIn(delay: 500.ms, duration: 400.ms)
+            .moveY(begin: 20, end: 0, delay: 500.ms, duration: 400.ms),
+      ],
+    );
+  }
+
+  Widget _buildWideContent({
+    required dynamic user,
+    required BinaThemeId currentBinaTheme,
+  }) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  'Profile',
+                  style: BinaType.displayMd,
+                ),
+              ),
+
+              // Identity card
+              Padding(
+                padding: const EdgeInsets.only(top: 24),
+                child: _IdentityCard(
+                  name: user.name,
+                  email: user.email,
+                  onTap: () {
+                    // TODO: Open account settings
+                  },
+                ),
+              ),
+
+              // Appearance section
+              _ProfileGroup(
+                title: 'APPEARANCE',
+                horizontalPadding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Theme',
+                            style: BinaType.titleMd,
+                          ),
+                          GestureDetector(
+                            onTap: _openAccessibility,
+                            child: Text(
+                              'More options →',
+                              style: BinaType.labelMd.copyWith(
+                                color: BinaColors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildThemeSwatches(currentBinaTheme),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Settings section
+              _ProfileGroup(
+                title: 'SETTINGS',
+                horizontalPadding: 0,
+                child: Column(
+                  children: [
+                    _HubRow(
+                      icon: Icons.person_outline_rounded,
+                      label: 'Account',
+                      subtitle: 'Personal info, password, data',
+                      tone: _HubRowTone.blue,
+                      onTap: () {
+                        // TODO: Open account settings
+                      },
+                    ),
+                    _HubRow(
+                      icon: Icons.accessibility_new_rounded,
+                      label: 'Accessibility',
+                      subtitle: 'Theme · text size · hints',
+                      tone: _HubRowTone.aqua,
+                      onTap: _openAccessibility,
+                    ),
+                    _HubRow(
+                      icon: Icons.help_outline_rounded,
+                      label: 'Help & support',
+                      subtitle: 'FAQ, contact, send feedback',
+                      tone: _HubRowTone.coral,
+                      isLast: true,
+                      onTap: _openHelpSupport,
+                    ),
+                  ],
+                ),
+              ),
+
+              // About section
+              _ProfileGroup(
+                title: 'ABOUT',
+                horizontalPadding: 0,
+                child: _HubRow(
+                  icon: Icons.info_outline_rounded,
+                  label: 'About Bina',
+                  subtitle: 'Version 1.0.0',
+                  tone: _HubRowTone.blue,
+                  isLast: true,
+                  onTap: () {
+                    // TODO: Open about
+                  },
+                ),
+              ),
+
+              // Sign out button
+              Padding(
+                padding: const EdgeInsets.only(top: 32),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: BinaButton(
+                    label: 'Sign out',
+                    variant: BinaButtonVariant.ghost,
+                    onPressed: _showSignOutDialog,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeSwatches(BinaThemeId currentBinaTheme) {
+    return Row(
+      children: [
+        _ThemeSwatch(
+          label: 'Light',
+          themeId: BinaThemeId.light,
+          isActive: currentBinaTheme == BinaThemeId.light,
+          colors: [const Color(0xFFFBFAF6), const Color(0xFF1F5BFF)],
+          onTap: () => _setTheme(BinaThemeId.light),
+        ),
+        const SizedBox(width: 8),
+        _ThemeSwatch(
+          label: 'Dark',
+          themeId: BinaThemeId.dark,
+          isActive: currentBinaTheme == BinaThemeId.dark,
+          colors: [const Color(0xFF0C0F1A), const Color(0xFF5B8BFF)],
+          onTap: () => _setTheme(BinaThemeId.dark),
+        ),
+        const SizedBox(width: 8),
+        _ThemeSwatch(
+          label: 'Warm',
+          themeId: BinaThemeId.warm,
+          isActive: currentBinaTheme == BinaThemeId.warm,
+          colors: [const Color(0xFFFFF8E1), const Color(0xFFEF8B1A)],
+          onTap: () => _setTheme(BinaThemeId.warm),
+        ),
+        const SizedBox(width: 8),
+        _ThemeSwatch(
+          label: 'Cool',
+          themeId: BinaThemeId.cool,
+          isActive: currentBinaTheme == BinaThemeId.cool,
+          colors: [const Color(0xFFE3F2FD), const Color(0xFF0099B3)],
+          onTap: () => _setTheme(BinaThemeId.cool),
+        ),
+        const SizedBox(width: 8),
+        _ThemeSwatch(
+          label: 'A11y',
+          themeId: BinaThemeId.deuteranopia,
+          isActive: currentBinaTheme == BinaThemeId.deuteranopia,
+          colors: [const Color(0xFFFFFFFF), const Color(0xFF0077BB)],
+          onTap: () => _setTheme(BinaThemeId.deuteranopia),
+        ),
+      ],
     );
   }
 
@@ -429,15 +580,17 @@ class _ProfileGroup extends StatelessWidget {
   const _ProfileGroup({
     required this.title,
     required this.child,
+    this.horizontalPadding = 20,
   });
 
   final String title;
   final Widget child;
+  final double horizontalPadding;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 24, horizontalPadding, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_base.css">
+<style>
+  body { padding: 24px; background: var(--c-surface-alt); }
+  .row { display: flex; gap: 14px; }
+  .card {
+    flex: 1;
+    background: var(--c-surface);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--c-line);
+    overflow: hidden;
+    box-shadow: var(--sh-2);
+    display: flex; flex-direction: column;
+  }
+  .preview { aspect-ratio: 1; background: #1a1a22; position: relative; }
+  .preview .bbox { position: absolute; border: 2px solid var(--c-dx-cavity); border-radius: 6px; box-shadow: 0 0 0 2px rgba(0,0,0,0.4); }
+  .preview .label { position: absolute; padding: 2px 8px; border-radius: 4px; font: var(--t-label-sm); background: var(--c-dx-cavity); color: #fff; transform: translateY(-100%); }
+  .preview.good { background: linear-gradient(135deg, #b8d8c2, #7ab48a); }
+  .preview.plaque { background: linear-gradient(135deg, #e8c98a, #c69a3f); }
+  .tooth-svg { position: absolute; inset: 0; display: grid; place-items: center; }
+  .tooth-svg svg { width: 60%; height: 60%; opacity: 0.55; color: #fff; }
+  .body { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .chip {
+    align-self: flex-start;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    font: var(--t-label-md);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip .dot { width: 7px; height: 7px; border-radius: 999px; }
+  .good { background: var(--c-success-100); color: #0e6b48; }
+  .good .dot { background: var(--c-dx-good); }
+  .plaque { background: #fcf0d8; color: #7a5a17; }
+  .plaque .dot { background: var(--c-dx-plaque); }
+  .cavity { background: var(--c-error-100); color: #8a2727; }
+  .cavity .dot { background: var(--c-dx-cavity); }
+  .title { font: var(--t-title-md); color: var(--c-ink); }
+  .meta { font: var(--t-body-sm); color: var(--c-ink-3); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="card">
+      <div class="preview good">
+        <div class="tooth-svg"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-3 0-5 2-5 5 0 1.5.5 3 .5 5s-1 5 0 8c.5 1.5 2 2 2.5 1 .5-1 .5-3 1-4.5s2-1.5 2.5 0 .5 3.5 1 4.5c.5 1 2 .5 2.5-1 1-3 0-6 0-8s.5-3.5.5-5c0-3-2-5-5-5Z"/></svg></div>
+      </div>
+      <div class="body">
+        <span class="chip good"><span class="dot"></span>Good</span>
+        <div class="title">Avi · Upper left</div>
+        <div class="meta">May 12 · 11:24 · confidence 96%</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="preview plaque">
+        <div class="tooth-svg"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-3 0-5 2-5 5 0 1.5.5 3 .5 5s-1 5 0 8c.5 1.5 2 2 2.5 1 .5-1 .5-3 1-4.5s2-1.5 2.5 0 .5 3.5 1 4.5c.5 1 2 .5 2.5-1 1-3 0-6 0-8s.5-3.5.5-5c0-3-2-5-5-5Z"/></svg></div>
+      </div>
+      <div class="body">
+        <span class="chip plaque"><span class="dot"></span>Plaque</span>
+        <div class="title">Maya · Lower right</div>
+        <div class="meta">May 09 · 19:02 · confidence 88%</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="preview">
+        <div class="tooth-svg"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-3 0-5 2-5 5 0 1.5.5 3 .5 5s-1 5 0 8c.5 1.5 2 2 2.5 1 .5-1 .5-3 1-4.5s2-1.5 2.5 0 .5 3.5 1 4.5c.5 1 2 .5 2.5-1 1-3 0-6 0-8s.5-3.5.5-5c0-3-2-5-5-5Z"/></svg></div>
+        <div class="bbox" style="left: 38%; top: 30%; width: 30%; height: 32%"></div>
+        <div class="label" style="left: 38%; top: 30%">Cavity 91%</div>
+      </div>
+      <div class="body">
+        <span class="chip cavity"><span class="dot"></span>Cavity</span>
+        <div class="title">Maya · Lower right</div>
+        <div class="meta">May 09 · 19:02 · book a dentist</div>
+      </div>
+    </div>
+  </div>
+</body></html>

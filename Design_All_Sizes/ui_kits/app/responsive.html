@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bina UI Kit — Responsive</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(180deg, #f4f1ea 0%, #ece7dd 100%);
+    font-family: var(--f-body);
+    min-height: 100vh;
+    color: var(--c-ink);
+  }
+  .page {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 28px 40px 64px;
+  }
+  .topbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .topbar .eyebrow {
+    font: var(--t-overline);
+    color: var(--c-primary);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .topbar h1 {
+    font: var(--t-display-sm);
+    color: var(--c-ink);
+    letter-spacing: -0.015em;
+    margin: 0 0 8px;
+  }
+  .topbar p {
+    font: var(--t-body-md);
+    color: var(--c-ink-2);
+    margin: 0;
+    max-width: 620px;
+    line-height: 1.55;
+  }
+  .backlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font: var(--t-label-lg);
+    color: var(--c-ink-2);
+    background: var(--c-surface);
+    border: 1px solid var(--c-line);
+    box-shadow: var(--sh-1);
+    padding: 10px 16px;
+    border-radius: 999px;
+    white-space: nowrap;
+    transition: background 160ms, color 160ms;
+  }
+  .backlink:hover { background: var(--c-primary-100); color: var(--c-primary-700); }
+  .hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font: var(--t-body-sm);
+    color: var(--c-ink-3);
+    margin-bottom: 16px;
+  }
+  .hint b { color: var(--c-ink-2); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">Bina · refined · responsive</div>
+        <h1>One app, every screen size</h1>
+        <p>The refined Bina app, now adaptive. On a phone it stays a single column with the floating bottom nav; on tablets and desktops it grows a side-rail, a multi-column home dashboard, and master–detail family &amp; chat panes.</p>
+      </div>
+      <a class="backlink" href="index.html">← Phone-only kit</a>
+    </div>
+    <div class="hint">
+      <span>↔</span>
+      <span>Drag the <b>handle on the right edge</b> to resize — or use the <b>Phone / Tablet / Desktop</b> presets in the title bar. The layout re-flows live as you cross 720px and 1100px.</span>
+    </div>
+
+    <div id="app-root"></div>
+  </div>
+
+  <!-- React + Babel -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <!-- shared atoms + screens (same set the phone kit loads) -->
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="Icons.jsx"></script>
+  <script type="text/babel" src="Components.jsx"></script>
+  <script type="text/babel" src="Dialog.jsx"></script>
+  <script type="text/babel" src="PickerSheets.jsx"></script>
+  <script type="text/babel" src="AuthModeSwitch.jsx"></script>
+  <script type="text/babel" src="HomeScreen.jsx"></script>
+  <script type="text/babel" src="FamilyScreen.jsx"></script>
+  <script type="text/babel" src="ScanScreen.jsx"></script>
+  <script type="text/babel" src="ScanFlow.jsx"></script>
+  <script type="text/babel" src="ScanSessionScreen.jsx"></script>
+  <script type="text/babel" src="ImageDetailSheet.jsx"></script>
+  <script type="text/babel" src="AddMemberSheet.jsx"></script>
+  <script type="text/babel" src="ChatScreen.jsx"></script>
+  <script type="text/babel" src="ChatHistoryScreen.jsx"></script>
+  <script type="text/babel" src="ProfileScreen.jsx"></script>
+  <script type="text/babel" src="SettingsScreens.jsx"></script>
+  <script type="text/babel" src="EditProfileScreen.jsx"></script>
+  <script type="text/babel" src="InfoScreens.jsx"></script>
+  <script type="text/babel" src="LoginScreen.jsx"></script>
+  <script type="text/babel" src="AuthScreens.jsx"></script>
+
+  <!-- responsive shell + wide layouts -->
+  <script type="text/babel" src="responsive/Responsive.jsx"></script>
+  <script type="text/babel" src="responsive/WideScreens.jsx"></script>
+
+  <script type="text/babel">
+    const FAMILY = [
+      { id: 1, name: 'Avi',  age: 8,  tone: 'blue',  lastChecked: '12 May', lastResult: 'good',   scanCount: 12, statClean: 9, statPlaque: 2, statCavity: 0 },
+      { id: 2, name: 'Maya', age: 11, tone: 'coral', lastChecked: '9 May',  lastResult: 'cavity', scanCount: 8,  statClean: 4, statPlaque: 3, statCavity: 1 },
+      { id: 3, name: 'Ron',  age: 6,  tone: 'aqua',  lastChecked: null,     lastResult: null,     scanCount: 0 },
+      { id: 4, name: 'Dad',  age: 41, tone: 'ink',   lastChecked: '14 May', lastResult: 'plaque', scanCount: 6,  statClean: 4, statPlaque: 2, statCavity: 0 },
+    ];
+
+    function App() {
+      return (
+        <ResizableStage>
+          <ResponsiveHost family={FAMILY} />
+        </ResizableStage>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('app-root')).render(<App />);
+  </script>
+</body>
+</html>

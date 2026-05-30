@@ -1,9 +1,7 @@
-import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
-import '/app_core/app_widgets.dart';
 import '/app_core/upload_data.dart';
+import '/bina_design/bina_design.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'diagnosis_cavity_model.dart';
 export 'diagnosis_cavity_model.dart';
 
@@ -33,7 +31,6 @@ class _DiagnosisCavityWidgetState extends State<DiagnosisCavityWidget> {
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
   }
 
@@ -46,180 +43,177 @@ class _DiagnosisCavityWidgetState extends State<DiagnosisCavityWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: AppTheme.of(context).secondaryBackground,
+        backgroundColor: BinaColors.surface,
+        appBar: AppBar(
+          backgroundColor: BinaColors.surface,
+          automaticallyImplyLeading: false,
+          title: Text(
+            'Cavity Detection',
+            style: BinaType.headlineMd,
+          ),
+          leading: Padding(
+            padding: const EdgeInsets.only(left: BinaSpace.s3),
+            child: BinaIconButton(
+              icon: Icons.arrow_back_rounded,
+              onPressed: () {
+                context.safePop();
+              },
+            ),
+          ),
+          centerTitle: false,
+          elevation: 0.0,
+        ),
         body: SafeArea(
           top: true,
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: EdgeInsets.all(10.0),
-                child: Container(
-                  width: 300.0,
-                  height: 300.0,
-                  decoration: BoxDecoration(
-                    color: AppTheme.of(context).primaryBackground,
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.memory(
-                      _model.uploadedLocalFile_uploadDataS7k.bytes ??
-                          Uint8List.fromList([]),
-                      width: 200.0,
-                      height: 200.0,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-              Align(
-                alignment: AlignmentDirectional(0.0, 0.0),
-                child: Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: AppButtonWidget(
-                    onPressed: () async {
-                      final selectedMedia =
-                          await selectMediaWithSourceBottomSheet(
-                        context: context,
-                        allowPhoto: true,
-                      );
-                      if (selectedMedia != null &&
-                          selectedMedia.every((m) =>
-                              validateFileFormat(m.storagePath, context))) {
-                        safeSetState(
-                            () => _model.isDataUploading_uploadDataS7k = true);
-                        var selectedUploadedFiles = <AppUploadedFile>[];
-
-                        try {
-                          showUploadMessage(
-                            context,
-                            'Uploading file...',
-                            showLoading: true,
-                          );
-                          selectedUploadedFiles = selectedMedia
-                              .map((m) => AppUploadedFile(
-                                    name: m.storagePath.split('/').last,
-                                    bytes: m.bytes,
-                                    height: m.dimensions?.height,
-                                    width: m.dimensions?.width,
-                                    blurHash: m.blurHash,
-                                    originalFilename: m.originalFilename,
-                                  ))
-                              .toList();
-                        } finally {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          _model.isDataUploading_uploadDataS7k = false;
-                        }
-                        if (selectedUploadedFiles.length ==
-                            selectedMedia.length) {
-                          safeSetState(() {
-                            _model.uploadedLocalFile_uploadDataS7k =
-                                selectedUploadedFiles.first;
-                          });
-                          showUploadMessage(context, 'Success!');
-                        } else {
-                          safeSetState(() {});
-                          showUploadMessage(context, 'Failed to upload data');
-                          return;
-                        }
-                      }
-                    },
-                    text: AppLocalizations.of(context).getText(
-                      '5ck7mnyd' /* Upload */,
-                    ),
-                    options: AppButtonOptions(
-                      height: 40.0,
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                      iconPadding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                      color: AppTheme.of(context).primary,
-                      textStyle:
-                          AppTheme.of(context).titleSmall.override(
-                                font: GoogleFonts.inter(
-                                  fontWeight: AppTheme.of(context)
-                                      .titleSmall
-                                      .fontWeight,
-                                  fontStyle: AppTheme.of(context)
-                                      .titleSmall
-                                      .fontStyle,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(BinaSpace.s4),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                // Upload image section
+                BinaCard(
+                  padding: const EdgeInsets.all(BinaSpace.s2),
+                  child: SizedBox(
+                    width: 300.0,
+                    height: 300.0,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(BinaRadius.sm),
+                      child: _model.uploadedLocalFile_uploadDataS7k.bytes != null &&
+                              _model.uploadedLocalFile_uploadDataS7k.bytes!.isNotEmpty
+                          ? Image.memory(
+                              _model.uploadedLocalFile_uploadDataS7k.bytes!,
+                              width: 200.0,
+                              height: 200.0,
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              color: BinaColors.surfaceSunken,
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.image_outlined,
+                                      size: 48,
+                                      color: BinaColors.ink3,
+                                    ),
+                                    const SizedBox(height: BinaSpace.s2),
+                                    Text(
+                                      'Upload an image',
+                                      style: BinaType.bodySm,
+                                    ),
+                                  ],
                                 ),
-                                color: Colors.white,
-                                letterSpacing: 0.0,
-                                fontWeight: AppTheme.of(context)
-                                    .titleSmall
-                                    .fontWeight,
-                                fontStyle: AppTheme.of(context)
-                                    .titleSmall
-                                    .fontStyle,
                               ),
-                      elevation: 0.0,
-                      borderRadius: BorderRadius.circular(8.0),
+                            ),
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: AppButtonWidget(
+
+                const SizedBox(height: BinaSpace.s4),
+
+                // Upload button
+                BinaButton(
+                  label: AppLocalizations.of(context).getText(
+                    '5ck7mnyd' /* Upload */,
+                  ),
+                  icon: Icons.upload_rounded,
+                  variant: BinaButtonVariant.secondary,
+                  onPressed: () async {
+                    final selectedMedia = await selectMediaWithSourceBottomSheet(
+                      context: context,
+                      allowPhoto: true,
+                    );
+                    if (selectedMedia != null &&
+                        selectedMedia.every(
+                            (m) => validateFileFormat(m.storagePath, context))) {
+                      safeSetState(
+                          () => _model.isDataUploading_uploadDataS7k = true);
+                      var selectedUploadedFiles = <AppUploadedFile>[];
+
+                      try {
+                        showUploadMessage(
+                          context,
+                          'Uploading file...',
+                          showLoading: true,
+                        );
+                        selectedUploadedFiles = selectedMedia
+                            .map((m) => AppUploadedFile(
+                                  name: m.storagePath.split('/').last,
+                                  bytes: m.bytes,
+                                  height: m.dimensions?.height,
+                                  width: m.dimensions?.width,
+                                  blurHash: m.blurHash,
+                                  originalFilename: m.originalFilename,
+                                ))
+                            .toList();
+                      } finally {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        _model.isDataUploading_uploadDataS7k = false;
+                      }
+                      if (selectedUploadedFiles.length == selectedMedia.length) {
+                        safeSetState(() {
+                          _model.uploadedLocalFile_uploadDataS7k =
+                              selectedUploadedFiles.first;
+                        });
+                        showUploadMessage(context, 'Success!');
+                      } else {
+                        safeSetState(() {});
+                        showUploadMessage(context, 'Failed to upload data');
+                        return;
+                      }
+                    }
+                  },
+                ),
+
+                const SizedBox(height: BinaSpace.s3),
+
+                // Detect button
+                BinaButton(
+                  label: AppLocalizations.of(context).getText(
+                    'w0eizveb' /* Detect */,
+                  ),
+                  icon: Icons.search_rounded,
                   onPressed: () {
                     print('Button pressed ...');
                   },
-                  text: AppLocalizations.of(context).getText(
-                    'w0eizveb' /* Detect */,
-                  ),
-                  options: AppButtonOptions(
-                    height: 40.0,
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                    iconPadding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: AppTheme.of(context).primary,
-                    textStyle: AppTheme.of(context).titleSmall.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: AppTheme.of(context)
-                                .titleSmall
-                                .fontWeight,
-                            fontStyle: AppTheme.of(context)
-                                .titleSmall
-                                .fontStyle,
-                          ),
-                          color: Colors.white,
-                          letterSpacing: 0.0,
-                          fontWeight: AppTheme.of(context)
-                              .titleSmall
-                              .fontWeight,
-                          fontStyle:
-                              AppTheme.of(context).titleSmall.fontStyle,
-                        ),
-                    elevation: 0.0,
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(10.0),
-                child: Container(
-                  width: 300.0,
-                  height: 300.0,
-                  decoration: BoxDecoration(
-                    color: AppTheme.of(context).primaryBackground,
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.network(
-                      'https://images.unsplash.com/photo-1628498188873-579210ce622e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NTYyMDF8MHwxfHNlYXJjaHwxfHxzdGFycnklMjBuaWdodHxlbnwwfHx8fDE3NjkyNjIyOTN8MA&ixlib=rb-4.1.0&q=80&w=1080',
-                      width: 200.0,
-                      height: 200.0,
-                      fit: BoxFit.cover,
+
+                const SizedBox(height: BinaSpace.s6),
+
+                // Result image section
+                BinaCard(
+                  padding: const EdgeInsets.all(BinaSpace.s2),
+                  child: SizedBox(
+                    width: 300.0,
+                    height: 300.0,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(BinaRadius.sm),
+                      child: Container(
+                        color: BinaColors.surfaceSunken,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.analytics_outlined,
+                                size: 48,
+                                color: BinaColors.ink3,
+                              ),
+                              const SizedBox(height: BinaSpace.s2),
+                              Text(
+                                'Detection result',
+                                style: BinaType.bodySm,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
