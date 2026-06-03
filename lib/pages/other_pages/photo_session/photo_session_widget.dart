@@ -3,23 +3,23 @@ import 'dart:io';
 import '/backend/supabase/supabase.dart';
 import '/backend/sqlite/sqlite_manager.dart';
 import '/backend/schema/structs/index.dart';
-import '/components/photo_session/image_detail_sheet/image_detail_sheet_widget.dart';
+import 'dart:convert';
 import '/bina_design/bina_design.dart';
 import '/app_core/app_util.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
 import '/index.dart';
+import '/services/mjpeg_capture_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mjpeg_stream/mjpeg_stream.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '/services/gemma_service.dart';
 import '/services/llm_prompts.dart';
-import '/components/camera_selection_dialog/camera_selection_dialog_widget.dart';
-import '/components/bina_camera_preview/bina_camera_preview_widget.dart';
 import 'photo_session_model.dart';
 export 'photo_session_model.dart';
 
@@ -49,6 +49,10 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
   List<ScanImageStruct> _sessionImages = [];
   bool _isProcessing = false;
   bool _isInitialized = false;
+
+  // Camera preview state
+  bool _isInPreviewMode = false;
+  bool _isCapturingFromStream = false;
 
   final Map<String, String> _imageInterpretations = {};
   final Set<String> _interpretingImages = {};
@@ -83,6 +87,19 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
       return;
     }
 
+    // Don't create the session yet - wait until first photo is captured
+    // This prevents empty sessions from being created
+    safeSetState(() {
+      _isInitialized = true;
+    });
+  }
+
+  /// Creates the session in the database when the first photo is captured
+  Future<String?> _ensureSessionCreated() async {
+    if (_currentSessionId != null) {
+      return _currentSessionId;
+    }
+
     final sessionId = const Uuid().v4();
     final now = DateTime.now();
 
@@ -105,12 +122,10 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
         });
       }
 
-      safeSetState(() {
-        _currentSessionId = sessionId;
-        _isInitialized = true;
-      });
+      _currentSessionId = sessionId;
+      return sessionId;
     } catch (e) {
-      debugPrint('Session init error: $e');
+      debugPrint('Session creation error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -119,6 +134,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
           ),
         );
       }
+      return null;
     }
   }
 
@@ -135,16 +151,15 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
 
     final cameraConnection = AppState().cameraConnection;
 
+    // If Bina camera is connected, enter preview mode
     if (cameraConnection.isCameraConnected()) {
-      final selectedSource = await showCameraSelectionDialog(context);
-      if (selectedSource == null) return;
-
-      if (selectedSource == CameraSource.binaCamera) {
-        await _captureFromBinaCamera();
-        return;
-      }
+      safeSetState(() {
+        _isInPreviewMode = true;
+      });
+      return;
     }
 
+    // Otherwise use phone camera
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.camera,
@@ -158,28 +173,89 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
     }
   }
 
-  Future<void> _captureFromBinaCamera() async {
-    final cameraConnection = AppState().cameraConnection;
+  void _exitPreviewMode() {
+    safeSetState(() {
+      _isInPreviewMode = false;
+      _isCapturingFromStream = false;
+    });
+  }
 
+  Future<void> _captureFromStream() async {
+    if (_isCapturingFromStream) return;
+
+    final cameraConnection = AppState().cameraConnection;
     if (!cameraConnection.isCameraConnected()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context).getText('phts021')),
-          backgroundColor: BinaColors.warning,
+          content: Text('Camera disconnected'),
+          backgroundColor: BinaColors.error,
         ),
       );
+      _exitPreviewMode();
       return;
     }
 
-    final imagePath = await showBinaCameraPreview(
-      context,
-      cameraIP: cameraConnection.cameraHost,
-      cameraPort: cameraConnection.cameraPort,
-    );
+    safeSetState(() {
+      _isCapturingFromStream = true;
+    });
 
-    if (imagePath == null) return;
+    try {
+      final imagePath = await MjpegCaptureService.instance.captureFrame(
+        cameraIP: cameraConnection.cameraHost,
+        port: cameraConnection.cameraPort,
+      );
 
-    await _processImage(imagePath);
+      if (imagePath != null) {
+        // Stay in preview mode - just reset capturing state
+        safeSetState(() {
+          _isCapturingFromStream = false;
+        });
+
+        // Process the image in background while staying in preview
+        await _processImage(imagePath);
+
+        // Show success feedback
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Text('Photo captured! (${_sessionImages.length} total)'),
+                ],
+              ),
+              backgroundColor: BinaColors.success,
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        }
+      } else {
+        safeSetState(() {
+          _isCapturingFromStream = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to capture photo'),
+              backgroundColor: BinaColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      safeSetState(() {
+        _isCapturingFromStream = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error capturing photo: $e'),
+            backgroundColor: BinaColors.error,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _selectFromGallery() async {
@@ -271,6 +347,13 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
         return;
       }
 
+      // Ensure session exists before saving the image
+      final sessionId = await _ensureSessionCreated();
+      if (sessionId == null) {
+        safeSetState(() => _isProcessing = false);
+        return;
+      }
+
       final imageId = const Uuid().v4();
       final originalBytes = await File(originalPath).readAsBytes();
       final diagnosedBytes = await File(result.imagePath).readAsBytes();
@@ -278,7 +361,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
       if (AppState().UserSession.isLocalSession) {
         await SQLiteManager.instance.createScanImage(
           id: imageId,
-          scanSessionId: _currentSessionId,
+          scanSessionId: sessionId,
           image: originalBytes,
           diagnosedImage: diagnosedBytes,
           capturedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
@@ -287,7 +370,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
       } else {
         await ScanImagesTable().insert({
           'id': imageId,
-          'scan_session_id': _currentSessionId,
+          'scan_session_id': sessionId,
           'image': originalBytes,
           'diagnosed_image': diagnosedBytes,
           'captured_at': supaSerialize<DateTime>(DateTime.now()),
@@ -343,17 +426,82 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
 
   void _showImageDetailSheet(ScanImageStruct image) {
     final rawJson = image.rawResponse.isNotEmpty ? image.rawResponse : '[]';
+    final detections = jsonDecode(rawJson) as List<dynamic>;
+    final interpretation = _imageInterpretations[image.id];
+
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       enableDrag: true,
       context: context,
-      builder: (context) => ImageDetailSheetWidget(
-        originalImagePath: image.imagePath,
-        diagnosedImagePath: image.diagnosedImagePath,
-        detections: jsonDecode(rawJson),
-        detectionsJson: rawJson,
-        llmInterpretation: _imageInterpretations[image.id],
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: BinaColors.line,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Title
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('Image Details', style: BinaType.titleLg),
+            ),
+            // Image
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (image.diagnosedImagePath.isNotEmpty)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          File(image.diagnosedImagePath),
+                          fit: BoxFit.contain,
+                        ),
+                      )
+                    else if (image.imagePath.isNotEmpty)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          File(image.imagePath),
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    Text('Detections: ${detections.length}', style: BinaType.titleMd),
+                    const SizedBox(height: 8),
+                    ...detections.map((d) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        '• ${d['className']} (${((d['confidence'] as num) * 100).toStringAsFixed(1)}%)',
+                        style: BinaType.bodyMd,
+                      ),
+                    )),
+                    if (interpretation != null) ...[
+                      const SizedBox(height: 16),
+                      Text('AI Analysis', style: BinaType.titleMd),
+                      const SizedBox(height: 8),
+                      Text(interpretation, style: BinaType.bodyMd),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -498,213 +646,19 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                 fit: StackFit.expand,
                 children: [
                   SafeArea(
-                    child: Column(
-                      children: [
-                        // Header
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
-                          decoration: BoxDecoration(
-                            color: BinaColors.surface,
-                            border: Border(bottom: BorderSide(color: BinaColors.line)),
-                          ),
-                          child: Row(
-                            children: [
-                              BinaIconButton(
-                                icon: Icons.arrow_back_rounded,
-                                onPressed: () => context.safePop(),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      AppLocalizations.of(context).getText('phts001'),
-                                      style: BinaType.titleLg,
-                                    ),
-                                    if (widget.memberName != null)
-                                      Text(
-                                        '${AppLocalizations.of(context).getText('phts014')} ${widget.memberName}',
-                                        style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: BinaColors.primary100,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  '${_sessionImages.length} ${AppLocalizations.of(context).getText('phts015')}',
-                                  style: BinaType.labelSm.copyWith(
-                                    color: BinaColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Image Grid Area
-                        Expanded(
-                          child: _sessionImages.isEmpty
-                              ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 80,
-                                        height: 80,
-                                        decoration: BoxDecoration(
-                                          color: BinaColors.surfaceSunken,
-                                          borderRadius: BorderRadius.circular(20),
-                                        ),
-                                        child: Icon(
-                                          Icons.photo_library_outlined,
-                                          color: BinaColors.ink3,
-                                          size: 40,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        AppLocalizations.of(context).getText('phts016'),
-                                        style: BinaType.titleMd.copyWith(color: BinaColors.ink2),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        AppLocalizations.of(context).getText('phts017'),
-                                        style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : SingleChildScrollView(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Wrap(
-                                    spacing: 12,
-                                    runSpacing: 12,
-                                    children: _sessionImages.map((image) {
-                                      return GestureDetector(
-                                        onTap: () => _showImageDetailSheet(image),
-                                        child: Container(
-                                          width: 100,
-                                          height: 100,
-                                          decoration: BoxDecoration(
-                                            color: BinaColors.surface,
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(color: BinaColors.line, width: 2),
-                                          ),
-                                          clipBehavior: Clip.antiAlias,
-                                          child: Stack(
-                                            fit: StackFit.expand,
-                                            children: [
-                                              kIsWeb
-                                                  ? Image.network(image.diagnosedImagePath, fit: BoxFit.cover)
-                                                  : Image.file(File(image.diagnosedImagePath), fit: BoxFit.cover),
-                                              Positioned(
-                                                bottom: 4,
-                                                right: 4,
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(4),
-                                                  decoration: BoxDecoration(
-                                                    color: BinaColors.ink.withValues(alpha: 0.6),
-                                                    borderRadius: BorderRadius.circular(4),
-                                                  ),
-                                                  child: const Icon(Icons.zoom_in, color: Colors.white, size: 14),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                        ),
-                        // Processing indicator
-                        if (_isProcessing)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            color: BinaColors.primary100,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: BinaColors.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  AppLocalizations.of(context).getText('phts018'),
-                                  style: BinaType.bodyMd.copyWith(color: BinaColors.primary),
-                                ),
-                              ],
-                            ),
-                          ),
-                        // Capture buttons
-                        Container(
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, isDesktop ? 16 : 100),
-                          decoration: BoxDecoration(
-                            color: BinaColors.surface,
-                            border: Border(top: BorderSide(color: BinaColors.line)),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: BinaButton(
-                                      label: AppLocalizations.of(context).getText('phts013'),
-                                      icon: Icons.camera_alt_rounded,
-                                      variant: BinaButtonVariant.primary,
-                                      enabled: !_isProcessing && _isInitialized,
-                                      onPressed: _captureFromCamera,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: BinaButton(
-                                      label: AppLocalizations.of(context).getText('phts012'),
-                                      icon: Icons.photo_library_rounded,
-                                      variant: BinaButtonVariant.secondary,
-                                      enabled: !_isProcessing && _isInitialized,
-                                      onPressed: _selectFromGallery,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: BinaButton(
-                                  label: AppLocalizations.of(context).getText('phts019'),
-                                  icon: Icons.check_circle_rounded,
-                                  variant: BinaButtonVariant.ghost,
-                                  enabled: !_isProcessing && _isInitialized,
-                                  onPressed: _finishSession,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: _isInPreviewMode
+                        ? _buildCameraPreview()
+                        : _buildSessionContent(isDesktop),
                   ),
-                  // Floating nav for mobile
-                  if (!isDesktop)
+                  // Floating nav for mobile (only when not in preview mode)
+                  if (!isDesktop && !_isInPreviewMode)
                     Positioned.fill(
                       child: BinaFloatingNav(
                         currentTab: BinaNavTab.scan,
                         onTabChanged: (tab) {
                           switch (tab) {
+                            case BinaNavTab.none:
+                              break;
                             case BinaNavTab.home:
                               context.goNamed(MainHomeWidget.routeName);
                               break;
@@ -729,6 +683,428 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCameraPreview() {
+    final cameraConnection = AppState().cameraConnection;
+    final streamUrl = 'http://${cameraConnection.cameraHost}:${cameraConnection.cameraPort}/stream.mjpg';
+
+    return Column(
+      children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+          decoration: BoxDecoration(
+            color: BinaColors.surface,
+            border: Border(bottom: BorderSide(color: BinaColors.line)),
+          ),
+          child: Row(
+            children: [
+              BinaIconButton(
+                icon: Icons.arrow_back_rounded,
+                onPressed: _exitPreviewMode,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Camera Preview',
+                      style: BinaType.titleLg,
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: BinaColors.success,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Connected · ${cameraConnection.cameraHost}',
+                          style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Photo count badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: BinaColors.primary100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${_sessionImages.length} photos',
+                  style: BinaType.labelSm.copyWith(
+                    color: BinaColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Camera stream
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: BinaColors.surfaceSunken,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: BinaColors.line, width: 2),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // MJPEG Stream
+                    MJPEGStreamScreen(
+                      streamUrl: streamUrl,
+                      fit: BoxFit.contain,
+                      showLiveIcon: false,
+                    ),
+                    // LIVE badge
+                    Positioned(
+                      top: 16,
+                      left: 16,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: BinaColors.error,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'LIVE',
+                              style: BinaType.labelSm.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // Capture button area
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          decoration: BoxDecoration(
+            color: BinaColors.surface,
+            border: Border(top: BorderSide(color: BinaColors.line)),
+          ),
+          child: Column(
+            children: [
+              // Capture button
+              _CapturePhotoButton(
+                isCapturing: _isCapturingFromStream,
+                onPressed: _captureFromStream,
+              ),
+              const SizedBox(height: 12),
+              // Instructions
+              Text(
+                'Position the teeth clearly in frame and tap to capture',
+                style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSessionContent(bool isDesktop) {
+    return Column(
+      children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+          decoration: BoxDecoration(
+            color: BinaColors.surface,
+            border: Border(bottom: BorderSide(color: BinaColors.line)),
+          ),
+          child: Row(
+            children: [
+              BinaIconButton(
+                icon: Icons.arrow_back_rounded,
+                onPressed: () => context.safePop(),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context).getText('phts001'),
+                      style: BinaType.titleLg,
+                    ),
+                    if (widget.memberName != null)
+                      Text(
+                        '${AppLocalizations.of(context).getText('phts014')} ${widget.memberName}',
+                        style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+                      ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: BinaColors.primary100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${_sessionImages.length} ${AppLocalizations.of(context).getText('phts015')}',
+                  style: BinaType.labelSm.copyWith(
+                    color: BinaColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Image Grid Area
+        Expanded(
+          child: _sessionImages.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: BinaColors.surfaceSunken,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          Icons.photo_library_outlined,
+                          color: BinaColors.ink3,
+                          size: 40,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        AppLocalizations.of(context).getText('phts016'),
+                        style: BinaType.titleMd.copyWith(color: BinaColors.ink2),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppLocalizations.of(context).getText('phts017'),
+                        style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: _sessionImages.map((image) {
+                      return GestureDetector(
+                        onTap: () => _showImageDetailSheet(image),
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: BinaColors.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: BinaColors.line, width: 2),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              kIsWeb
+                                  ? Image.network(image.diagnosedImagePath, fit: BoxFit.cover)
+                                  : Image.file(File(image.diagnosedImagePath), fit: BoxFit.cover),
+                              Positioned(
+                                bottom: 4,
+                                right: 4,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: BinaColors.ink.withValues(alpha: 0.6),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Icon(Icons.zoom_in, color: Colors.white, size: 14),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+        ),
+        // Processing indicator
+        if (_isProcessing)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            color: BinaColors.primary100,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: BinaColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context).getText('phts018'),
+                  style: BinaType.bodyMd.copyWith(color: BinaColors.primary),
+                ),
+              ],
+            ),
+          ),
+        // Capture buttons
+        Container(
+          padding: EdgeInsets.fromLTRB(16, 16, 16, isDesktop ? 16 : 100),
+          decoration: BoxDecoration(
+            color: BinaColors.surface,
+            border: Border(top: BorderSide(color: BinaColors.line)),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: BinaButton(
+                      label: AppLocalizations.of(context).getText('phts013'),
+                      icon: Icons.camera_alt_rounded,
+                      variant: BinaButtonVariant.primary,
+                      enabled: !_isProcessing && _isInitialized,
+                      onPressed: _captureFromCamera,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: BinaButton(
+                      label: AppLocalizations.of(context).getText('phts012'),
+                      icon: Icons.photo_library_rounded,
+                      variant: BinaButtonVariant.secondary,
+                      enabled: !_isProcessing && _isInitialized,
+                      onPressed: _selectFromGallery,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: BinaButton(
+                  label: AppLocalizations.of(context).getText('phts019'),
+                  icon: Icons.check_circle_rounded,
+                  variant: BinaButtonVariant.ghost,
+                  enabled: !_isProcessing && _isInitialized,
+                  onPressed: _finishSession,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CAPTURE PHOTO BUTTON
+// ═══════════════════════════════════════════════════════════════
+
+class _CapturePhotoButton extends StatefulWidget {
+  const _CapturePhotoButton({
+    required this.isCapturing,
+    required this.onPressed,
+  });
+
+  final bool isCapturing;
+  final VoidCallback onPressed;
+
+  @override
+  State<_CapturePhotoButton> createState() => _CapturePhotoButtonState();
+}
+
+class _CapturePhotoButtonState extends State<_CapturePhotoButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: !widget.isCapturing ? (_) => setState(() => _isPressed = true) : null,
+      onTapUp: !widget.isCapturing ? (_) => setState(() => _isPressed = false) : null,
+      onTapCancel: !widget.isCapturing ? () => setState(() => _isPressed = false) : null,
+      onTap: !widget.isCapturing ? widget.onPressed : null,
+      child: AnimatedContainer(
+        duration: BinaMotion.d1,
+        width: 80,
+        height: 80,
+        transform: _isPressed
+            ? (Matrix4.identity()..scale(0.9, 0.9))
+            : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: widget.isCapturing ? null : BinaColors.gradHero,
+          color: widget.isCapturing ? BinaColors.surfaceSunken : null,
+          boxShadow: widget.isCapturing ? null : BinaElevation.shHero,
+        ),
+        child: widget.isCapturing
+            ? Center(
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: BinaColors.primary,
+                  ),
+                ),
+              )
+            : const Icon(
+                Icons.camera_alt_rounded,
+                color: Colors.white,
+                size: 36,
+              ),
       ),
     );
   }

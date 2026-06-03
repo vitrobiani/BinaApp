@@ -286,11 +286,12 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                 fit: StackFit.expand,
                 children: [
                   Positioned.fill(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).padding.top + 12,
-                        bottom: 120,
-                      ),
+                    child: SafeArea(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.only(
+                          top: 12,
+                          bottom: 120,
+                        ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -305,7 +306,7 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                                 ),
                                 const Spacer(),
                                 Text(
-                                  'Session Summary',
+                                  AppLocalizations.of(context).getText('summary_title'),
                                   style: BinaType.titleLg,
                                 ),
                                 const Spacer(),
@@ -359,19 +360,19 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                                     children: [
                                       _StatColumn(
                                         icon: Icons.photo_library_rounded,
-                                        label: 'Photos',
+                                        label: AppLocalizations.of(context).getText('summary_photos'),
                                         value: '${_images.length}',
                                         color: BinaColors.primary,
                                       ),
                                       _StatColumn(
                                         icon: Icons.check_circle_rounded,
-                                        label: 'Teeth',
+                                        label: AppLocalizations.of(context).getText('summary_teeth'),
                                         value: '$_totalTeeth',
                                         color: BinaColors.dxGood,
                                       ),
                                       _StatColumn(
                                         icon: Icons.warning_amber_rounded,
-                                        label: 'Issues',
+                                        label: AppLocalizations.of(context).getText('summary_issues'),
                                         value: '$_totalIssues',
                                         color: _totalIssues > 0 ? BinaColors.dxCavity : BinaColors.ink3,
                                       ),
@@ -391,7 +392,7 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 BinaSectionHeader(
-                                  title: 'Captured Images',
+                                  title: AppLocalizations.of(context).getText('summary_captured_images'),
                                   action: null,
                                 ),
                                 const SizedBox(height: 12),
@@ -417,7 +418,7 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                                           ),
                                           const SizedBox(height: 12),
                                           Text(
-                                            'Loading images...',
+                                            AppLocalizations.of(context).getText('summary_loading_images'),
                                             style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
                                           ),
                                         ],
@@ -434,7 +435,7 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        'No images found',
+                                        AppLocalizations.of(context).getText('summary_no_images'),
                                         style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
                                       ),
                                     ),
@@ -471,7 +472,7 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 BinaSectionHeader(
-                                  title: 'AI Analysis',
+                                  title: AppLocalizations.of(context).getText('summary_ai_analysis'),
                                   action: null,
                                 ),
                                 const SizedBox(height: 12),
@@ -500,11 +501,11 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  'Gemma Analysis',
+                                                  AppLocalizations.of(context).getText('summary_gemma_analysis'),
                                                   style: BinaType.titleMd,
                                                 ),
                                                 Text(
-                                                  'AI-powered dental assessment',
+                                                  AppLocalizations.of(context).getText('summary_ai_assessment'),
                                                   style: BinaType.labelSm.copyWith(color: BinaColors.ink3),
                                                 ),
                                               ],
@@ -532,7 +533,7 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                                             const SizedBox(width: 12),
                                             Expanded(
                                               child: Text(
-                                                'Analyzing your dental scan...',
+                                                AppLocalizations.of(context).getText('summary_analyzing'),
                                                 style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
                                               ),
                                             ),
@@ -560,7 +561,7 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                                               const SizedBox(width: 10),
                                               Expanded(
                                                 child: Text(
-                                                  'AI model not loaded. Load Gemma from settings to enable analysis.',
+                                                  AppLocalizations.of(context).getText('summary_model_not_loaded'),
                                                   style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
                                                 ),
                                               ),
@@ -569,7 +570,7 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                                         )
                                       else
                                         Text(
-                                          'No analysis available.',
+                                          AppLocalizations.of(context).getText('summary_no_analysis'),
                                           style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
                                         ),
                                     ],
@@ -589,7 +590,7 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: BinaButton(
-                                    label: 'View History',
+                                    label: AppLocalizations.of(context).getText('summary_view_history'),
                                     icon: Icons.history_rounded,
                                     variant: BinaButtonVariant.primary,
                                     onPressed: () => context.goNamed('Family'),
@@ -599,7 +600,7 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: BinaButton(
-                                    label: 'Done',
+                                    label: AppLocalizations.of(context).getText('summary_done'),
                                     icon: Icons.check_rounded,
                                     variant: BinaButtonVariant.ghost,
                                     onPressed: () => context.goNamed('Main_Home'),
@@ -609,7 +610,8 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
                             ),
                           ).animate()
                               .fadeIn(delay: 400.ms, duration: 400.ms),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -779,8 +781,8 @@ class _ImageTile extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         image.issuesCount > 0
-                            ? '${image.issuesCount} issue${image.issuesCount > 1 ? 's' : ''}'
-                            : 'Clean',
+                            ? '${image.issuesCount} ${image.issuesCount > 1 ? AppLocalizations.of(context).getText('summary_issues_plural') : AppLocalizations.of(context).getText('summary_issue')}'
+                            : AppLocalizations.of(context).getText('summary_clean'),
                         style: BinaType.labelSm.copyWith(color: Colors.white),
                       ),
                     ],
@@ -875,7 +877,7 @@ class _ImageDetailSheetState extends State<_ImageDetailSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Image Detail',
+                      AppLocalizations.of(context).getText('summary_image_detail'),
                       style: BinaType.titleLg,
                     ),
                     Text(
@@ -942,7 +944,7 @@ class _ImageDetailSheetState extends State<_ImageDetailSheet> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  _showAnnotated ? 'Annotated' : 'Original',
+                                  _showAnnotated ? AppLocalizations.of(context).getText('summary_annotated') : AppLocalizations.of(context).getText('summary_original'),
                                   style: BinaType.labelSm.copyWith(color: Colors.white),
                                 ),
                               ],
@@ -962,7 +964,7 @@ class _ImageDetailSheetState extends State<_ImageDetailSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Detections',
+                  AppLocalizations.of(context).getText('summary_detections'),
                   style: BinaType.titleMd,
                 ),
                 const SizedBox(height: 12),
@@ -982,7 +984,7 @@ class _ImageDetailSheetState extends State<_ImageDetailSheet> {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          'No issues detected in this image',
+                          AppLocalizations.of(context).getText('summary_no_issues_image'),
                           style: BinaType.bodyMd.copyWith(color: BinaColors.dxGood),
                         ),
                       ],
@@ -1030,7 +1032,7 @@ class _ImageDetailSheetState extends State<_ImageDetailSheet> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                '${(confidence * 100).toStringAsFixed(0)}% confident',
+                                '${(confidence * 100).toStringAsFixed(0)}% ${AppLocalizations.of(context).getText('summary_confident')}',
                                 style: BinaType.labelSm.copyWith(color: BinaColors.ink3),
                               ),
                             ],

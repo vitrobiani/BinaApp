@@ -45,20 +45,20 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
     return tones[hash.abs() % (tones.length - 1)];
   }
 
-  String get _lastCheckedStr {
-    if (!widget.member.hasLastChecked()) return 'never checked';
+  String _lastCheckedStr(BuildContext context) {
+    if (!widget.member.hasLastChecked()) return AppLocalizations.of(context).getText('member_never_checked');
     final date = widget.member.lastChecked!;
     final now = DateTime.now();
     final diff = now.difference(date);
 
     if (diff.inDays == 0) {
-      return 'last checked today';
+      return AppLocalizations.of(context).getText('member_last_checked_today');
     } else if (diff.inDays == 1) {
-      return 'last checked yesterday';
+      return AppLocalizations.of(context).getText('member_last_checked_yesterday');
     } else if (diff.inDays < 7) {
-      return 'last checked ${diff.inDays} days ago';
+      return '${AppLocalizations.of(context).getText('member_last_checked_date')} ${diff.inDays} ${AppLocalizations.of(context).getText('family_days_ago')}';
     } else {
-      return 'last checked ${DateFormat('d MMM').format(date)}';
+      return '${AppLocalizations.of(context).getText('member_last_checked_date')} ${DateFormat('d MMM').format(date)}';
     }
   }
 
@@ -186,12 +186,13 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BinaColors.surfaceAlt,
-      body: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 12,
-          bottom: 120,
-        ),
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(
+            top: 12,
+            bottom: 120,
+          ),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header with back button
@@ -224,18 +225,15 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
                 age: _age,
                 diagnosisKind: _diagnosisKind,
                 avatarTone: _avatarTone,
-                lastCheckedStr: _lastCheckedStr,
+                lastCheckedStr: _lastCheckedStr(context),
                 onScan: () {
                   context.pushNamed(
-                    PhotoSessionWidget.routeName,
+                    MainDIagnosticsWidget.routeName,
                     extra: <String, dynamic>{
-                      'memberId': widget.member.id,
-                      'memberName': widget.member.name,
+                      'preselectedMemberId': widget.member.id,
+                      'preselectedMemberName': widget.member.name,
                     },
                   );
-                },
-                onBook: () {
-                  // TODO: Book appointment
                 },
               ),
             ).animate()
@@ -249,7 +247,7 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
                 children: [
                   Expanded(
                     child: _StatCard(
-                      label: 'Clean',
+                      label: AppLocalizations.of(context).getText('member_clean'),
                       value: _cleanCount,
                       tone: DxChipKind.good,
                     ),
@@ -257,7 +255,7 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _StatCard(
-                      label: 'Plaque',
+                      label: AppLocalizations.of(context).getText('member_plaque'),
                       value: _plaqueCount,
                       tone: DxChipKind.plaque,
                     ),
@@ -265,7 +263,7 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _StatCard(
-                      label: 'Cavity',
+                      label: AppLocalizations.of(context).getText('member_cavity'),
                       value: _cavityCount,
                       tone: DxChipKind.cavity,
                     ),
@@ -282,8 +280,8 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
               child: Column(
                 children: [
                   BinaSectionHeader(
-                    title: 'History',
-                    action: 'Export',
+                    title: AppLocalizations.of(context).getText('member_history'),
+                    action: AppLocalizations.of(context).getText('member_export'),
                     onActionTap: () {
                       // TODO: Export history
                     },
@@ -299,7 +297,8 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
             ).animate()
                 .fadeIn(delay: 300.ms, duration: 400.ms)
                 .moveY(begin: 20, end: 0, delay: 300.ms, duration: 400.ms),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -347,7 +346,6 @@ class _HeroCard extends StatelessWidget {
     required this.avatarTone,
     required this.lastCheckedStr,
     required this.onScan,
-    required this.onBook,
   });
 
   final FamilyMemberStruct member;
@@ -356,7 +354,6 @@ class _HeroCard extends StatelessWidget {
   final BinaAvatarTone avatarTone;
   final String lastCheckedStr;
   final VoidCallback onScan;
-  final VoidCallback onBook;
 
   @override
   Widget build(BuildContext context) {
@@ -383,32 +380,20 @@ class _HeroCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${age != null ? '$age years · ' : ''}$lastCheckedStr',
+            '${age != null ? '$age ${AppLocalizations.of(context).getText('member_years')} · ' : ''}$lastCheckedStr',
             style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
           ),
           const SizedBox(height: 8),
           DxChip(kind: diagnosisKind),
           const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: BinaButton(
-                  label: 'Scan now',
-                  variant: BinaButtonVariant.primary,
-                  icon: Icons.camera_alt_rounded,
-                  onPressed: onScan,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: BinaButton(
-                  label: 'Book',
-                  variant: BinaButtonVariant.secondary,
-                  icon: Icons.calendar_today_rounded,
-                  onPressed: onBook,
-                ),
-              ),
-            ],
+          SizedBox(
+            width: double.infinity,
+            child: BinaButton(
+              label: AppLocalizations.of(context).getText('member_scan_now'),
+              variant: BinaButtonVariant.primary,
+              icon: Icons.camera_alt_rounded,
+              onPressed: onScan,
+            ),
           ),
         ],
       ),
@@ -565,12 +550,12 @@ class _HistoryList extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'No scan history yet',
+                AppLocalizations.of(context).getText('member_no_history'),
                 style: BinaType.titleMd,
               ),
               const SizedBox(height: 4),
               Text(
-                'Start a scan to see results here',
+                AppLocalizations.of(context).getText('member_start_scan'),
                 style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
               ),
             ],
@@ -624,10 +609,10 @@ class _HistoryRow extends StatelessWidget {
     return '$day · $time';
   }
 
-  String get _summaryStr {
-    if (session.status != 'completed') return 'Session incomplete';
-    if (session.issuesCount == 0) return 'No issues detected';
-    return '${session.issuesCount} issue${session.issuesCount > 1 ? 's' : ''} found';
+  String _getSummaryStr(BuildContext context) {
+    if (session.status != 'completed') return AppLocalizations.of(context).getText('member_session_incomplete');
+    if (session.issuesCount == 0) return AppLocalizations.of(context).getText('member_no_issues');
+    return '${session.issuesCount} ${session.issuesCount > 1 ? AppLocalizations.of(context).getText('member_issues_found') : AppLocalizations.of(context).getText('member_issue_found')}';
   }
 
   @override
@@ -662,7 +647,7 @@ class _HistoryRow extends StatelessWidget {
                     style: BinaType.titleMd.copyWith(color: Colors.white),
                   ),
                   Text(
-                    'photos',
+                    AppLocalizations.of(context).getText('member_photos'),
                     style: BinaType.labelSm.copyWith(
                       color: Colors.white.withValues(alpha: 0.6),
                       fontSize: 10,
@@ -676,7 +661,7 @@ class _HistoryRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_summaryStr, style: BinaType.titleMd),
+                  Text(_getSummaryStr(context), style: BinaType.titleMd),
                   const SizedBox(height: 2),
                   Text(
                     _dateStr,

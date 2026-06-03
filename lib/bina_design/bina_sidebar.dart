@@ -6,7 +6,7 @@
 import 'package:flutter/material.dart';
 import 'bina_design_tokens.dart';
 
-enum BinaSidebarTab { home, family, scan, chat, profile }
+enum BinaSidebarTab { none, home, family, scan, chat, profile }
 
 class BinaSidebar extends StatelessWidget {
   const BinaSidebar({
@@ -31,9 +31,12 @@ class BinaSidebar extends StatelessWidget {
           right: BorderSide(color: BinaColors.line),
         ),
       ),
-      child: Column(
-        children: [
-          const SizedBox(height: 24),
+      child: SafeArea(
+        right: false,
+        bottom: false,
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
           // Logo
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -129,7 +132,8 @@ class BinaSidebar extends StatelessWidget {
               child: _ThemeDots(),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

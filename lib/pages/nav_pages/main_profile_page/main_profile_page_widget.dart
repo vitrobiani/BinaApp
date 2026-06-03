@@ -47,6 +47,10 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
     context.pushNamed(HelpSupportWidget.routeName);
   }
 
+  void _openAccountSettings() {
+    context.pushNamed(AccountSettingsWidget.routeName);
+  }
+
   void _showSignOutDialog() {
     showDialog(
       context: context,
@@ -56,18 +60,18 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
           borderRadius: BorderRadius.circular(BinaRadius.lg),
         ),
         title: Text(
-          'Sign out?',
+          AppLocalizations.of(context).getText('profile_sign_out_question'),
           style: BinaType.headlineSm,
         ),
         content: Text(
-          'You will need to sign in again to access your account.',
+          AppLocalizations.of(context).getText('profile_sign_out_message'),
           style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
-              'Cancel',
+              AppLocalizations.of(context).getText('profile_cancel'),
               style: BinaType.labelLg.copyWith(color: BinaColors.ink2),
             ),
           ),
@@ -80,7 +84,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
               context.goNamedAuth(Auth2LoginWidget.routeName, context.mounted);
             },
             child: Text(
-              'Sign out',
+              AppLocalizations.of(context).getText('profile_sign_out'),
               style: BinaType.labelLg.copyWith(color: BinaColors.error),
             ),
           ),
@@ -124,20 +128,22 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                 children: [
                   // Scrollable content
                   Positioned.fill(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        top: isWide ? 24 : MediaQuery.of(context).padding.top + 12,
-                        bottom: isWide ? 32 : 120,
+                    child: SafeArea(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.only(
+                          top: isWide ? 24 : 12,
+                          bottom: isWide ? 32 : 120,
+                        ),
+                        child: isWide
+                            ? _buildWideContent(
+                                user: user,
+                                currentBinaTheme: currentBinaTheme,
+                              )
+                            : _buildPhoneContent(
+                                user: user,
+                                currentBinaTheme: currentBinaTheme,
+                              ),
                       ),
-                      child: isWide
-                          ? _buildWideContent(
-                              user: user,
-                              currentBinaTheme: currentBinaTheme,
-                            )
-                          : _buildPhoneContent(
-                              user: user,
-                              currentBinaTheme: currentBinaTheme,
-                            ),
                     ),
                   ),
                   // Floating bottom nav (phone only)
@@ -163,7 +169,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
           child: Text(
-            'Profile',
+            AppLocalizations.of(context).getText('profile_title'),
             style: BinaType.displaySm,
           ),
         ).animate()
@@ -176,9 +182,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
           child: _IdentityCard(
             name: user.name,
             email: user.email,
-            onTap: () {
-              // TODO: Open account settings
-            },
+            onTap: _openAccountSettings,
           ),
         ).animate()
             .fadeIn(delay: 100.ms, duration: 400.ms)
@@ -186,7 +190,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
 
         // Appearance section
         _ProfileGroup(
-          title: 'APPEARANCE',
+          title: AppLocalizations.of(context).getText('profile_appearance'),
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
@@ -195,13 +199,13 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Theme',
+                      AppLocalizations.of(context).getText('profile_theme'),
                       style: BinaType.labelMd,
                     ),
                     GestureDetector(
                       onTap: _openAccessibility,
                       child: Text(
-                        'More options →',
+                        AppLocalizations.of(context).getText('profile_more_options'),
                         style: BinaType.labelSm.copyWith(
                           color: BinaColors.primary,
                           fontWeight: FontWeight.w600,
@@ -221,29 +225,27 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
 
         // Settings section
         _ProfileGroup(
-          title: 'SETTINGS',
+          title: AppLocalizations.of(context).getText('profile_settings'),
           child: Column(
             children: [
               _HubRow(
                 icon: Icons.person_outline_rounded,
-                label: 'Account',
-                subtitle: 'Personal info, password, data',
+                label: AppLocalizations.of(context).getText('profile_account'),
+                subtitle: AppLocalizations.of(context).getText('profile_account_subtitle'),
                 tone: _HubRowTone.blue,
-                onTap: () {
-                  // TODO: Open account settings
-                },
+                onTap: _openAccountSettings,
               ),
               _HubRow(
                 icon: Icons.accessibility_new_rounded,
-                label: 'Accessibility',
-                subtitle: 'Theme · text size · hints',
+                label: AppLocalizations.of(context).getText('profile_accessibility'),
+                subtitle: AppLocalizations.of(context).getText('profile_accessibility_subtitle'),
                 tone: _HubRowTone.aqua,
                 onTap: _openAccessibility,
               ),
               _HubRow(
                 icon: Icons.help_outline_rounded,
-                label: 'Help & support',
-                subtitle: 'FAQ, contact, send feedback',
+                label: AppLocalizations.of(context).getText('profile_help_support'),
+                subtitle: AppLocalizations.of(context).getText('profile_help_subtitle'),
                 tone: _HubRowTone.coral,
                 isLast: true,
                 onTap: _openHelpSupport,
@@ -256,11 +258,11 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
 
         // About section
         _ProfileGroup(
-          title: 'ABOUT',
+          title: AppLocalizations.of(context).getText('profile_about'),
           child: _HubRow(
             icon: Icons.info_outline_rounded,
-            label: 'About Bina',
-            subtitle: 'Version 1.0.0',
+            label: AppLocalizations.of(context).getText('profile_about_bina'),
+            subtitle: AppLocalizations.of(context).getText('profile_version'),
             tone: _HubRowTone.blue,
             isLast: true,
             onTap: () {
@@ -277,7 +279,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
           child: SizedBox(
             width: double.infinity,
             child: BinaButton(
-              label: 'Sign out',
+              label: AppLocalizations.of(context).getText('profile_sign_out'),
               variant: BinaButtonVariant.ghost,
               onPressed: _showSignOutDialog,
             ),
@@ -305,7 +307,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
               Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: Text(
-                  'Profile',
+                  AppLocalizations.of(context).getText('profile_title'),
                   style: BinaType.displayMd,
                 ),
               ),
@@ -316,15 +318,13 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                 child: _IdentityCard(
                   name: user.name,
                   email: user.email,
-                  onTap: () {
-                    // TODO: Open account settings
-                  },
+                  onTap: _openAccountSettings,
                 ),
               ),
 
               // Appearance section
               _ProfileGroup(
-                title: 'APPEARANCE',
+                title: AppLocalizations.of(context).getText('profile_appearance'),
                 horizontalPadding: 0,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -334,13 +334,13 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Theme',
+                            AppLocalizations.of(context).getText('profile_theme'),
                             style: BinaType.titleMd,
                           ),
                           GestureDetector(
                             onTap: _openAccessibility,
                             child: Text(
-                              'More options →',
+                              AppLocalizations.of(context).getText('profile_more_options'),
                               style: BinaType.labelMd.copyWith(
                                 color: BinaColors.primary,
                                 fontWeight: FontWeight.w600,
@@ -358,30 +358,28 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
 
               // Settings section
               _ProfileGroup(
-                title: 'SETTINGS',
+                title: AppLocalizations.of(context).getText('profile_settings'),
                 horizontalPadding: 0,
                 child: Column(
                   children: [
                     _HubRow(
                       icon: Icons.person_outline_rounded,
-                      label: 'Account',
-                      subtitle: 'Personal info, password, data',
+                      label: AppLocalizations.of(context).getText('profile_account'),
+                      subtitle: AppLocalizations.of(context).getText('profile_account_subtitle'),
                       tone: _HubRowTone.blue,
-                      onTap: () {
-                        // TODO: Open account settings
-                      },
+                      onTap: _openAccountSettings,
                     ),
                     _HubRow(
                       icon: Icons.accessibility_new_rounded,
-                      label: 'Accessibility',
-                      subtitle: 'Theme · text size · hints',
+                      label: AppLocalizations.of(context).getText('profile_accessibility'),
+                      subtitle: AppLocalizations.of(context).getText('profile_accessibility_subtitle'),
                       tone: _HubRowTone.aqua,
                       onTap: _openAccessibility,
                     ),
                     _HubRow(
                       icon: Icons.help_outline_rounded,
-                      label: 'Help & support',
-                      subtitle: 'FAQ, contact, send feedback',
+                      label: AppLocalizations.of(context).getText('profile_help_support'),
+                      subtitle: AppLocalizations.of(context).getText('profile_help_subtitle'),
                       tone: _HubRowTone.coral,
                       isLast: true,
                       onTap: _openHelpSupport,
@@ -392,12 +390,12 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
 
               // About section
               _ProfileGroup(
-                title: 'ABOUT',
+                title: AppLocalizations.of(context).getText('profile_about'),
                 horizontalPadding: 0,
                 child: _HubRow(
                   icon: Icons.info_outline_rounded,
-                  label: 'About Bina',
-                  subtitle: 'Version 1.0.0',
+                  label: AppLocalizations.of(context).getText('profile_about_bina'),
+                  subtitle: AppLocalizations.of(context).getText('profile_version'),
                   tone: _HubRowTone.blue,
                   isLast: true,
                   onTap: () {
@@ -412,7 +410,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
                 child: SizedBox(
                   width: double.infinity,
                   child: BinaButton(
-                    label: 'Sign out',
+                    label: AppLocalizations.of(context).getText('profile_sign_out'),
                     variant: BinaButtonVariant.ghost,
                     onPressed: _showSignOutDialog,
                   ),
@@ -429,7 +427,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
     return Row(
       children: [
         _ThemeSwatch(
-          label: 'Light',
+          label: AppLocalizations.of(context).getText('theme_light'),
           themeId: BinaThemeId.light,
           isActive: currentBinaTheme == BinaThemeId.light,
           colors: [const Color(0xFFFBFAF6), const Color(0xFF1F5BFF)],
@@ -437,7 +435,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
         ),
         const SizedBox(width: 8),
         _ThemeSwatch(
-          label: 'Dark',
+          label: AppLocalizations.of(context).getText('theme_dark'),
           themeId: BinaThemeId.dark,
           isActive: currentBinaTheme == BinaThemeId.dark,
           colors: [const Color(0xFF0C0F1A), const Color(0xFF5B8BFF)],
@@ -445,7 +443,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
         ),
         const SizedBox(width: 8),
         _ThemeSwatch(
-          label: 'Warm',
+          label: AppLocalizations.of(context).getText('theme_warm'),
           themeId: BinaThemeId.warm,
           isActive: currentBinaTheme == BinaThemeId.warm,
           colors: [const Color(0xFFFFF8E1), const Color(0xFFEF8B1A)],
@@ -453,7 +451,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
         ),
         const SizedBox(width: 8),
         _ThemeSwatch(
-          label: 'Cool',
+          label: AppLocalizations.of(context).getText('theme_cool'),
           themeId: BinaThemeId.cool,
           isActive: currentBinaTheme == BinaThemeId.cool,
           colors: [const Color(0xFFE3F2FD), const Color(0xFF0099B3)],
@@ -461,7 +459,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
         ),
         const SizedBox(width: 8),
         _ThemeSwatch(
-          label: 'A11y',
+          label: AppLocalizations.of(context).getText('theme_a11y'),
           themeId: BinaThemeId.deuteranopia,
           isActive: currentBinaTheme == BinaThemeId.deuteranopia,
           colors: [const Color(0xFFFFFFFF), const Color(0xFF0077BB)],
@@ -549,17 +547,17 @@ class _IdentityCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name.isNotEmpty ? name : 'User',
+                    name.isNotEmpty ? name : AppLocalizations.of(context).getText('profile_user'),
                     style: BinaType.titleLg,
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    email.isNotEmpty ? email : 'No email',
+                    email.isNotEmpty ? email : AppLocalizations.of(context).getText('profile_no_email'),
                     style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'View account →',
+                    AppLocalizations.of(context).getText('profile_view_account'),
                     style: BinaType.labelSm.copyWith(color: BinaColors.primary),
                   ),
                 ],

@@ -65,10 +65,121 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
     }
   }
 
-  String _getContrastLabel(double contrastLevel) {
-    if (contrastLevel < -0.15) return 'Softer';
-    if (contrastLevel > 0.15) return 'Stronger';
-    return 'Default';
+  String _getContrastLabel(BuildContext context, double contrastLevel) {
+    if (contrastLevel < -0.15) return AppLocalizations.of(context).getText('a11y_softer');
+    if (contrastLevel > 0.15) return AppLocalizations.of(context).getText('a11y_stronger');
+    return AppLocalizations.of(context).getText('a11y_default');
+  }
+
+  static const List<_LanguageOption> _languages = [
+    _LanguageOption(code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸'),
+    _LanguageOption(code: 'he', name: 'Hebrew', nativeName: 'עברית', flag: '🇮🇱'),
+    _LanguageOption(code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia', flag: '🇮🇩'),
+    _LanguageOption(code: 'ms', name: 'Malay', nativeName: 'Bahasa Melayu', flag: '🇲🇾'),
+  ];
+
+  String _getCurrentLanguageName() {
+    final storedLocale = AppLocalizations.getStoredLocale();
+    final languageCode = storedLocale?.languageCode ?? 'en';
+    final language = _languages.firstWhere(
+      (l) => l.code == languageCode,
+      orElse: () => _languages.first,
+    );
+    return language.name;
+  }
+
+  void _showLanguageSelector(BuildContext parentContext) {
+    final storedLocale = AppLocalizations.getStoredLocale();
+    final currentCode = storedLocale?.languageCode ?? 'en';
+
+    showModalBottomSheet(
+      context: parentContext,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            color: BinaColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: BinaColors.line,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Title
+              Text(AppLocalizations.of(parentContext).getText('a11y_select_language'), style: BinaType.titleLg),
+              const SizedBox(height: 16),
+              // Language options
+              ..._languages.map((language) {
+                final isSelected = language.code == currentCode;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: GestureDetector(
+                    onTap: () async {
+                      HapticFeedback.selectionClick();
+                      await AppLocalizations.storeLocale(language.code);
+                      if (mounted) {
+                        // Use parentContext to access MyApp, not sheetContext
+                        setAppLanguage(parentContext, language.code);
+                        Navigator.pop(sheetContext);
+                        safeSetState(() {});
+                      }
+                    },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: isSelected ? BinaColors.primary100 : BinaColors.surfaceSunken,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isSelected ? BinaColors.primary : BinaColors.line,
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(language.flag, style: const TextStyle(fontSize: 24)),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                language.name,
+                                style: BinaType.bodyLg.copyWith(
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                  color: isSelected ? BinaColors.primary : BinaColors.ink,
+                                ),
+                              ),
+                              Text(
+                                language.nativeName,
+                                style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isSelected)
+                          Icon(Icons.check_circle_rounded, color: BinaColors.primary, size: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -85,8 +196,9 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
           },
           child: Scaffold(
             backgroundColor: BinaColors.surfaceAlt,
-            body: SingleChildScrollView(
-              padding: const EdgeInsets.only(top: 54, bottom: 40),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(top: 12, bottom: 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -102,7 +214,7 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
                         Expanded(
                           child: Center(
                             child: Text(
-                              'Accessibility',
+                              AppLocalizations.of(context).getText('a11y_title'),
                               style: BinaType.titleMd,
                             ),
                           ),
@@ -118,7 +230,7 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
 
                   // Appearance Section
                   _SettingsSection(
-                    title: 'APPEARANCE',
+                    title: AppLocalizations.of(context).getText('a11y_appearance'),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -126,30 +238,24 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
                           child: Text(
-                            'Theme',
+                            AppLocalizations.of(context).getText('profile_theme'),
                             style: BinaType.labelMd.copyWith(color: BinaColors.ink2),
                           ),
                         ),
-                        // Theme swatches
+                        // Theme swatches - smaller with uniform spacing
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 14),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: BinaThemeId.values.map((theme) {
-                              return Expanded(
-                                child: Padding(
-                                  padding: EdgeInsets.only(
-                                    right: theme != BinaThemeId.deuteranopia ? 8 : 0,
-                                  ),
-                                  child: _ThemeSwatch(
-                                    theme: theme,
-                                    isActive: currentTheme == theme,
-                                    onTap: () async {
-                                      HapticFeedback.selectionClick();
-                                      BinaColors.use(theme);
-                                      await settings.setThemeType(_mapToAppTheme(theme));
-                                    },
-                                  ),
-                                ),
+                              return _ThemeSwatch(
+                                theme: theme,
+                                isActive: currentTheme == theme,
+                                onTap: () async {
+                                  HapticFeedback.selectionClick();
+                                  BinaColors.use(theme);
+                                  await settings.setThemeType(_mapToAppTheme(theme));
+                                },
                               );
                             }).toList(),
                           ),
@@ -165,7 +271,7 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Contrast',
+                                    AppLocalizations.of(context).getText('a11y_contrast'),
                                     style: BinaType.labelMd.copyWith(color: BinaColors.ink2),
                                   ),
                                   Container(
@@ -175,7 +281,7 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
                                       borderRadius: BorderRadius.circular(999),
                                     ),
                                     child: Text(
-                                      _getContrastLabel(settings.contrastLevel),
+                                      _getContrastLabel(context, settings.contrastLevel),
                                       style: BinaType.labelSm.copyWith(color: BinaColors.ink2),
                                     ),
                                   ),
@@ -196,7 +302,9 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
                                   max: 1.4,
                                   onChanged: (value) async {
                                     HapticFeedback.selectionClick();
-                                    await settings.setContrastLevel(value - 1.0);
+                                    final contrastLevel = value - 1.0;
+                                    await settings.setContrastLevel(contrastLevel);
+                                    BinaColors.setContrastLevel(contrastLevel);
                                   },
                                 ),
                               ),
@@ -204,11 +312,11 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Softer',
+                                    AppLocalizations.of(context).getText('a11y_softer'),
                                     style: BinaType.labelSm.copyWith(color: BinaColors.ink3),
                                   ),
                                   Text(
-                                    'Stronger',
+                                    AppLocalizations.of(context).getText('a11y_stronger'),
                                     style: BinaType.labelSm.copyWith(color: BinaColors.ink3),
                                   ),
                                 ],
@@ -222,16 +330,34 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
                       .fadeIn(delay: 100.ms, duration: 400.ms)
                       .moveY(begin: 20, end: 0, delay: 100.ms, duration: 400.ms),
 
+                  // Language Section
+                  _SettingsSection(
+                    title: AppLocalizations.of(context).getText('a11y_language'),
+                    child: _SettingsNavRow(
+                      icon: Icons.language_rounded,
+                      iconBgColor: BinaColors.primary100,
+                      iconColor: BinaColors.primary700,
+                      label: AppLocalizations.of(context).getText('a11y_app_language'),
+                      subtitle: _getCurrentLanguageName(),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        _showLanguageSelector(context);
+                      },
+                    ),
+                  ).animate()
+                      .fadeIn(delay: 150.ms, duration: 400.ms)
+                      .moveY(begin: 20, end: 0, delay: 150.ms, duration: 400.ms),
+
                   // Reading Section
                   _SettingsSection(
-                    title: 'READING',
+                    title: AppLocalizations.of(context).getText('a11y_reading'),
                     child: Padding(
                       padding: const EdgeInsets.all(14),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Text size',
+                            AppLocalizations.of(context).getText('a11y_text_size'),
                             style: BinaType.labelMd.copyWith(color: BinaColors.ink2),
                           ),
                           const SizedBox(height: 10),
@@ -272,7 +398,7 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
-                              'Preview · Hello Sarah! Maya\'s scan from this morning needs attention.',
+                              AppLocalizations.of(context).getText('a11y_preview'),
                               style: TextStyle(
                                 fontSize: 14 * currentTextScale.scaleFactor,
                                 height: 1.5,
@@ -289,13 +415,13 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
 
                   // Guidance Section
                   _SettingsSection(
-                    title: 'GUIDANCE',
+                    title: AppLocalizations.of(context).getText('a11y_guidance'),
                     child: _SettingsToggleRow(
                       icon: Icons.help_outline_rounded,
                       iconBgColor: BinaColors.coral100,
                       iconColor: BinaColors.coral700,
-                      label: 'Hint mode',
-                      subtitle: 'Show small tooltips on key buttons',
+                      label: AppLocalizations.of(context).getText('a11y_hint_mode'),
+                      subtitle: AppLocalizations.of(context).getText('a11y_hint_subtitle'),
                       value: settings.hintsEnabled,
                       onChanged: (value) async {
                         HapticFeedback.selectionClick();
@@ -308,15 +434,15 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
 
                   // Motion & Sensory Section
                   _SettingsSection(
-                    title: 'MOTION & SENSORY',
+                    title: AppLocalizations.of(context).getText('a11y_motion'),
                     child: Column(
                       children: [
                         _SettingsToggleRow(
                           icon: Icons.animation_rounded,
                           iconBgColor: BinaColors.aqua100,
                           iconColor: BinaColors.aqua700,
-                          label: 'Reduce motion',
-                          subtitle: 'Disable transitions and parallax',
+                          label: AppLocalizations.of(context).getText('a11y_reduce_motion'),
+                          subtitle: AppLocalizations.of(context).getText('a11y_reduce_motion_subtitle'),
                           value: settings.reduceMotion,
                           onChanged: (value) async {
                             HapticFeedback.selectionClick();
@@ -328,7 +454,7 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
                           icon: Icons.vibration_rounded,
                           iconBgColor: BinaColors.coral100,
                           iconColor: BinaColors.coral700,
-                          label: 'Haptic feedback',
+                          label: AppLocalizations.of(context).getText('a11y_haptic'),
                           value: settings.hapticEnabled,
                           onChanged: (value) async {
                             HapticFeedback.selectionClick();
@@ -340,12 +466,94 @@ class _AccessibilityWidgetState extends State<AccessibilityWidget> {
                   ).animate()
                       .fadeIn(delay: 400.ms, duration: 400.ms)
                       .moveY(begin: 20, end: 0, delay: 400.ms, duration: 400.ms),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LANGUAGE OPTION
+// ═══════════════════════════════════════════════════════════════
+
+class _LanguageOption {
+  const _LanguageOption({
+    required this.code,
+    required this.name,
+    required this.nativeName,
+    required this.flag,
+  });
+
+  final String code;
+  final String name;
+  final String nativeName;
+  final String flag;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS NAV ROW
+// ═══════════════════════════════════════════════════════════════
+
+class _SettingsNavRow extends StatelessWidget {
+  const _SettingsNavRow({
+    required this.icon,
+    required this.iconBgColor,
+    required this.iconColor,
+    required this.label,
+    this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color iconBgColor;
+  final Color iconColor;
+  final String label;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: BinaType.bodyLg),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(Icons.chevron_right_rounded, color: BinaColors.ink3, size: 24),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -413,18 +621,18 @@ class _ThemeSwatch extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  String get _label {
+  String _getLabel(BuildContext context) {
     switch (theme) {
       case BinaThemeId.light:
-        return 'Light';
+        return AppLocalizations.of(context).getText('a11y_theme_light');
       case BinaThemeId.dark:
-        return 'Dark';
+        return AppLocalizations.of(context).getText('a11y_theme_dark');
       case BinaThemeId.warm:
-        return 'Warm';
+        return AppLocalizations.of(context).getText('a11y_theme_warm');
       case BinaThemeId.cool:
-        return 'Cool';
+        return AppLocalizations.of(context).getText('a11y_theme_cool');
       case BinaThemeId.deuteranopia:
-        return 'A11y';
+        return AppLocalizations.of(context).getText('a11y_theme_a11y');
     }
   }
 
@@ -469,30 +677,30 @@ class _ThemeSwatch extends StatelessWidget {
       onTap: onTap,
       child: Column(
         children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: _gradient,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: isActive
-                    ? [
-                        BoxShadow(
-                          color: BinaColors.primary.withValues(alpha: 0.5),
-                          blurRadius: 0,
-                          spreadRadius: 3,
-                        )
-                      ]
-                    : BinaElevation.sh1,
-              ),
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: _gradient,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: BinaColors.primary.withValues(alpha: 0.5),
+                        blurRadius: 0,
+                        spreadRadius: 2,
+                      )
+                    ]
+                  : BinaElevation.sh1,
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            _label,
+            _getLabel(context),
             style: BinaType.labelSm.copyWith(
               color: isActive ? BinaColors.primary : BinaColors.ink2,
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              fontSize: 11,
             ),
           ),
         ],

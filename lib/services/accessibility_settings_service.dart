@@ -159,8 +159,8 @@ class AccessibilitySettingsService extends ChangeNotifier {
   }
 
   Future<void> setContrastLevel(double level) async {
-    // Clamp to valid range
-    level = level.clamp(0.0, 1.0);
+    // Clamp to valid range: -0.5 (softer) to 1.0 (stronger)
+    level = level.clamp(-0.5, 1.0);
     if (_contrastLevel == level) return;
 
     _contrastLevel = level;

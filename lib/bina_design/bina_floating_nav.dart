@@ -8,7 +8,7 @@ import '/index.dart';
 import '/app_core/app_util.dart';
 import 'bina_design_tokens.dart';
 
-enum BinaNavTab { home, family, scan, chat, profile }
+enum BinaNavTab { none, home, family, scan, chat, profile }
 
 class BinaFloatingNav extends StatelessWidget {
   const BinaFloatingNav({
@@ -29,6 +29,8 @@ class BinaFloatingNav extends StatelessWidget {
     // Default navigation behavior
     final String routeName;
     switch (tab) {
+      case BinaNavTab.none:
+        return; // Don't navigate for none tab
       case BinaNavTab.home:
         routeName = MainHomeWidget.routeName;
       case BinaNavTab.family:

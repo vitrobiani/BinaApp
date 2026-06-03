@@ -64,15 +64,15 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
     }
   }
 
-  String _formatTimeAgo(DateTime time) {
+  String _formatTimeAgo(BuildContext context, DateTime time) {
     final now = DateTime.now();
     final diff = now.difference(time);
 
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays == 1) return 'Yesterday';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inMinutes < 1) return AppLocalizations.of(context).getText('chat_just_now');
+    if (diff.inMinutes < 60) return '${diff.inMinutes}${AppLocalizations.of(context).getText('chat_m_ago')}';
+    if (diff.inHours < 24) return '${diff.inHours}${AppLocalizations.of(context).getText('chat_h_ago')}';
+    if (diff.inDays == 1) return AppLocalizations.of(context).getText('chat_yesterday');
+    if (diff.inDays < 7) return '${diff.inDays}${AppLocalizations.of(context).getText('chat_d_ago')}';
     return DateFormat('d MMM').format(time);
   }
 
@@ -144,11 +144,12 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
       fit: StackFit.expand,
       children: [
         Positioned.fill(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 12,
-              bottom: 120,
-            ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                top: 12,
+                bottom: 120,
+              ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -163,12 +164,12 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Chats',
+                            AppLocalizations.of(context).getText('chat_title'),
                             style: BinaType.displaySm,
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'On-device · Gemma 3',
+                            AppLocalizations.of(context).getText('chat_subtitle'),
                             style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
                           ),
                         ],
@@ -225,8 +226,8 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                           child: _ConversationCard(
                             conversation: conversation,
                             timeAgo: conversation.messages.isNotEmpty
-                                ? _formatTimeAgo(conversation.messages.last.timestamp)
-                                : 'New',
+                                ? _formatTimeAgo(context, conversation.messages.last.timestamp)
+                                : AppLocalizations.of(context).getText('chat_new'),
                             onTap: () {
                               context.pushNamed(
                                 'ChatRoom',
@@ -262,7 +263,8 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                   ).animate()
                       .fadeIn(delay: 400.ms, duration: 400.ms)
                       .moveY(begin: 20, end: 0, delay: 400.ms, duration: 400.ms),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -306,10 +308,10 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Chats', style: BinaType.displaySm),
+                          Text(AppLocalizations.of(context).getText('chat_title'), style: BinaType.displaySm),
                           const SizedBox(height: 2),
                           Text(
-                            'On-device · Gemma 3',
+                            AppLocalizations.of(context).getText('chat_subtitle'),
                             style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
                           ),
                         ],
@@ -342,7 +344,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'No conversations yet',
+                                  AppLocalizations.of(context).getText('chat_no_conversations'),
                                   style: BinaType.titleMd,
                                 ),
                               ],
@@ -356,8 +358,8 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                               child: _ConversationCard(
                                 conversation: conversation,
                                 timeAgo: conversation.messages.isNotEmpty
-                                    ? _formatTimeAgo(conversation.messages.last.timestamp)
-                                    : 'New',
+                                    ? _formatTimeAgo(context, conversation.messages.last.timestamp)
+                                    : AppLocalizations.of(context).getText('chat_new'),
                                 isSelected: isSelected,
                                 onTap: () {
                                   setState(() {
@@ -429,12 +431,12 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Chat with Gemma',
+                                  AppLocalizations.of(context).getText('chat_with_gemma'),
                                   style: BinaType.displaySm,
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Select a family member to start or continue a conversation.',
+                                  AppLocalizations.of(context).getText('chat_select_member'),
                                   style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
                                 ),
                               ],
@@ -513,12 +515,12 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No conversations yet',
+              AppLocalizations.of(context).getText('chat_no_conversations'),
               style: BinaType.titleLg,
             ),
             const SizedBox(height: 4),
             Text(
-              'Start a new chat to ask questions about dental health.',
+              AppLocalizations.of(context).getText('chat_start_dental'),
               style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
               textAlign: TextAlign.center,
             ),
@@ -538,18 +540,18 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
           borderRadius: BorderRadius.circular(BinaRadius.lg),
         ),
         title: Text(
-          'Delete conversation?',
+          AppLocalizations.of(context).getText('chat_delete_title'),
           style: BinaType.headlineSm,
         ),
         content: Text(
-          'This will permanently delete this conversation and all its messages.',
+          AppLocalizations.of(context).getText('chat_delete_message'),
           style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
-              'Cancel',
+              AppLocalizations.of(context).getText('chat_cancel'),
               style: BinaType.labelLg.copyWith(color: BinaColors.ink2),
             ),
           ),
@@ -562,7 +564,7 @@ class _ChatHistoryWidgetState extends State<ChatHistoryWidget> {
               Navigator.of(ctx).pop();
             },
             child: Text(
-              'Delete',
+              AppLocalizations.of(context).getText('chat_delete'),
               style: BinaType.labelLg.copyWith(color: BinaColors.error),
             ),
           ),
@@ -604,17 +606,17 @@ class _NoChatSelectedPanel extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Select a conversation',
+              AppLocalizations.of(context).getText('chat_select_conversation'),
               style: BinaType.titleLg,
             ),
             const SizedBox(height: 4),
             Text(
-              'Or start a new one',
+              AppLocalizations.of(context).getText('chat_or_start_new'),
               style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
             ),
             const SizedBox(height: 20),
             BinaButton(
-              label: 'New conversation',
+              label: AppLocalizations.of(context).getText('chat_new_conversation'),
               icon: Icons.add,
               onPressed: onNewChat,
             ),
@@ -679,8 +681,8 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(GemmaService.instance.isDownloading
-              ? 'AI model is still downloading...'
-              : 'AI model is not ready yet.'),
+              ? AppLocalizations.of(context).getText('chat_model_downloading')
+              : AppLocalizations.of(context).getText('chat_model_not_ready')),
           backgroundColor: BinaColors.warning,
         ),
       );
@@ -774,7 +776,10 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
 
         return Container(
           color: BinaColors.surfaceAlt,
-          child: Column(
+          child: SafeArea(
+            left: false,
+            top: false,
+            child: Column(
             children: [
               // Header
               Container(
@@ -806,7 +811,7 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            conversation?.title ?? 'Dental Assistant',
+                            conversation?.title ?? AppLocalizations.of(context).getText('chat_dental_assistant'),
                             style: BinaType.titleLg,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -825,7 +830,7 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                member != null ? '${member.name} · On device' : 'On device',
+                                member != null ? '${member.name} · ${AppLocalizations.of(context).getText('chat_on_device')}' : AppLocalizations.of(context).getText('chat_on_device'),
                                 style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
                               ),
                             ],
@@ -866,10 +871,10 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Text('Ask me anything!', style: BinaType.titleLg),
+                            Text(AppLocalizations.of(context).getText('chat_ask_anything'), style: BinaType.titleLg),
                             const SizedBox(height: 8),
                             Text(
-                              'I can help with dental health questions',
+                              AppLocalizations.of(context).getText('chat_help_dental'),
                               style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
                             ),
                           ],
@@ -918,7 +923,7 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Thinking...',
+                        AppLocalizations.of(context).getText('chat_thinking'),
                         style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
                       ),
                     ],
@@ -947,7 +952,7 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
                           focusNode: _messageFocusNode,
                           onSubmitted: (_) => _sendMessage(),
                           decoration: InputDecoration(
-                            hintText: 'Type a message...',
+                            hintText: AppLocalizations.of(context).getText('chat_type_message'),
                             hintStyle: BinaType.bodyMd.copyWith(color: BinaColors.ink3),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -968,6 +973,7 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
                 ),
               ),
             ],
+          ),
           ),
         );
       },
@@ -1202,8 +1208,8 @@ class _MemberSelectCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     conversationCount > 0
-                        ? '$conversationCount conversation${conversationCount == 1 ? '' : 's'}'
-                        : 'No conversations yet',
+                        ? '$conversationCount ${conversationCount == 1 ? AppLocalizations.of(context).getText('chat_conversation') : AppLocalizations.of(context).getText('chat_conversations')}'
+                        : AppLocalizations.of(context).getText('chat_no_conversations'),
                     style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
                   ),
                 ],
@@ -1247,8 +1253,8 @@ class _ConversationCard extends StatelessWidget {
   final VoidCallback onDelete;
   final bool isSelected;
 
-  String get _preview {
-    if (conversation.messages.isEmpty) return 'No messages yet';
+  String _getPreview(BuildContext context) {
+    if (conversation.messages.isEmpty) return AppLocalizations.of(context).getText('chat_no_messages');
     final lastMessage = conversation.messages.last.content;
     if (lastMessage.length > 60) {
       return '${lastMessage.substring(0, 60)}...';
@@ -1301,7 +1307,7 @@ class _ConversationCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _preview,
+                    _getPreview(context),
                     style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1390,7 +1396,7 @@ class _NewChatButtonState extends State<_NewChatButton> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Start a new conversation',
+              AppLocalizations.of(context).getText('chat_start_new'),
               style: BinaType.labelLg.copyWith(color: Colors.white),
             ),
           ],

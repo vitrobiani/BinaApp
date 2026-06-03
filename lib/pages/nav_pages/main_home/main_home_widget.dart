@@ -105,27 +105,29 @@ class _MainHomeWidgetState extends State<MainHomeWidget>
                 children: [
                   // Scrollable content
                   Positioned.fill(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        top: isWide ? 24 : MediaQuery.of(context).padding.top + 12,
-                        bottom: isWide ? 24 : 120,
+                    child: SafeArea(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.only(
+                          top: isWide ? 24 : 12,
+                          bottom: isWide ? 24 : 120,
+                        ),
+                        child: isWide
+                            ? _buildWideLayout(
+                                context: context,
+                                session: session,
+                                family: family,
+                                percentage: percentage,
+                                unchecked: unchecked,
+                                isDesktop: isDesktop,
+                              )
+                            : _buildPhoneLayout(
+                                context: context,
+                                session: session,
+                                family: family,
+                                percentage: percentage,
+                                unchecked: unchecked,
+                              ),
                       ),
-                      child: isWide
-                          ? _buildWideLayout(
-                              context: context,
-                              session: session,
-                              family: family,
-                              percentage: percentage,
-                              unchecked: unchecked,
-                              isDesktop: isDesktop,
-                            )
-                          : _buildPhoneLayout(
-                              context: context,
-                              session: session,
-                              family: family,
-                              percentage: percentage,
-                              unchecked: unchecked,
-                            ),
                     ),
                   ),
                   // Floating bottom nav (phone only)
@@ -181,6 +183,17 @@ class _MainHomeWidgetState extends State<MainHomeWidget>
           child: _RecentScansSection(
             family: family,
             onHistoryTap: () => context.pushNamed(MainDiagnoseWidget.routeName),
+            onScanTap: (member) => context.pushNamed(
+              MemberDetailWidget.routeName,
+              extra: {
+                'member': member,
+                kTransitionInfoKey: const TransitionInfo(
+                  hasTransition: true,
+                  transitionType: PageTransitionType.fade,
+                  duration: Duration(milliseconds: 200),
+                ),
+              },
+            ),
           ),
         ).animate()
             .fadeIn(delay: 600.ms, duration: 400.ms)
@@ -224,7 +237,7 @@ class _MainHomeWidgetState extends State<MainHomeWidget>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Hello ${session.name.isNotEmpty ? session.name : 'there'}',
+                      '${AppLocalizations.of(context).getText('home_hello')} ${session.name.isNotEmpty ? session.name : AppLocalizations.of(context).getText('home_there')}',
                       style: BinaType.displayMd,
                     ),
                   ],
@@ -259,6 +272,17 @@ class _MainHomeWidgetState extends State<MainHomeWidget>
                         child: _RecentScansSection(
                           family: family,
                           onHistoryTap: () => context.pushNamed(MainDiagnoseWidget.routeName),
+                          onScanTap: (member) => context.pushNamed(
+                            MemberDetailWidget.routeName,
+                            extra: {
+                              'member': member,
+                              kTransitionInfoKey: const TransitionInfo(
+                                hasTransition: true,
+                                transitionType: PageTransitionType.fade,
+                                duration: Duration(milliseconds: 200),
+                              ),
+                            },
+                          ),
                         ),
                       ),
                     ],
@@ -317,6 +341,17 @@ class _MainHomeWidgetState extends State<MainHomeWidget>
                             child: _RecentScansSection(
                               family: family,
                               onHistoryTap: () => context.pushNamed(MainDiagnoseWidget.routeName),
+                              onScanTap: (member) => context.pushNamed(
+                                MemberDetailWidget.routeName,
+                                extra: {
+                                  'member': member,
+                                  kTransitionInfoKey: const TransitionInfo(
+                                    hasTransition: true,
+                                    transitionType: PageTransitionType.fade,
+                                    duration: Duration(milliseconds: 200),
+                                  ),
+                                },
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -362,9 +397,11 @@ class _GreetingHeader extends StatelessWidget {
                   style: BinaType.overline,
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Hello ${userName.isNotEmpty ? userName : 'there'}',
-                  style: BinaType.displaySm,
+                Builder(
+                  builder: (context) => Text(
+                    '${AppLocalizations.of(context).getText('home_hello')} ${userName.isNotEmpty ? userName : AppLocalizations.of(context).getText('home_there')}',
+                    style: BinaType.displaySm,
+                  ),
                 ),
               ],
             ),
@@ -432,7 +469,7 @@ class _HeroProgressCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'THIS WEEK',
+                        AppLocalizations.of(context).getText('home_this_week'),
                         style: BinaType.overline.copyWith(
                           color: Colors.white.withValues(alpha: 0.78),
                           letterSpacing: 1.2,
@@ -440,7 +477,7 @@ class _HeroProgressCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${percentage.round()}% checked',
+                        '${percentage.round()}% ${AppLocalizations.of(context).getText('home_checked')}',
                         style: BinaType.displaySm.copyWith(
                           color: Colors.white,
                           letterSpacing: -0.32,
@@ -448,7 +485,7 @@ class _HeroProgressCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '$uncheckedCount ${uncheckedCount == 1 ? 'member' : 'members'} undiagnosed',
+                        '$uncheckedCount ${uncheckedCount == 1 ? AppLocalizations.of(context).getText('home_member') : AppLocalizations.of(context).getText('home_members')} ${AppLocalizations.of(context).getText('home_undiagnosed')}',
                         style: BinaType.bodyMd.copyWith(
                           color: Colors.white.withValues(alpha: 0.9),
                         ),
@@ -457,7 +494,7 @@ class _HeroProgressCard extends StatelessWidget {
                       Row(
                         children: [
                           BinaButton(
-                            label: 'View family',
+                            label: AppLocalizations.of(context).getText('home_view_family'),
                             variant: BinaButtonVariant.glass,
                             size: BinaButtonSize.sm,
                             icon: Icons.arrow_forward,
@@ -466,7 +503,7 @@ class _HeroProgressCard extends StatelessWidget {
                           if (onScan != null) ...[
                             const SizedBox(width: 10),
                             BinaButton(
-                              label: 'Start a scan',
+                              label: AppLocalizations.of(context).getText('home_start_scan'),
                               variant: BinaButtonVariant.glassOutline,
                               size: BinaButtonSize.sm,
                               icon: Icons.camera_alt_rounded,
@@ -515,8 +552,8 @@ class _FamilyRibbon extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: BinaSectionHeader(
-            title: 'Your family',
-            action: 'See all',
+            title: AppLocalizations.of(context).getText('home_your_family'),
+            action: AppLocalizations.of(context).getText('home_see_all'),
             onActionTap: onSeeAll,
           ),
         ),
@@ -572,7 +609,7 @@ class _MiniMemberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final lastCheckedStr = member.lastChecked != null
         ? DateFormat('d MMM').format(member.lastChecked!)
-        : 'never checked';
+        : AppLocalizations.of(context).getText('home_never_checked');
 
     return GestureDetector(
       onTap: onTap,
@@ -651,7 +688,7 @@ class _AddMemberCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Add member',
+                AppLocalizations.of(context).getText('home_add_member'),
                 style: BinaType.labelMd.copyWith(color: BinaColors.primary),
               ),
             ],
@@ -732,8 +769,8 @@ class _FamilyListCard extends StatelessWidget {
     return Column(
       children: [
         BinaSectionHeader(
-          title: 'Your family',
-          action: 'See all',
+          title: AppLocalizations.of(context).getText('home_your_family'),
+          action: AppLocalizations.of(context).getText('home_see_all'),
           onActionTap: onSeeAll,
         ),
         const SizedBox(height: 12),
@@ -761,7 +798,7 @@ class _FamilyListCard extends StatelessWidget {
                 Icon(Icons.add, size: 20, color: BinaColors.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Add member',
+                  AppLocalizations.of(context).getText('home_add_member'),
                   style: BinaType.labelMd.copyWith(color: BinaColors.primary),
                 ),
               ],
@@ -798,8 +835,8 @@ class _FamilyRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lastCheckedStr = member.lastChecked != null
-        ? 'Last checked ${DateFormat('d MMM').format(member.lastChecked!)}'
-        : 'Never checked';
+        ? '${AppLocalizations.of(context).getText('home_last_checked')} ${DateFormat('d MMM').format(member.lastChecked!)}'
+        : AppLocalizations.of(context).getText('home_never_checked');
 
     return GestureDetector(
       onTap: onTap,
@@ -848,10 +885,12 @@ class _RecentScansSection extends StatelessWidget {
   const _RecentScansSection({
     required this.family,
     required this.onHistoryTap,
+    this.onScanTap,
   });
 
   final List<FamilyMemberStruct> family;
   final VoidCallback onHistoryTap;
+  final void Function(FamilyMemberStruct member)? onScanTap;
 
   @override
   Widget build(BuildContext context) {
@@ -869,8 +908,8 @@ class _RecentScansSection extends StatelessWidget {
     return Column(
       children: [
         BinaSectionHeader(
-          title: 'Recent scans',
-          action: 'History',
+          title: AppLocalizations.of(context).getText('home_recent_scans'),
+          action: AppLocalizations.of(context).getText('home_history'),
           onActionTap: onHistoryTap,
         ),
         if (recentMembers.isEmpty)
@@ -878,7 +917,7 @@ class _RecentScansSection extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(BinaSpace.s4),
               child: Text(
-                'No scans yet. Start by scanning a family member.',
+                AppLocalizations.of(context).getText('home_no_scans_yet'),
                 style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
                 textAlign: TextAlign.center,
               ),
@@ -887,7 +926,10 @@ class _RecentScansSection extends StatelessWidget {
         else
           ...recentMembers.take(3).map((member) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: _ScanRow(member: member),
+                child: _ScanRow(
+                  member: member,
+                  onTap: onScanTap != null ? () => onScanTap!(member) : null,
+                ),
               )),
       ],
     );
@@ -895,9 +937,13 @@ class _RecentScansSection extends StatelessWidget {
 }
 
 class _ScanRow extends StatelessWidget {
-  const _ScanRow({required this.member});
+  const _ScanRow({
+    required this.member,
+    this.onTap,
+  });
 
   final FamilyMemberStruct member;
+  final VoidCallback? onTap;
 
   DxChipKind get _diagnosisKind {
     if (member.score >= 80) return DxChipKind.good;
@@ -917,51 +963,60 @@ class _ScanRow extends StatelessWidget {
         ? DateFormat('d MMM · HH:mm').format(member.lastChecked!)
         : '';
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: BinaColors.surface,
-        borderRadius: BorderRadius.circular(BinaRadius.md),
-        border: Border.all(color: BinaColors.line),
-      ),
-      child: Row(
-        children: [
-          BinaAvatar(
-            name: member.name,
-            size: 40,
-            tone: _avatarTone,
-            imageUrl: member.profilePic.isNotEmpty ? member.profilePic : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    style: BinaType.titleMd,
-                    children: [
-                      TextSpan(text: member.name),
-                      TextSpan(
-                        text: ' · Dental check',
-                        style: BinaType.titleMd.copyWith(
-                          color: BinaColors.ink2,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  dateStr,
-                  style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
-                ),
-              ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: BinaColors.surface,
+          borderRadius: BorderRadius.circular(BinaRadius.md),
+          border: Border.all(color: BinaColors.line),
+        ),
+        child: Row(
+          children: [
+            BinaAvatar(
+              name: member.name,
+              size: 40,
+              tone: _avatarTone,
+              imageUrl: member.profilePic.isNotEmpty ? member.profilePic : null,
             ),
-          ),
-          DxChip(kind: _diagnosisKind, size: DxChipSize.sm),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      style: BinaType.titleMd,
+                      children: [
+                        TextSpan(text: member.name),
+                        TextSpan(
+                          text: ' · ${AppLocalizations.of(context).getText('home_dental_check')}',
+                          style: BinaType.titleMd.copyWith(
+                            color: BinaColors.ink2,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    dateStr,
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                  ),
+                ],
+              ),
+            ),
+            DxChip(kind: _diagnosisKind, size: DxChipSize.sm),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: BinaColors.ink3,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1004,10 +1059,10 @@ class _BinaTipCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Bina tip', style: BinaType.titleMd),
+                Text(AppLocalizations.of(context).getText('home_bina_tip'), style: BinaType.titleMd),
                 const SizedBox(height: 2),
                 Text(
-                  'Regular dental checks help catch issues early. Try scanning your family weekly for best results.',
+                  AppLocalizations.of(context).getText('home_tip_text'),
                   style: BinaType.bodySm,
                 ),
               ],

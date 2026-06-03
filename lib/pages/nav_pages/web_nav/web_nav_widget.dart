@@ -86,13 +86,16 @@ class _WebNavWidgetState extends State<WebNavWidget> {
         return BinaSidebarTab.chat;
       case BinaNavTab.profile:
         return BinaSidebarTab.profile;
+      case BinaNavTab.none:
       case null:
-        return BinaSidebarTab.home;
+        return BinaSidebarTab.none;
     }
   }
 
   void _handleTabChanged(BinaSidebarTab tab) {
     switch (tab) {
+      case BinaSidebarTab.none:
+        return; // Don't navigate for none tab
       case BinaSidebarTab.home:
         context.pushNamed(
           MainHomeWidget.routeName,
@@ -118,8 +121,9 @@ class _WebNavWidgetState extends State<WebNavWidget> {
         );
         break;
       case BinaSidebarTab.scan:
+        // Skip the diagnose page and go directly to the scan session flow
         context.pushNamed(
-          MainDiagnoseWidget.routeName,
+          MainDIagnosticsWidget.routeName,
           extra: <String, dynamic>{
             kTransitionInfoKey: const TransitionInfo(
               hasTransition: true,
@@ -162,7 +166,7 @@ class _WebNavWidgetState extends State<WebNavWidget> {
       currentTab: _currentSidebarTab,
       onTabChanged: _handleTabChanged,
       onHelpTap: () {
-        // TODO: Navigate to help
+        context.pushNamed(HelpSupportWidget.routeName);
       },
     );
   }

@@ -78,11 +78,12 @@ class _MainDiagnoseWidgetState extends State<MainDiagnoseWidget>
                 fit: StackFit.expand,
                 children: [
                   Positioned.fill(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).padding.top + 12,
-                        bottom: 120,
-                      ),
+                    child: SafeArea(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.only(
+                          top: 12,
+                          bottom: 120,
+                        ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -153,10 +154,10 @@ class _MainDiagnoseWidgetState extends State<MainDiagnoseWidget>
                                       member: member,
                                       onTap: () {
                                         context.pushNamed(
-                                          PhotoSessionWidget.routeName,
+                                          MainDIagnosticsWidget.routeName,
                                           extra: <String, dynamic>{
-                                            'memberId': member.id,
-                                            'memberName': member.name,
+                                            'preselectedMemberId': member.id,
+                                            'preselectedMemberName': member.name,
                                           },
                                         );
                                       },
@@ -175,7 +176,8 @@ class _MainDiagnoseWidgetState extends State<MainDiagnoseWidget>
                                 }).toList(),
                               ),
                             ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

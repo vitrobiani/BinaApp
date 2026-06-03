@@ -21,6 +21,7 @@
 // before the first build of an affected widget.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/services/accessibility_settings_service.dart';
 
@@ -38,9 +39,49 @@ class BinaColors {
   static BinaThemeId _id = BinaThemeId.light;
   static BinaThemeId get current => _id;
 
+  static double _contrastLevel = 0.0; // -0.5 (softer) to 1.0 (stronger)
+  static double get contrastLevel => _contrastLevel;
+
+  /// Set the contrast level. Affects text and border colors.
+  /// Range: -0.5 (softer) to 1.0 (stronger), 0.0 = default
+  static void setContrastLevel(double level) {
+    _contrastLevel = level.clamp(-0.5, 1.0);
+  }
+
+  /// Apply contrast adjustment to a color relative to a background
+  /// Positive contrast = more different from background (stronger)
+  /// Negative contrast = more similar to background (softer)
+  static Color _applyContrast(Color color, Color background) {
+    if (_contrastLevel == 0.0) return color;
+
+    // Blend towards or away from background based on contrast level
+    if (_contrastLevel > 0) {
+      // Stronger: increase saturation and move away from background
+      final hsl = HSLColor.fromColor(color);
+      final adjustedSaturation = (hsl.saturation + _contrastLevel * 0.2).clamp(0.0, 1.0);
+      final adjustedLightness = hsl.lightness + (hsl.lightness > 0.5 ? -1 : 1) * _contrastLevel * 0.15;
+      return hsl.withSaturation(adjustedSaturation).withLightness(adjustedLightness.clamp(0.0, 1.0)).toColor();
+    } else {
+      // Softer: blend towards background
+      final t = _contrastLevel.abs() * 0.4; // Max 20% blend at -0.5
+      return Color.lerp(color, background, t)!;
+    }
+  }
+
   /// Switch the active theme. All `BinaColors.<name>` getters below
-  /// resolve through this flag.
-  static void use(BinaThemeId id) => _id = id;
+  /// resolve through this flag. Also updates the status bar style.
+  static void use(BinaThemeId id) {
+    _id = id;
+    // Update status bar style based on theme
+    final isDark = id == BinaThemeId.dark;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+    ));
+  }
 
   // ─── Brand ────────────────────────────────────────────────────
   static Color get primary {
@@ -134,7 +175,7 @@ class BinaColors {
   }
 
   // ─── Ink / text ───────────────────────────────────────────────
-  static Color get ink {
+  static Color get _inkRaw {
     switch (_id) {
       case BinaThemeId.dark:         return const Color(0xFFF4F5FA);
       case BinaThemeId.warm:         return const Color(0xFF3E2723);
@@ -144,7 +185,9 @@ class BinaColors {
     }
   }
 
-  static Color get ink2 {
+  static Color get ink => _applyContrast(_inkRaw, surface);
+
+  static Color get _ink2Raw {
     switch (_id) {
       case BinaThemeId.dark:         return const Color(0xFFB7BCCD);
       case BinaThemeId.warm:         return const Color(0xFF6B4D3E);
@@ -154,7 +197,9 @@ class BinaColors {
     }
   }
 
-  static Color get ink3 {
+  static Color get ink2 => _applyContrast(_ink2Raw, surface);
+
+  static Color get _ink3Raw {
     switch (_id) {
       case BinaThemeId.dark:         return const Color(0xFF7E859C);
       case BinaThemeId.warm:         return const Color(0xFF9C7E6E);
@@ -163,6 +208,8 @@ class BinaColors {
       case BinaThemeId.light:        return const Color(0xFF7E859C);
     }
   }
+
+  static Color get ink3 => _applyContrast(_ink3Raw, surface);
 
   // ─── Surfaces ─────────────────────────────────────────────────
   static Color get surface {
@@ -195,7 +242,7 @@ class BinaColors {
     }
   }
 
-  static Color get line {
+  static Color get _lineRaw {
     switch (_id) {
       case BinaThemeId.dark:         return const Color(0xFF232A3D);
       case BinaThemeId.warm:         return const Color(0xFFECE1CD);
@@ -205,7 +252,9 @@ class BinaColors {
     }
   }
 
-  static Color get lineStrong {
+  static Color get line => _applyContrast(_lineRaw, surface);
+
+  static Color get _lineStrongRaw {
     switch (_id) {
       case BinaThemeId.dark:         return const Color(0xFF38405A);
       case BinaThemeId.warm:         return const Color(0xFFD4C4AB);
@@ -214,6 +263,8 @@ class BinaColors {
       case BinaThemeId.light:        return const Color(0xFFC9CDD9);
     }
   }
+
+  static Color get lineStrong => _applyContrast(_lineStrongRaw, surface);
 
   // ─── Semantic ─────────────────────────────────────────────────
   static const Color success = Color(0xFF1AA971);

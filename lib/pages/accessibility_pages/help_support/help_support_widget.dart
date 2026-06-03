@@ -25,22 +25,22 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
   static const String _supportEmail = 'support@bina-system.com';
   static const String _supportPhone = '+972 50 123 4567';
 
-  static const List<Map<String, String>> _faqItems = [
+  List<Map<String, String>> _getFaqItems(BuildContext context) => [
     {
-      'question': 'How do I start a dental scan?',
-      'answer': 'Tap the camera tab at the bottom of any screen, choose who you\'re scanning, connect a camera, and capture each tooth in the frame.',
+      'question': AppLocalizations.of(context).getText('help_faq_q1'),
+      'answer': AppLocalizations.of(context).getText('help_faq_a1'),
     },
     {
-      'question': 'How accurate are the results?',
-      'answer': 'Bina\'s on-device AI gives preliminary assessments — for diagnosis, always confirm with your dentist.',
+      'question': AppLocalizations.of(context).getText('help_faq_q2'),
+      'answer': AppLocalizations.of(context).getText('help_faq_a2'),
     },
     {
-      'question': 'Can multiple family members share one account?',
-      'answer': 'Yes! Add each member from the Family tab. Each has their own scan history and chat.',
+      'question': AppLocalizations.of(context).getText('help_faq_q3'),
+      'answer': AppLocalizations.of(context).getText('help_faq_a3'),
     },
     {
-      'question': 'Is my data private?',
-      'answer': 'Scans run entirely on your device — they never leave the phone unless you explicitly share them.',
+      'question': AppLocalizations.of(context).getText('help_faq_q4'),
+      'answer': AppLocalizations.of(context).getText('help_faq_a4'),
     },
   ];
 
@@ -80,7 +80,7 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
     if (_model.feedbackController?.text.isEmpty ?? true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please enter your feedback'),
+          content: Text(AppLocalizations.of(context).getText('help_enter_feedback')),
           backgroundColor: BinaColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -91,7 +91,7 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Thank you for your feedback!'),
+        content: Text(AppLocalizations.of(context).getText('help_thank_you')),
         backgroundColor: BinaColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -110,11 +110,12 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: BinaColors.surfaceAlt,
-        body: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 12,
-            bottom: 40,
-          ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(
+              top: 12,
+              bottom: 40,
+            ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -130,7 +131,7 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
                     Expanded(
                       child: Center(
                         child: Text(
-                          'Help & Support',
+                          AppLocalizations.of(context).getText('help_title'),
                           style: BinaType.titleMd,
                         ),
                       ),
@@ -146,14 +147,14 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
 
               // Contact Section
               _SettingsSection(
-                title: 'CONTACT',
+                title: AppLocalizations.of(context).getText('help_contact'),
                 child: Column(
                   children: [
                     _ContactRow(
                       icon: Icons.email_outlined,
                       iconBgColor: BinaColors.primary100,
                       iconColor: BinaColors.primary700,
-                      label: 'Email support',
+                      label: AppLocalizations.of(context).getText('help_email'),
                       subtitle: _supportEmail,
                       onTap: _launchEmail,
                       showBorder: true,
@@ -162,7 +163,7 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
                       icon: Icons.phone_outlined,
                       iconBgColor: BinaColors.aqua100,
                       iconColor: BinaColors.aqua700,
-                      label: 'Phone support',
+                      label: AppLocalizations.of(context).getText('help_phone'),
                       subtitle: _supportPhone,
                       onTap: _launchPhone,
                     ),
@@ -174,13 +175,16 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
 
               // FAQ Section
               _SettingsSection(
-                title: 'FAQ',
-                child: Column(
-                  children: _faqItems.asMap().entries.map((entry) {
+                title: AppLocalizations.of(context).getText('help_faq'),
+                child: Builder(
+                  builder: (context) {
+                    final faqItems = _getFaqItems(context);
+                    return Column(
+                      children: faqItems.asMap().entries.map((entry) {
                     final index = entry.key;
                     final faq = entry.value;
                     final isOpen = _openFaqIndex == index;
-                    final isLast = index == _faqItems.length - 1;
+                    final isLast = index == faqItems.length - 1;
 
                     return _FaqItem(
                       question: faq['question']!,
@@ -194,6 +198,8 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
                       },
                     );
                   }).toList(),
+                    );
+                  },
                 ),
               ).animate()
                   .fadeIn(delay: 200.ms, duration: 400.ms)
@@ -201,7 +207,7 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
 
               // Send Feedback Section
               _SettingsSection(
-                title: 'SEND FEEDBACK',
+                title: AppLocalizations.of(context).getText('help_send_feedback'),
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(
@@ -211,7 +217,7 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
                         maxLines: 4,
                         style: BinaType.bodyMd,
                         decoration: InputDecoration(
-                          hintText: 'Tell us what you think...',
+                          hintText: AppLocalizations.of(context).getText('help_feedback_hint'),
                           hintStyle: BinaType.bodyMd.copyWith(color: BinaColors.ink3),
                           filled: true,
                           fillColor: BinaColors.surface,
@@ -232,7 +238,7 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
                       ),
                       const SizedBox(height: 12),
                       BinaButton(
-                        label: 'Submit feedback',
+                        label: AppLocalizations.of(context).getText('help_submit_feedback'),
                         variant: BinaButtonVariant.primary,
                         fullWidth: true,
                         onPressed: _submitFeedback,
@@ -243,7 +249,8 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
               ).animate()
                   .fadeIn(delay: 300.ms, duration: 400.ms)
                   .moveY(begin: 20, end: 0, delay: 300.ms, duration: 400.ms),
-            ],
+              ],
+            ),
           ),
         ),
       ),

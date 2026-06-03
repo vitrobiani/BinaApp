@@ -46,7 +46,7 @@ Future updateSessionFamily(BuildContext context) async {
         id: row.id,
         name: row.name,
         admin: row.relationship == 'ME',
-        birthday: row.birthday != null
+        birthday: row.birthday != null && row.birthday != 0
             ? DateTime.fromMillisecondsSinceEpoch(row.birthday! * 1000)
             : null,
         lastChecked: row.lastChecked != null && row.lastChecked != 0

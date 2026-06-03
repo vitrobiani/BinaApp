@@ -8,18 +8,27 @@ import '/bina_design/bina_design.dart';
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/index.dart';
+import '/services/mjpeg_capture_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mjpeg_stream/mjpeg_stream.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'main_d_iagnostics_model.dart';
 export 'main_d_iagnostics_model.dart';
 
 class MainDIagnosticsWidget extends StatefulWidget {
-  const MainDIagnosticsWidget({super.key});
+  const MainDIagnosticsWidget({
+    super.key,
+    this.preselectedMemberId,
+    this.preselectedMemberName,
+  });
+
+  final String? preselectedMemberId;
+  final String? preselectedMemberName;
 
   static String routeName = 'Main_DIagnostics';
   static String routePath = 'mainDIagnostics';
@@ -69,6 +78,10 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
   String? _currentSessionId;
   bool _isFinishingSession = false;
 
+  // Camera preview state
+  bool _isInPreviewMode = false;
+  bool _isCapturingFromStream = false;
+
   @override
   void initState() {
     super.initState();
@@ -102,39 +115,31 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
         _model.isLoading = false;
       });
     }
+
+    // Auto-select preselected member if provided
+    if (widget.preselectedMemberId != null && widget.preselectedMemberName != null) {
+      // Find the member in the family list or create one
+      FamilyMemberStruct? member;
+      final index = _familyMembers.indexWhere((m) => m.id == widget.preselectedMemberId);
+      if (index >= 0) {
+        member = _familyMembers[index];
+      } else {
+        // Create a member struct if not found (e.g., for self scan)
+        member = FamilyMemberStruct(
+          id: widget.preselectedMemberId!,
+          name: widget.preselectedMemberName!,
+        );
+      }
+      // Automatically start a session for this member
+      await _selectMember(member);
+    }
   }
 
   Future<void> _selectMember(FamilyMemberStruct member) async {
-    // Create a new session
-    final sessionId = const Uuid().v4();
-    final now = DateTime.now();
-
-    try {
-      if (AppState().UserSession.isLocalSession) {
-        await SQLiteManager.instance.createScanSession(
-          id: sessionId,
-          familyMemberId: member.id,
-          sessionStart: now.millisecondsSinceEpoch ~/ 1000,
-          status: 'in_progress',
-          notes: '',
-          totalImagesCaptured: 0,
-        );
-      } else {
-        await ScanSessionsTable().insert({
-          'id': sessionId,
-          'family_member_id': member.id,
-          'session_start': supaSerialize<DateTime>(now),
-          'status': 'in_progress',
-          'notes': '',
-          'total_images_captured': 0,
-        });
-      }
-    } catch (e) {
-      debugPrint('Error creating session: $e');
-    }
-
+    // Don't create session yet - wait until first photo is captured
+    // This prevents empty sessions from being created
     safeSetState(() {
-      _currentSessionId = sessionId;
+      _currentSessionId = null; // Reset session ID
       _capturedImages = [];
       _selectedMember = member;
       _showingTargetSelector = false;
@@ -146,6 +151,70 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
     });
   }
 
+  /// Creates the session in the database when the first photo is captured
+  Future<String?> _ensureSessionCreated() async {
+    if (_currentSessionId != null) {
+      return _currentSessionId;
+    }
+
+    if (_selectedMember == null) {
+      return null;
+    }
+
+    final sessionId = const Uuid().v4();
+    final now = DateTime.now();
+
+    try {
+      if (AppState().UserSession.isLocalSession) {
+        await SQLiteManager.instance.createScanSession(
+          id: sessionId,
+          familyMemberId: _selectedMember!.id,
+          sessionStart: now.millisecondsSinceEpoch ~/ 1000,
+          status: 'in_progress',
+          notes: '',
+          totalImagesCaptured: 0,
+        );
+      } else {
+        // Retry up to 3 times for network issues
+        int attempts = 0;
+        while (attempts < 3) {
+          try {
+            await ScanSessionsTable().insert({
+              'id': sessionId,
+              'family_member_id': _selectedMember!.id,
+              'session_start': supaSerialize<DateTime>(now),
+              'status': 'in_progress',
+              'notes': '',
+              'total_images_captured': 0,
+            });
+            break; // Success, exit loop
+          } catch (e) {
+            attempts++;
+            if (attempts >= 3) {
+              rethrow;
+            }
+            // Wait a bit before retrying
+            await Future.delayed(const Duration(milliseconds: 500));
+          }
+        }
+      }
+
+      _currentSessionId = sessionId;
+      return sessionId;
+    } catch (e) {
+      debugPrint('Error creating session: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Failed to start session. Please check your connection and try again.'),
+            backgroundColor: BinaColors.error,
+          ),
+        );
+      }
+      return null;
+    }
+  }
+
   void _goBackToSelector() {
     safeSetState(() {
       _showingTargetSelector = true;
@@ -153,6 +222,205 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
       _currentSessionId = null;
       _capturedImages = [];
     });
+  }
+
+  Future<void> _captureFromCamera() async {
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Camera is not available on web'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedMember == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a family member first')),
+      );
+      return;
+    }
+
+    final cameraConnection = AppState().cameraConnection;
+
+    // If Bina camera is connected, enter preview mode
+    if (cameraConnection.isCameraConnected()) {
+      safeSetState(() {
+        _isInPreviewMode = true;
+      });
+      return;
+    }
+
+    // Otherwise use phone camera
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1920,
+      maxHeight: 1920,
+      imageQuality: 90,
+    );
+
+    if (image != null) {
+      await _processImageFromPath(image.path);
+    }
+  }
+
+  void _exitPreviewMode() {
+    safeSetState(() {
+      _isInPreviewMode = false;
+      _isCapturingFromStream = false;
+    });
+  }
+
+  Future<void> _captureFromStream() async {
+    if (_isCapturingFromStream) return;
+
+    final cameraConnection = AppState().cameraConnection;
+    if (!cameraConnection.isCameraConnected()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Camera disconnected'),
+          backgroundColor: BinaColors.error,
+        ),
+      );
+      _exitPreviewMode();
+      return;
+    }
+
+    safeSetState(() {
+      _isCapturingFromStream = true;
+    });
+
+    try {
+      final imagePath = await MjpegCaptureService.instance.captureFrame(
+        cameraIP: cameraConnection.cameraHost,
+        port: cameraConnection.cameraPort,
+      );
+
+      if (imagePath != null) {
+        // Stay in preview mode - just reset capturing state
+        safeSetState(() {
+          _isCapturingFromStream = false;
+        });
+
+        // Process the image in background while staying in preview
+        await _processImageFromPath(imagePath);
+
+        // Show success feedback
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Text('Photo captured! (${_capturedImages.length} total)'),
+                ],
+              ),
+              backgroundColor: BinaColors.success,
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        }
+      } else {
+        safeSetState(() {
+          _isCapturingFromStream = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Failed to capture photo'),
+              backgroundColor: BinaColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      safeSetState(() {
+        _isCapturingFromStream = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error capturing photo: $e'),
+            backgroundColor: BinaColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _processImageFromPath(String imagePath) async {
+    safeSetState(() => _isProcessingImage = true);
+
+    try {
+      final result = await actions.runYoloInference(imagePath);
+
+      if (result.isWebPlatform) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Diagnosis is not available on web')),
+        );
+        return;
+      }
+
+      // Ensure session exists before saving the image
+      final sessionId = await _ensureSessionCreated();
+      if (sessionId == null) {
+        safeSetState(() => _isProcessingImage = false);
+        return;
+      }
+
+      final imageId = const Uuid().v4();
+      final now = DateTime.now();
+
+      // Save image to database
+      try {
+        final originalBytes = await File(imagePath).readAsBytes();
+        final diagnosedBytes = result.imagePath.isNotEmpty
+            ? await File(result.imagePath).readAsBytes()
+            : originalBytes;
+
+        if (AppState().UserSession.isLocalSession) {
+          await SQLiteManager.instance.createScanImage(
+            id: imageId,
+            scanSessionId: sessionId,
+            image: originalBytes,
+            diagnosedImage: diagnosedBytes,
+            capturedAt: now.millisecondsSinceEpoch ~/ 1000,
+            rawResponse: jsonEncode(result.detections),
+          );
+        } else {
+          await ScanImagesTable().insert({
+            'id': imageId,
+            'scan_session_id': sessionId,
+            'image_path': imagePath,
+            'diagnosed_image_path': result.imagePath,
+            'captured_at': supaSerialize<DateTime>(now),
+            'raw_response': jsonEncode(result.detections),
+          });
+        }
+      } catch (e) {
+        debugPrint('Error saving image to database: $e');
+      }
+
+      // Add to captured images list
+      final capturedImage = CapturedImage(
+        id: imageId,
+        originalPath: imagePath,
+        diagnosedPath: result.imagePath,
+        detections: result.detections,
+        capturedAt: now,
+      );
+
+      safeSetState(() {
+        _capturedImages.add(capturedImage);
+      });
+    } finally {
+      if (mounted) {
+        safeSetState(() => _isProcessingImage = false);
+      }
+    }
   }
 
   Future<void> _selectFromGallery() async {
@@ -163,7 +431,7 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
       return;
     }
 
-    if (_selectedMember == null || _currentSessionId == null) {
+    if (_selectedMember == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a family member first')),
       );
@@ -193,6 +461,13 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
             return;
           }
 
+          // Ensure session exists before saving the image
+          final sessionId = await _ensureSessionCreated();
+          if (sessionId == null) {
+            safeSetState(() => _isProcessingImage = false);
+            return;
+          }
+
           final imageId = const Uuid().v4();
           final now = DateTime.now();
 
@@ -206,7 +481,7 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
             if (AppState().UserSession.isLocalSession) {
               await SQLiteManager.instance.createScanImage(
                 id: imageId,
-                scanSessionId: _currentSessionId,
+                scanSessionId: sessionId,
                 image: originalBytes,
                 diagnosedImage: diagnosedBytes,
                 capturedAt: now.millisecondsSinceEpoch ~/ 1000,
@@ -215,7 +490,7 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
             } else {
               await ScanImagesTable().insert({
                 'id': imageId,
-                'scan_session_id': _currentSessionId,
+                'scan_session_id': sessionId,
                 'image_path': image.path,
                 'diagnosed_image_path': result.imagePath,
                 'captured_at': supaSerialize<DateTime>(now),
@@ -273,6 +548,164 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
       'issues': issues,
       'teeth': teeth,
     };
+  }
+
+  Widget _buildCameraPreview() {
+    final cameraConnection = AppState().cameraConnection;
+    final streamUrl = 'http://${cameraConnection.cameraHost}:${cameraConnection.cameraPort}/stream.mjpg';
+
+    return Column(
+      children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+          decoration: BoxDecoration(
+            color: BinaColors.surface,
+            border: Border(bottom: BorderSide(color: BinaColors.line)),
+          ),
+          child: Row(
+            children: [
+              BinaIconButton(
+                icon: Icons.arrow_back_rounded,
+                onPressed: _exitPreviewMode,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context).getText('diag_camera_preview'),
+                      style: BinaType.titleLg,
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: BinaColors.success,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${AppLocalizations.of(context).getText('diag_connected')} · ${cameraConnection.cameraHost}',
+                          style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Photo count badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: BinaColors.primary100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${_capturedImages.length} ${AppLocalizations.of(context).getText('member_photos')}',
+                  style: BinaType.labelSm.copyWith(
+                    color: BinaColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Camera stream
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: BinaColors.surfaceSunken,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: BinaColors.line, width: 2),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // MJPEG Stream
+                    MJPEGStreamScreen(
+                      streamUrl: streamUrl,
+                      fit: BoxFit.contain,
+                      showLiveIcon: false,
+                    ),
+                    // LIVE badge
+                    Positioned(
+                      top: 16,
+                      left: 16,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: BinaColors.error,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              AppLocalizations.of(context).getText('diag_live'),
+                              style: BinaType.labelSm.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // Capture button area
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          decoration: BoxDecoration(
+            color: BinaColors.surface,
+            border: Border(top: BorderSide(color: BinaColors.line)),
+          ),
+          child: Column(
+            children: [
+              // Capture button
+              _CapturePhotoButton(
+                isCapturing: _isCapturingFromStream,
+                onPressed: _captureFromStream,
+              ),
+              const SizedBox(height: 12),
+              // Instructions
+              Text(
+                AppLocalizations.of(context).getText('diag_position_teeth'),
+                style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _finishSession() async {
@@ -434,35 +867,46 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
                 fit: StackFit.expand,
                 children: [
                   // Content based on state - Positioned.fill ensures nav sticks to bottom
-                  if (_showingTargetSelector)
+                  if (_isInPreviewMode)
                     Positioned.fill(
-                      child: _ScanTargetSelector(
-                        familyMembers: _familyMembers,
-                        isLoading: _model.isLoading,
-                        onSelectMember: _selectMember,
-                        onCancel: () => context.pop(),
+                      child: SafeArea(
+                        child: _buildCameraPreview(),
+                      ),
+                    )
+                  else if (_showingTargetSelector)
+                    Positioned.fill(
+                      child: SafeArea(
+                        child: _ScanTargetSelector(
+                          familyMembers: _familyMembers,
+                          isLoading: _model.isLoading,
+                          onSelectMember: _selectMember,
+                          onCancel: () => context.pop(),
+                        ),
                       ),
                     )
                   else
                     Positioned.fill(
-                      child: _ScanSessionView(
-                        member: _selectedMember,
-                        familyMembers: _familyMembers,
-                        model: _model,
-                        onBack: _goBackToSelector,
-                        onReload: () => safeSetState(() {}),
-                        onGalleryPressed: _selectFromGallery,
-                        onFinishSession: _finishSession,
-                        capturedImages: _capturedImages,
+                      child: SafeArea(
+                        child: _ScanSessionView(
+                          member: _selectedMember,
+                          familyMembers: _familyMembers,
+                          model: _model,
+                          onBack: _goBackToSelector,
+                          onReload: () => safeSetState(() {}),
+                          onCameraPressed: _captureFromCamera,
+                          onGalleryPressed: _selectFromGallery,
+                          onFinishSession: _finishSession,
+                          capturedImages: _capturedImages,
                         isProcessing: _isProcessingImage,
                         isFinishing: _isFinishingSession,
                         onImageTap: _showImageDetail,
-                        totalTeeth: _totalTeeth,
-                        totalIssues: _totalIssues,
+                          totalTeeth: _totalTeeth,
+                          totalIssues: _totalIssues,
+                        ),
                       ),
                     ),
-                  // Floating bottom nav (phone only)
-                  if (responsiveVisibility(
+                  // Floating bottom nav (phone only) - hide when in preview mode
+                  if (!_isInPreviewMode && responsiveVisibility(
                     context: context,
                     tablet: false,
                     tabletLandscape: false,
@@ -501,8 +945,8 @@ class _ScanTargetSelector extends StatelessWidget {
     final user = AppState().UserSession;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 12,
+      padding: const EdgeInsets.only(
+        top: 12,
         bottom: 120,
       ),
       child: Column(
@@ -519,7 +963,7 @@ class _ScanTargetSelector extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  'Step 1 of 2',
+                  AppLocalizations.of(context).getText('diag_step_1'),
                   style: BinaType.labelMd,
                 ),
                 const Spacer(),
@@ -537,12 +981,12 @@ class _ScanTargetSelector extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Who are you scanning?',
+                  AppLocalizations.of(context).getText('diag_who_scanning'),
                   style: BinaType.displaySm,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Pick the family member this scan belongs to. The result will be saved to their history.',
+                  AppLocalizations.of(context).getText('diag_pick_member'),
                   style: BinaType.bodyLg.copyWith(color: BinaColors.ink2),
                 ),
               ],
@@ -580,7 +1024,7 @@ class _ScanTargetSelector extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
               child: Text(
-                'FAMILY MEMBERS',
+                AppLocalizations.of(context).getText('diag_family_members'),
                 style: BinaType.overline,
               ),
             ).animate()
@@ -625,12 +1069,12 @@ class _ScanTargetSelector extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No family members yet',
+                      AppLocalizations.of(context).getText('diag_no_family'),
                       style: BinaType.titleMd.copyWith(color: BinaColors.ink2),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Add members in the Family screen',
+                      AppLocalizations.of(context).getText('diag_add_members'),
                       style: BinaType.bodySm,
                     ),
                   ],
@@ -708,12 +1152,12 @@ class _SelfScanCardState extends State<_SelfScanCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Scan myself',
+                    AppLocalizations.of(context).getText('diag_scan_myself'),
                     style: BinaType.titleLg.copyWith(color: Colors.white),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    widget.userName.isNotEmpty ? widget.userName : 'Your account',
+                    widget.userName.isNotEmpty ? widget.userName : AppLocalizations.of(context).getText('diag_your_account'),
                     style: BinaType.bodySm.copyWith(
                       color: Colors.white.withValues(alpha: 0.85),
                     ),
@@ -747,14 +1191,14 @@ class _MemberSelectCard extends StatelessWidget {
     return DateTime.now().difference(member.birthday!).inDays ~/ 365;
   }
 
-  String get _lastCheckedStr {
-    if (!member.hasLastChecked()) return 'never checked';
+  String _getLastCheckedStr(BuildContext context) {
+    if (!member.hasLastChecked()) return AppLocalizations.of(context).getText('member_never_checked');
     final date = member.lastChecked!;
     final diff = DateTime.now().difference(date);
-    if (diff.inDays == 0) return 'checked today';
-    if (diff.inDays == 1) return 'checked yesterday';
-    if (diff.inDays < 7) return 'checked ${diff.inDays} days ago';
-    return 'last checked ${DateFormat('d MMM').format(date)}';
+    if (diff.inDays == 0) return AppLocalizations.of(context).getText('diag_checked_today');
+    if (diff.inDays == 1) return AppLocalizations.of(context).getText('diag_checked_yesterday');
+    if (diff.inDays < 7) return '${AppLocalizations.of(context).getText('diag_checked_today').split(' ')[0]} ${diff.inDays} ${AppLocalizations.of(context).getText('family_days_ago')}';
+    return '${AppLocalizations.of(context).getText('member_last_checked_date')} ${DateFormat('d MMM').format(date)}';
   }
 
   BinaAvatarTone get _avatarTone {
@@ -794,7 +1238,7 @@ class _MemberSelectCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 1),
                   Text(
-                    '${_age != null ? '$_age yrs · ' : ''}$_lastCheckedStr',
+                    '${_age != null ? '$_age ${AppLocalizations.of(context).getText('diag_yrs')} · ' : ''}${_getLastCheckedStr(context)}',
                     style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
                   ),
                 ],
@@ -823,6 +1267,7 @@ class _ScanSessionView extends StatelessWidget {
     required this.model,
     required this.onBack,
     required this.onReload,
+    required this.onCameraPressed,
     required this.onGalleryPressed,
     required this.onFinishSession,
     required this.capturedImages,
@@ -838,6 +1283,7 @@ class _ScanSessionView extends StatelessWidget {
   final MainDIagnosticsModel model;
   final VoidCallback onBack;
   final VoidCallback onReload;
+  final VoidCallback onCameraPressed;
   final VoidCallback onGalleryPressed;
   final VoidCallback onFinishSession;
   final List<CapturedImage> capturedImages;
@@ -855,7 +1301,7 @@ class _ScanSessionView extends StatelessWidget {
       children: [
         SingleChildScrollView(
           padding: const EdgeInsets.only(
-            top: 54,
+            top: 12,
             bottom: 120,
           ),
           child: Column(
@@ -874,7 +1320,7 @@ class _ScanSessionView extends StatelessWidget {
                     Column(
                       children: [
                         Text(
-                          'Scan session',
+                          AppLocalizations.of(context).getText('phts001'), // Photo Session
                           style: BinaType.titleMd,
                         ),
                         Text(
@@ -973,11 +1419,11 @@ class _ScanSessionView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Connect a camera',
+                            AppLocalizations.of(context).getText('diag_connect_camera'),
                             style: BinaType.titleSm,
                           ),
                           Text(
-                            'Phone camera or Bina dental cam',
+                            AppLocalizations.of(context).getText('diag_phone_or_bina'),
                             style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
                           ),
                         ],
@@ -1000,7 +1446,7 @@ class _ScanSessionView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Captured photos', style: BinaType.headlineSm),
+                Text(AppLocalizations.of(context).getText('diag_captured_photos'), style: BinaType.headlineSm),
                 const SizedBox(height: 12),
                 if (capturedImages.isEmpty)
                   // Empty state
@@ -1032,12 +1478,12 @@ class _ScanSessionView extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'No photos yet',
+                          AppLocalizations.of(context).getText('diag_no_photos'),
                           style: BinaType.titleMd,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Capture dental images of the lower and upper rows. We\'ll diagnose each one and you can review before saving.',
+                          AppLocalizations.of(context).getText('diag_capture_instructions'),
                           style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
                           textAlign: TextAlign.center,
                         ),
@@ -1138,17 +1584,15 @@ class _ScanSessionView extends StatelessWidget {
                   children: [
                     Expanded(
                       child: BinaButton(
-                        label: 'Camera',
+                        label: AppLocalizations.of(context).getText('phts013'), // Camera
                         icon: Icons.camera_alt_rounded,
-                        onPressed: () {
-                          context.pushNamed(CameraConnectionWidget.routeName);
-                        },
+                        onPressed: onCameraPressed,
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: BinaButton(
-                        label: 'Gallery',
+                        label: AppLocalizations.of(context).getText('phts012'), // Gallery
                         variant: BinaButtonVariant.ghost,
                         icon: Icons.photo_library_rounded,
                         onPressed: onGalleryPressed,
@@ -1160,7 +1604,9 @@ class _ScanSessionView extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: BinaButton(
-                    label: isFinishing ? 'Saving...' : 'Finish session',
+                    label: isFinishing
+                        ? AppLocalizations.of(context).getText('phts011') // Processing...
+                        : AppLocalizations.of(context).getText('phts019'), // Finish Session
                     variant: capturedImages.isNotEmpty
                         ? BinaButtonVariant.primary
                         : BinaButtonVariant.ghost,
@@ -1203,12 +1649,12 @@ class _ScanSessionView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Analyzing image...',
+                      AppLocalizations.of(context).getText('diag_analyzing'),
                       style: BinaType.titleSm,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'This may take a moment',
+                      AppLocalizations.of(context).getText('diag_may_take'),
                       style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
                     ),
                   ],
@@ -1242,12 +1688,12 @@ class _ScanSessionView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Saving session...',
+                      AppLocalizations.of(context).getText('diag_saving'),
                       style: BinaType.titleSm,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Creating dental record',
+                      AppLocalizations.of(context).getText('diag_creating_record'),
                       style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
                     ),
                   ],
@@ -1361,7 +1807,7 @@ class _ImageDetailSheet extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Photo Detail', style: BinaType.headlineSm),
+                    Text(AppLocalizations.of(context).getText('diag_photo_detail'), style: BinaType.headlineSm),
                     Text(
                       memberName,
                       style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
@@ -1422,7 +1868,7 @@ class _ImageDetailSheet extends StatelessWidget {
                         ),
                       const SizedBox(width: 8),
                       Text(
-                        '${teeth.length} teeth detected',
+                        '${teeth.length} ${AppLocalizations.of(context).getText('diag_teeth_detected').toLowerCase()}',
                         style: BinaType.bodySm,
                       ),
                     ],
@@ -1432,7 +1878,7 @@ class _ImageDetailSheet extends StatelessWidget {
                   if (issues.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     Text(
-                      'Issues Found',
+                      AppLocalizations.of(context).getText('diag_issues_found'),
                       style: BinaType.titleSm.copyWith(color: BinaColors.dxCavity),
                     ),
                     const SizedBox(height: 8),
@@ -1498,7 +1944,7 @@ class _ImageDetailSheet extends StatelessWidget {
                   // Teeth detected
                   if (teeth.isNotEmpty) ...[
                     const SizedBox(height: 20),
-                    Text('Teeth Detected', style: BinaType.titleSm),
+                    Text(AppLocalizations.of(context).getText('diag_teeth_detected'), style: BinaType.titleSm),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -1533,6 +1979,68 @@ class _ImageDetailSheet extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CAPTURE PHOTO BUTTON
+// ═══════════════════════════════════════════════════════════════
+
+class _CapturePhotoButton extends StatefulWidget {
+  const _CapturePhotoButton({
+    required this.isCapturing,
+    required this.onPressed,
+  });
+
+  final bool isCapturing;
+  final VoidCallback onPressed;
+
+  @override
+  State<_CapturePhotoButton> createState() => _CapturePhotoButtonState();
+}
+
+class _CapturePhotoButtonState extends State<_CapturePhotoButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: !widget.isCapturing ? (_) => setState(() => _isPressed = true) : null,
+      onTapUp: !widget.isCapturing ? (_) => setState(() => _isPressed = false) : null,
+      onTapCancel: !widget.isCapturing ? () => setState(() => _isPressed = false) : null,
+      onTap: !widget.isCapturing ? widget.onPressed : null,
+      child: AnimatedContainer(
+        duration: BinaMotion.d1,
+        width: 80,
+        height: 80,
+        transform: _isPressed
+            ? (Matrix4.identity()..scale(0.9, 0.9))
+            : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: widget.isCapturing ? null : BinaColors.gradHero,
+          color: widget.isCapturing ? BinaColors.surfaceSunken : null,
+          boxShadow: widget.isCapturing ? null : BinaElevation.shHero,
+        ),
+        child: widget.isCapturing
+            ? Center(
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: BinaColors.primary,
+                  ),
+                ),
+              )
+            : const Icon(
+                Icons.camera_alt_rounded,
+                color: Colors.white,
+                size: 36,
+              ),
       ),
     );
   }

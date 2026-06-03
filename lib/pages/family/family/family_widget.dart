@@ -238,10 +238,10 @@ class _FamilyWidgetState extends State<FamilyWidget>
     final dueCount = allFamily.where((m) => !m.hasLastChecked()).length;
 
     final filters = [
-      'All ${allFamily.length}',
-      'Due now $dueCount',
-      'Adults',
-      'Kids',
+      '${AppLocalizations.of(context).getText('family_all')} ${allFamily.length}',
+      '${AppLocalizations.of(context).getText('family_due_now')} $dueCount',
+      AppLocalizations.of(context).getText('family_adults'),
+      AppLocalizations.of(context).getText('family_kids'),
     ];
 
     final bp = BinaBreakpoints.fromContext(context);
@@ -299,11 +299,12 @@ class _FamilyWidgetState extends State<FamilyWidget>
       fit: StackFit.expand,
       children: [
         Positioned.fill(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 12,
-              bottom: 120,
-            ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                top: 12,
+                bottom: 120,
+              ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -314,7 +315,7 @@ class _FamilyWidgetState extends State<FamilyWidget>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Family',
+                        AppLocalizations.of(context).getText('family_title'),
                         style: BinaType.displaySm,
                       ).animate()
                           .fadeIn(duration: 600.ms)
@@ -392,7 +393,8 @@ class _FamilyWidgetState extends State<FamilyWidget>
                           }).toList(),
                         ),
                 ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -430,7 +432,7 @@ class _FamilyWidgetState extends State<FamilyWidget>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Family',
+                        AppLocalizations.of(context).getText('family_title'),
                         style: BinaType.displaySm,
                       ),
                       _AddButton(onTap: _showAddMemberSheet),
@@ -502,15 +504,12 @@ class _FamilyWidgetState extends State<FamilyWidget>
                   cavityCount: _cavityCount,
                   onScan: () {
                     context.pushNamed(
-                      PhotoSessionWidget.routeName,
+                      MainDIagnosticsWidget.routeName,
                       extra: <String, dynamic>{
-                        'memberId': selectedMember.id,
-                        'memberName': selectedMember.name,
+                        'preselectedMemberId': selectedMember.id,
+                        'preselectedMemberName': selectedMember.name,
                       },
                     );
-                  },
-                  onBook: () {
-                    // TODO: Book appointment
                   },
                   onSessionTap: (session) {
                     context.pushNamed(
@@ -639,20 +638,20 @@ class _FamilyMemberRow extends StatelessWidget {
     return tones[hash.abs() % (tones.length - 1)];
   }
 
-  String get _lastCheckedStr {
-    if (!member.hasLastChecked()) return 'Never checked';
+  String _lastCheckedStr(BuildContext context) {
+    if (!member.hasLastChecked()) return AppLocalizations.of(context).getText('family_never_checked');
     final date = member.lastChecked!;
     final now = DateTime.now();
     final diff = now.difference(date);
 
     if (diff.inDays == 0) {
-      return 'Last checked today';
+      return AppLocalizations.of(context).getText('family_last_checked_today');
     } else if (diff.inDays == 1) {
-      return 'Last checked yesterday';
+      return AppLocalizations.of(context).getText('family_last_checked_yesterday');
     } else if (diff.inDays < 7) {
-      return 'Last checked ${diff.inDays} days ago';
+      return '${AppLocalizations.of(context).getText('home_last_checked')} ${diff.inDays} ${AppLocalizations.of(context).getText('home_history')}';
     } else {
-      return 'Last checked ${DateFormat('d MMM').format(date)}';
+      return '${AppLocalizations.of(context).getText('home_last_checked')} ${DateFormat('d MMM').format(date)}';
     }
   }
 
@@ -706,7 +705,7 @@ class _FamilyMemberRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   // Last checked
                   Text(
-                    _lastCheckedStr,
+                    _lastCheckedStr(context),
                     style: BinaType.bodySm,
                   ),
                   const SizedBox(height: 8),
@@ -758,18 +757,18 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: BinaSpace.s4),
           Text(
-            'No family members yet',
+            AppLocalizations.of(context).getText('family_no_members'),
             style: BinaType.titleLg,
           ),
           const SizedBox(height: BinaSpace.s2),
           Text(
-            'Add your first family member to start tracking dental health.',
+            AppLocalizations.of(context).getText('family_add_first'),
             style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: BinaSpace.s5),
           BinaButton(
-            label: 'Add member',
+            label: AppLocalizations.of(context).getText('home_add_member'),
             icon: Icons.add,
             onPressed: onAddMember,
           ),
@@ -807,12 +806,12 @@ class _NoSelectionPanel extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Select a family member',
+              AppLocalizations.of(context).getText('family_select_member'),
               style: BinaType.titleLg,
             ),
             const SizedBox(height: 4),
             Text(
-              'Choose someone from the list to view their details',
+              AppLocalizations.of(context).getText('family_choose_from_list'),
               style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
             ),
           ],
@@ -836,7 +835,6 @@ class _MemberDetailPanel extends StatelessWidget {
     required this.plaqueCount,
     required this.cavityCount,
     required this.onScan,
-    required this.onBook,
     required this.onSessionTap,
   });
 
@@ -847,7 +845,6 @@ class _MemberDetailPanel extends StatelessWidget {
   final int plaqueCount;
   final int cavityCount;
   final VoidCallback onScan;
-  final VoidCallback onBook;
   final void Function(_SessionData session) onSessionTap;
 
   int? get _age {
@@ -868,10 +865,10 @@ class _MemberDetailPanel extends StatelessWidget {
     return tones[hash.abs() % (tones.length - 1)];
   }
 
-  String get _lastCheckedStr {
-    if (!member.hasLastChecked()) return 'never checked';
+  String _lastCheckedStr(BuildContext context) {
+    if (!member.hasLastChecked()) return AppLocalizations.of(context).getText('home_never_checked');
     final date = member.lastChecked!;
-    return 'last checked ${DateFormat('d MMM').format(date)}';
+    return '${AppLocalizations.of(context).getText('home_last_checked')} ${DateFormat('d MMM').format(date)}';
   }
 
   @override
@@ -913,7 +910,7 @@ class _MemberDetailPanel extends StatelessWidget {
                       const SizedBox(height: 4),
                       // Subtitle
                       Text(
-                        '${_age != null ? '$_age years · ' : ''}$_lastCheckedStr',
+                        '${_age != null ? '$_age years · ' : ''}${_lastCheckedStr(context)}',
                         style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
                       ),
                       const SizedBox(height: 12),
@@ -924,19 +921,11 @@ class _MemberDetailPanel extends StatelessWidget {
                           DxChip(kind: _diagnosisKind),
                           const SizedBox(width: 12),
                           BinaButton(
-                            label: 'Scan now',
+                            label: AppLocalizations.of(context).getText('family_scan_now'),
                             variant: BinaButtonVariant.primary,
                             size: BinaButtonSize.sm,
                             icon: Icons.camera_alt_rounded,
                             onPressed: onScan,
-                          ),
-                          const SizedBox(width: 8),
-                          BinaButton(
-                            label: 'Book',
-                            variant: BinaButtonVariant.secondary,
-                            size: BinaButtonSize.sm,
-                            icon: Icons.calendar_today_rounded,
-                            onPressed: onBook,
                           ),
                         ],
                       ),
@@ -951,7 +940,7 @@ class _MemberDetailPanel extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _StatCard(
-                        label: 'Clean',
+                        label: AppLocalizations.of(context).getText('family_clean'),
                         value: cleanCount,
                         tone: DxChipKind.good,
                       ),
@@ -959,7 +948,7 @@ class _MemberDetailPanel extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: _StatCard(
-                        label: 'Plaque',
+                        label: AppLocalizations.of(context).getText('family_plaque'),
                         value: plaqueCount,
                         tone: DxChipKind.plaque,
                       ),
@@ -967,7 +956,7 @@ class _MemberDetailPanel extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: _StatCard(
-                        label: 'Cavity',
+                        label: AppLocalizations.of(context).getText('family_cavity'),
                         value: cavityCount,
                         tone: DxChipKind.cavity,
                       ),
@@ -981,8 +970,8 @@ class _MemberDetailPanel extends StatelessWidget {
                 Column(
                   children: [
                     BinaSectionHeader(
-                      title: 'History',
-                      action: 'Export',
+                      title: AppLocalizations.of(context).getText('family_history'),
+                      action: AppLocalizations.of(context).getText('family_export'),
                       onActionTap: () {
                         // TODO: Export history
                       },
@@ -1154,12 +1143,12 @@ class _HistoryList extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'No scan history yet',
+                AppLocalizations.of(context).getText('family_no_history'),
                 style: BinaType.titleMd,
               ),
               const SizedBox(height: 4),
               Text(
-                'Start a scan to see results here',
+                AppLocalizations.of(context).getText('family_start_scan'),
                 style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
               ),
             ],

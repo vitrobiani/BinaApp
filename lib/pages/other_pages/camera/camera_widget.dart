@@ -390,6 +390,8 @@ class _CameraWidgetState extends State<CameraWidget> {
                         currentTab: BinaNavTab.scan,
                         onTabChanged: (tab) {
                           switch (tab) {
+                            case BinaNavTab.none:
+                              break;
                             case BinaNavTab.home:
                               context.goNamed(MainHomeWidget.routeName);
                               break;

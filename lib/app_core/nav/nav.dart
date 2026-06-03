@@ -93,7 +93,10 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
             AppRoute(
               name: MainDIagnosticsWidget.routeName,
               path: MainDIagnosticsWidget.routePath,
-              builder: (context, params) => MainDIagnosticsWidget(),
+              builder: (context, params) => MainDIagnosticsWidget(
+                preselectedMemberId: params.getParam('preselectedMemberId', ParamType.String),
+                preselectedMemberName: params.getParam('preselectedMemberName', ParamType.String),
+              ),
             ),
             AppRoute(
               name: MainDiagnoseWidget.routeName,
@@ -253,6 +256,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               name: LanguageSettingsWidget.routeName,
               path: LanguageSettingsWidget.routePath,
               builder: (context, params) => LanguageSettingsWidget(),
+            ),
+            AppRoute(
+              name: AccountSettingsWidget.routeName,
+              path: AccountSettingsWidget.routePath,
+              builder: (context, params) => AccountSettingsWidget(),
             ),
           ].map((r) => r.toRoute(appStateNotifier)).toList(),
         ),
