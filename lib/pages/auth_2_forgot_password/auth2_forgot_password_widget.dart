@@ -1,11 +1,7 @@
-import '/app_core/app_animations.dart';
-import '/app_core/app_icon_button.dart';
-import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
-import '/app_core/app_widgets.dart';
+import '/bina_design/bina_design.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'auth2_forgot_password_model.dart';
 export 'auth2_forgot_password_model.dart';
 
@@ -20,13 +16,10 @@ class Auth2ForgotPasswordWidget extends StatefulWidget {
       _Auth2ForgotPasswordWidgetState();
 }
 
-class _Auth2ForgotPasswordWidgetState extends State<Auth2ForgotPasswordWidget>
-    with TickerProviderStateMixin {
+class _Auth2ForgotPasswordWidgetState extends State<Auth2ForgotPasswordWidget> {
   late Auth2ForgotPasswordModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
-
-  final animationsMap = <String, AnimationInfo>{};
 
   @override
   void initState() {
@@ -36,50 +29,12 @@ class _Auth2ForgotPasswordWidgetState extends State<Auth2ForgotPasswordWidget>
     _model.emailAddressTextController ??= TextEditingController();
     _model.emailAddressFocusNode ??= FocusNode();
 
-    animationsMap.addAll({
-      'containerOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          FadeEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.0, 140.0),
-            end: Offset(0.0, 0.0),
-          ),
-          ScaleEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.9, 0.9),
-            end: Offset(1.0, 1.0),
-          ),
-          TiltEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(-0.349, 0),
-            end: Offset(0, 0),
-          ),
-        ],
-      ),
-    });
-
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
   }
 
@@ -92,345 +47,145 @@ class _Auth2ForgotPasswordWidgetState extends State<Auth2ForgotPasswordWidget>
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: AppTheme.of(context).secondaryBackground,
+        backgroundColor: BinaColors.surface,
         body: Container(
           height: double.infinity,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.of(context).primary,
-                AppTheme.of(context).tertiary
-              ],
-              stops: [0.0, 1.0],
-              begin: AlignmentDirectional(0.87, -1.0),
-              end: AlignmentDirectional(-0.87, 1.0),
-            ),
+            gradient: BinaColors.gradHero,
           ),
-          alignment: AlignmentDirectional(0.0, -1.0),
+          alignment: Alignment.topCenter,
           child: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Logo
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 70.0, 0.0, 32.0),
-                  child: Container(
-                    width: 200.0,
-                    height: 70.0,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16.0),
-                    ),
-                    alignment: AlignmentDirectional(0.0, 0.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 12.0, 0.0),
-                          child: Icon(
-                            Icons.flourescent_rounded,
-                            color: AppTheme.of(context).info,
-                            size: 50.0,
-                          ),
+                  padding: const EdgeInsets.only(top: 80, bottom: 32),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        Text(
-                          AppLocalizations.of(context).getText(
-                            'n1wihh9r' /* Bina  */,
-                          ),
-                          style: AppTheme.of(context)
-                              .displayMedium
-                              .override(
-                                font: GoogleFonts.readexPro(
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: AppTheme.of(context)
-                                      .displayMedium
-                                      .fontStyle,
-                                ),
-                                fontSize: 55.0,
-                                letterSpacing: 0.0,
-                                fontWeight: FontWeight.w600,
-                                fontStyle: AppTheme.of(context)
-                                    .displayMedium
-                                    .fontStyle,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Container(
-                    width: double.infinity,
-                    constraints: BoxConstraints(
-                      maxWidth: 570.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.of(context).secondaryBackground,
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 4.0,
-                          color: Color(0x33000000),
-                          offset: Offset(
-                            0.0,
-                            2.0,
-                          ),
-                        )
-                      ],
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Align(
-                      alignment: AlignmentDirectional(0.0, 0.0),
-                      child: Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(
-                            32.0, 20.0, 32.0, 32.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.max,
-                              children: [
-                                AppIconButton(
-                                  borderColor: AppTheme.of(context)
-                                      .secondaryBackground,
-                                  borderRadius: 12.0,
-                                  borderWidth: 1.0,
-                                  buttonSize: 40.0,
-                                  fillColor: AppTheme.of(context)
-                                      .secondaryBackground,
-                                  icon: Icon(
-                                    Icons.arrow_back_rounded,
-                                    color: AppTheme.of(context)
-                                        .primaryText,
-                                    size: 24.0,
-                                  ),
-                                  onPressed: () async {
-                                    context.safePop();
-                                  },
-                                ),
-                              ].divide(SizedBox(width: 12.0)),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 12.0, 0.0, 0.0),
-                              child: Text(
-                                AppLocalizations.of(context).getText(
-                                  'm2oi1dus' /* Forgot Password */,
-                                ),
-                                textAlign: TextAlign.center,
-                                style: AppTheme.of(context)
-                                    .displaySmall
-                                    .override(
-                                      font: GoogleFonts.readexPro(
-                                        fontWeight: AppTheme.of(context)
-                                            .displaySmall
-                                            .fontWeight,
-                                        fontStyle: AppTheme.of(context)
-                                            .displaySmall
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: AppTheme.of(context)
-                                          .displaySmall
-                                          .fontWeight,
-                                      fontStyle: AppTheme.of(context)
-                                          .displaySmall
-                                          .fontStyle,
-                                    ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 8.0, 0.0, 24.0),
-                              child: Text(
-                                AppLocalizations.of(context).getText(
-                                  '0i9qpt6b' /* Please fill out your email bel... */,
-                                ),
-                                textAlign: TextAlign.start,
-                                style: AppTheme.of(context)
-                                    .labelLarge
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: AppTheme.of(context)
-                                            .labelLarge
-                                            .fontWeight,
-                                        fontStyle: AppTheme.of(context)
-                                            .labelLarge
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: AppTheme.of(context)
-                                          .labelLarge
-                                          .fontWeight,
-                                      fontStyle: AppTheme.of(context)
-                                          .labelLarge
-                                          .fontStyle,
-                                    ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 16.0),
-                              child: Container(
-                                width: double.infinity,
-                                child: TextFormField(
-                                  controller: _model.emailAddressTextController,
-                                  focusNode: _model.emailAddressFocusNode,
-                                  autofocus: true,
-                                  autofillHints: [AutofillHints.email],
-                                  obscureText: false,
-                                  decoration: InputDecoration(
-                                    labelText:
-                                        AppLocalizations.of(context).getText(
-                                      'h7ggbaau' /* Email */,
-                                    ),
-                                    labelStyle: AppTheme.of(context)
-                                        .labelLarge
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                AppTheme.of(context)
-                                                    .labelLarge
-                                                    .fontWeight,
-                                            fontStyle:
-                                                AppTheme.of(context)
-                                                    .labelLarge
-                                                    .fontStyle,
-                                          ),
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              AppTheme.of(context)
-                                                  .labelLarge
-                                                  .fontWeight,
-                                          fontStyle:
-                                              AppTheme.of(context)
-                                                  .labelLarge
-                                                  .fontStyle,
-                                        ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: AppTheme.of(context)
-                                            .alternate,
-                                        width: 2.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12.0),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: AppTheme.of(context)
-                                            .primary,
-                                        width: 2.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12.0),
-                                    ),
-                                    errorBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color:
-                                            AppTheme.of(context).error,
-                                        width: 2.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12.0),
-                                    ),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color:
-                                            AppTheme.of(context).error,
-                                        width: 2.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12.0),
-                                    ),
-                                    filled: true,
-                                    fillColor: AppTheme.of(context)
-                                        .primaryBackground,
-                                  ),
-                                  style: AppTheme.of(context)
-                                      .bodyLarge
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight:
-                                              AppTheme.of(context)
-                                                  .bodyLarge
-                                                  .fontWeight,
-                                          fontStyle:
-                                              AppTheme.of(context)
-                                                  .bodyLarge
-                                                  .fontStyle,
-                                        ),
-                                        letterSpacing: 0.0,
-                                        fontWeight: AppTheme.of(context)
-                                            .bodyLarge
-                                            .fontWeight,
-                                        fontStyle: AppTheme.of(context)
-                                            .bodyLarge
-                                            .fontStyle,
-                                      ),
-                                  keyboardType: TextInputType.emailAddress,
-                                  cursorColor:
-                                      AppTheme.of(context).primary,
-                                  validator: _model
-                                      .emailAddressTextControllerValidator
-                                      .asValidator(context),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 16.0),
-                              child: AppButtonWidget(
-                                onPressed: () {
-                                  print('Button pressed ...');
-                                },
-                                text: AppLocalizations.of(context).getText(
-                                  'oxefc8xl' /* Send Reset Link */,
-                                ),
-                                options: AppButtonOptions(
-                                  width: double.infinity,
-                                  height: 44.0,
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 0.0, 0.0, 0.0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 0.0, 0.0, 0.0),
-                                  color: AppTheme.of(context).primary,
-                                  textStyle: AppTheme.of(context)
-                                      .titleSmall
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight:
-                                              AppTheme.of(context)
-                                                  .titleSmall
-                                                  .fontWeight,
-                                          fontStyle:
-                                              AppTheme.of(context)
-                                                  .titleSmall
-                                                  .fontStyle,
-                                        ),
-                                        color: Colors.white,
-                                        letterSpacing: 0.0,
-                                        fontWeight: AppTheme.of(context)
-                                            .titleSmall
-                                            .fontWeight,
-                                        fontStyle: AppTheme.of(context)
-                                            .titleSmall
-                                            .fontStyle,
-                                      ),
-                                  elevation: 3.0,
-                                  borderSide: BorderSide(
-                                    color: Colors.transparent,
-                                    width: 1.0,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12.0),
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: const Icon(
+                          Icons.flourescent_rounded,
+                          color: Colors.white,
+                          size: 32,
                         ),
                       ),
-                    ),
-                  ).animateOnPageLoad(
-                      animationsMap['containerOnPageLoadAnimation']!),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Bina',
+                        style: BinaType.displaySm.copyWith(
+                          color: Colors.white,
+                          fontSize: 48,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                // Card
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    decoration: BoxDecoration(
+                      color: BinaColors.surface,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: BinaElevation.sh3,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(28),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Back button
+                          BinaIconButton(
+                            icon: Icons.arrow_back_rounded,
+                            onPressed: () => context.safePop(),
+                          ),
+                          const SizedBox(height: 16),
+                          // Title
+                          Text(
+                            'Forgot Password',
+                            style: BinaType.displaySm,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Please fill out your email below and we will send you a link to reset your password.',
+                            style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+                          ),
+                          const SizedBox(height: 28),
+                          // Email field
+                          Text(
+                            'Email',
+                            style: BinaType.labelMd.copyWith(color: BinaColors.ink2),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: BinaColors.surfaceSunken,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: BinaColors.line),
+                            ),
+                            child: TextFormField(
+                              controller: _model.emailAddressTextController,
+                              focusNode: _model.emailAddressFocusNode,
+                              autofocus: true,
+                              autofillHints: const [AutofillHints.email],
+                              style: BinaType.bodyLg,
+                              decoration: InputDecoration(
+                                hintText: 'Enter your email',
+                                hintStyle: BinaType.bodyLg.copyWith(color: BinaColors.ink3),
+                                prefixIcon: Icon(Icons.email_outlined, color: BinaColors.ink2),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                              ),
+                              keyboardType: TextInputType.emailAddress,
+                              validator: _model.emailAddressTextControllerValidator
+                                  .asValidator(context),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          // Submit button
+                          SizedBox(
+                            width: double.infinity,
+                            child: BinaButton(
+                              label: 'Send Reset Link',
+                              icon: Icons.send_rounded,
+                              variant: BinaButtonVariant.primary,
+                              onPressed: () {
+                                // TODO: Implement password reset
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('Password reset link sent!'),
+                                    backgroundColor: BinaColors.success,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ).animate()
+                    .fadeIn(duration: 400.ms)
+                    .moveY(begin: 40, end: 0, duration: 400.ms)
+                    .scale(
+                      begin: const Offset(0.95, 0.95),
+                      end: const Offset(1, 1),
+                      duration: 400.ms,
+                    ),
               ],
             ),
           ),

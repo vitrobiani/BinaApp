@@ -2,14 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '/app_core/app_animations.dart';
-import '/app_core/app_icon_button.dart';
-import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
-import '/app_core/app_widgets.dart';
+import '/bina_design/bina_design.dart';
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'diagnosis_result_model.dart';
 export 'diagnosis_result_model.dart';
@@ -127,7 +124,7 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: AppTheme.of(context).primaryBackground,
+        backgroundColor: BinaColors.surfaceAlt,
         body: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
@@ -147,39 +144,34 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                       child: WebNavWidget(
                         iconOne: Icon(
                           Icons.home_rounded,
-                          color: AppTheme.of(context).secondaryText,
+                          color: BinaColors.ink2,
                         ),
                         iconTwo: Icon(
                           Icons.remove_red_eye,
-                          color: AppTheme.of(context).secondaryText,
+                          color: BinaColors.ink2,
                         ),
                         iconThree: Icon(
                           Icons.camera_alt,
-                          color: AppTheme.of(context).primary,
+                          color: BinaColors.primary,
                         ),
                         iconFour: Icon(
                           Icons.account_circle,
-                          color: AppTheme.of(context).secondaryText,
+                          color: BinaColors.ink2,
                         ),
-                        colorBgOne:
-                            AppTheme.of(context).secondaryBackground,
-                        colorBgTwo:
-                            AppTheme.of(context).secondaryBackground,
-                        colorBgThree:
-                            AppTheme.of(context).primaryBackground,
-                        colorBgFour:
-                            AppTheme.of(context).secondaryBackground,
-                        textOne: AppTheme.of(context).primaryText,
-                        textTwo: AppTheme.of(context).secondaryText,
-                        textThree: AppTheme.of(context).secondaryText,
-                        textFour: AppTheme.of(context).secondaryText,
+                        colorBgOne: BinaColors.surface,
+                        colorBgTwo: BinaColors.surface,
+                        colorBgThree: BinaColors.surfaceAlt,
+                        colorBgFour: BinaColors.surface,
+                        textOne: BinaColors.ink,
+                        textTwo: BinaColors.ink2,
+                        textThree: BinaColors.ink2,
+                        textFour: BinaColors.ink2,
                         iconFive: Icon(
                           Icons.reduce_capacity,
-                          color: AppTheme.of(context).secondaryText,
+                          color: BinaColors.ink2,
                         ),
-                        colorBgFive:
-                            AppTheme.of(context).secondaryBackground,
-                        textFive: AppTheme.of(context).secondaryText,
+                        colorBgFive: BinaColors.surface,
+                        textFive: BinaColors.ink2,
                       ),
                     ),
                   // Main content
@@ -192,12 +184,13 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                           Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: AppTheme.of(context)
-                                  .secondaryBackground,
+                              color: BinaColors.surface,
                             ),
                             child: Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 12.0, 16.0, 12.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: BinaSpace.s4,
+                                vertical: BinaSpace.s3,
+                              ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.max,
                                 mainAxisAlignment:
@@ -206,26 +199,13 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      AppIconButton(
-                                        borderColor:
-                                            AppTheme.of(context)
-                                                .alternate,
-                                        borderRadius: 12.0,
-                                        borderWidth: 1.0,
-                                        buttonSize: 40.0,
-                                        fillColor: AppTheme.of(context)
-                                            .secondaryBackground,
-                                        icon: Icon(
-                                          Icons.arrow_back_rounded,
-                                          color: AppTheme.of(context)
-                                              .primaryText,
-                                          size: 24.0,
-                                        ),
-                                        onPressed: () async {
+                                      BinaIconButton(
+                                        icon: Icons.arrow_back_rounded,
+                                        onPressed: () {
                                           context.goNamed('Main_Diagnose');
                                         },
                                       ),
-                                      SizedBox(width: 12.0),
+                                      const SizedBox(width: BinaSpace.s3),
                                       Column(
                                         mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment:
@@ -233,45 +213,12 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                                         children: [
                                           Text(
                                             'Diagnosis Result',
-                                            style: AppTheme.of(context)
-                                                .headlineMedium
-                                                .override(
-                                                  font: GoogleFonts.readexPro(
-                                                    fontWeight:
-                                                        AppTheme.of(
-                                                                context)
-                                                            .headlineMedium
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        AppTheme.of(
-                                                                context)
-                                                            .headlineMedium
-                                                            .fontStyle,
-                                                  ),
-                                                  letterSpacing: 0.0,
-                                                ),
+                                            style: BinaType.headlineMd,
                                           ),
                                           if (widget.memberName != null)
                                             Text(
                                               'Patient: ${widget.memberName}',
-                                              style:
-                                                  AppTheme.of(context)
-                                                      .labelMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        letterSpacing: 0.0,
-                                                      ),
+                                              style: BinaType.labelMd,
                                             ),
                                         ],
                                       ),
@@ -289,29 +236,18 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                                 children: [
                                   // Image with bounding boxes
                                   Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        16.0, 16.0, 16.0, 0.0),
-                                    child: Container(
-                                      width: double.infinity,
-                                      constraints: BoxConstraints(
-                                        maxWidth: 800.0,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.of(context)
-                                            .secondaryBackground,
-                                        borderRadius:
-                                            BorderRadius.circular(12.0),
-                                        border: Border.all(
-                                          color: AppTheme.of(context)
-                                              .alternate,
+                                    padding: const EdgeInsets.fromLTRB(
+                                        BinaSpace.s4, BinaSpace.s4, BinaSpace.s4, 0),
+                                    child: BinaCard(
+                                      padding: const EdgeInsets.all(BinaSpace.s2),
+                                      child: ConstrainedBox(
+                                        constraints: const BoxConstraints(
+                                          maxWidth: 800.0,
                                         ),
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(8.0),
                                         child: widget.imagePath != null
                                             ? ClipRRect(
                                                 borderRadius:
-                                                    BorderRadius.circular(8.0),
+                                                    BorderRadius.circular(BinaRadius.sm),
                                                 child: kIsWeb
                                                     ? Image.network(
                                                         widget.imagePath!,
@@ -325,57 +261,29 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                                                       ),
                                               ).animateOnPageLoad(animationsMap[
                                                 'imageOnPageLoadAnimation']!)
-                                            : Container(
+                                            : SizedBox(
                                                 height: 300.0,
                                                 child: Center(
                                                   child: Text(
                                                     'No image available',
-                                                    style: AppTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                AppTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                AppTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                        ),
+                                                    style: BinaType.bodyMd.copyWith(
+                                                      color: BinaColors.ink2,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
                                       ),
                                     ),
                                   ),
-                                  // Summary section (placeholder for future text)
+                                  // Summary section
                                   Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        16.0, 16.0, 16.0, 16.0),
-                                    child: Container(
-                                      width: double.infinity,
-                                      constraints: BoxConstraints(
-                                        maxWidth: 800.0,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.of(context)
-                                            .secondaryBackground,
-                                        borderRadius:
-                                            BorderRadius.circular(12.0),
-                                        border: Border.all(
-                                          color: AppTheme.of(context)
-                                              .alternate,
+                                    padding: const EdgeInsets.all(BinaSpace.s4),
+                                    child: BinaCard(
+                                      padding: const EdgeInsets.all(BinaSpace.s4),
+                                      child: ConstrainedBox(
+                                        constraints: const BoxConstraints(
+                                          maxWidth: 800.0,
                                         ),
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(16.0),
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           crossAxisAlignment:
@@ -383,138 +291,76 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                                           children: [
                                             Text(
                                               'Detection Summary',
-                                              style:
-                                                  AppTheme.of(context)
-                                                      .titleMedium
-                                                      .override(
-                                                        font:
-                                                            GoogleFonts.inter(
-                                                          fontWeight:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .titleMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .titleMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        letterSpacing: 0.0,
-                                                      ),
+                                              style: BinaType.titleLg,
                                             ),
-                                            SizedBox(height: 12.0),
+                                            const SizedBox(height: BinaSpace.s3),
                                             Row(
                                               mainAxisSize: MainAxisSize.max,
                                               children: [
-                                                Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                      horizontal: 12.0,
-                                                      vertical: 6.0),
-                                                  decoration: BoxDecoration(
-                                                    color: issueDetections
-                                                            .isEmpty
-                                                        ? AppTheme.of(
-                                                                context)
-                                                            .success
-                                                        : AppTheme.of(
-                                                                context)
-                                                            .warning,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20.0),
+                                                if (issueDetections.isEmpty)
+                                                  DxChip(kind: DxChipKind.good)
+                                                else
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                        horizontal: 12.0,
+                                                        vertical: 6.0),
+                                                    decoration: BoxDecoration(
+                                                      color: BinaColors.dxCavity,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              BinaRadius.pill),
+                                                    ),
+                                                    child: Text(
+                                                      '${issueDetections.length} Issue${issueDetections.length > 1 ? 's' : ''} Found',
+                                                      style: BinaType.labelMd.copyWith(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
                                                   ),
-                                                  child: Text(
-                                                    issueDetections.isEmpty
-                                                        ? 'No Issues Detected'
-                                                        : '${issueDetections.length} Issue${issueDetections.length > 1 ? 's' : ''} Found',
-                                                    style: AppTheme.of(
-                                                            context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontStyle:
-                                                                AppTheme.of(
-                                                                        context)
-                                                                    .bodySmall
-                                                                    .fontStyle,
-                                                          ),
-                                                          color: Colors.white,
-                                                          letterSpacing: 0.0,
-                                                        ),
-                                                  ),
-                                                ),
-                                                SizedBox(width: 8.0),
+                                                const SizedBox(width: BinaSpace.s2),
                                                 Text(
                                                   '$detectionCount total detections',
-                                                  style: AppTheme.of(
-                                                          context)
-                                                      .bodySmall
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .bodySmall
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              AppTheme.of(
-                                                                      context)
-                                                                  .bodySmall
-                                                                  .fontStyle,
-                                                        ),
-                                                        color:
-                                                            AppTheme.of(
-                                                                    context)
-                                                                .secondaryText,
-                                                        letterSpacing: 0.0,
-                                                      ),
+                                                  style: BinaType.bodySm,
                                                 ),
                                               ],
                                             ),
                                             // Issues Found Section
                                             if (issueDetections.isNotEmpty) ...[
-                                              SizedBox(height: 16.0),
+                                              const SizedBox(height: BinaSpace.s4),
                                               Text(
                                                 'Issues Found',
-                                                style:
-                                                    AppTheme.of(context)
-                                                        .titleSmall
-                                                        .override(
-                                                          font: GoogleFonts.inter(
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle:
-                                                                AppTheme.of(context)
-                                                                    .titleSmall
-                                                                    .fontStyle,
-                                                          ),
-                                                          color: AppTheme.of(context).error,
-                                                          letterSpacing: 0.0,
-                                                        ),
+                                                style: BinaType.titleSm.copyWith(
+                                                  color: BinaColors.dxCavity,
+                                                ),
                                               ),
-                                              SizedBox(height: 8.0),
+                                              const SizedBox(height: BinaSpace.s2),
                                               ...issueDetections.map((d) {
                                                 final det = d as Map<String, dynamic>;
                                                 final className = det['className'] as String;
                                                 final confidence = det['confidence'] as double;
                                                 final displayName = _formatClassName(className);
+                                                // Determine issue color based on type
+                                                final isPlaque = className.toLowerCase().contains('plaque') ||
+                                                                 className.toLowerCase().contains('plack');
+                                                final isCavity = className.toLowerCase().contains('cavity') ||
+                                                                 className.toLowerCase().contains('caries');
+                                                final issueColor = isPlaque
+                                                    ? BinaColors.dxPlaque
+                                                    : (isCavity ? BinaColors.dxCavity : BinaColors.dxMixed);
+                                                final issueColorBg = isPlaque
+                                                    ? BinaColors.dxPlaque100
+                                                    : (isCavity ? BinaColors.dxCavity100 : BinaColors.dxMixed100);
                                                 return Padding(
-                                                  padding: EdgeInsets.only(bottom: 8.0),
+                                                  padding: const EdgeInsets.only(bottom: BinaSpace.s2),
                                                   child: Container(
                                                     width: double.infinity,
-                                                    padding: EdgeInsets.all(12.0),
+                                                    padding: const EdgeInsets.all(BinaSpace.s3),
                                                     decoration: BoxDecoration(
-                                                      color: AppTheme.of(context)
-                                                          .error
-                                                          .withOpacity(0.1),
-                                                      borderRadius: BorderRadius.circular(8.0),
+                                                      color: issueColorBg,
+                                                      borderRadius: BorderRadius.circular(BinaRadius.sm),
                                                       border: Border.all(
-                                                        color: AppTheme.of(context)
-                                                            .error
-                                                            .withOpacity(0.3),
+                                                        color: issueColor.withOpacity(0.3),
                                                       ),
                                                     ),
                                                     child: Row(
@@ -525,114 +371,74 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                                                           children: [
                                                             Icon(
                                                               Icons.warning_amber_rounded,
-                                                              color: AppTheme.of(context).error,
+                                                              color: issueColor,
                                                               size: 20.0,
                                                             ),
-                                                            SizedBox(width: 8.0),
+                                                            const SizedBox(width: BinaSpace.s2),
                                                             Text(
                                                               displayName,
-                                                              style: AppTheme.of(context)
-                                                                  .bodyMedium
-                                                                  .override(
-                                                                    font: GoogleFonts.inter(
-                                                                      fontWeight: FontWeight.w500,
-                                                                      fontStyle:
-                                                                          AppTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontStyle,
-                                                                    ),
-                                                                    letterSpacing: 0.0,
-                                                                  ),
+                                                              style: BinaType.bodyMd.copyWith(
+                                                                fontWeight: FontWeight.w500,
+                                                              ),
                                                             ),
                                                           ],
                                                         ),
                                                         Container(
-                                                          padding: EdgeInsets.symmetric(
+                                                          padding: const EdgeInsets.symmetric(
                                                               horizontal: 8.0, vertical: 4.0),
                                                           decoration: BoxDecoration(
-                                                            color: AppTheme.of(context).error,
-                                                            borderRadius: BorderRadius.circular(12.0),
+                                                            color: issueColor,
+                                                            borderRadius: BorderRadius.circular(BinaRadius.pill),
                                                           ),
                                                           child: Text(
                                                             '${(confidence * 100).toStringAsFixed(0)}%',
-                                                            style: AppTheme.of(context)
-                                                                .bodySmall
-                                                                .override(
-                                                                  font: GoogleFonts.inter(
-                                                                    fontWeight: FontWeight.w600,
-                                                                    fontStyle:
-                                                                        AppTheme.of(context)
-                                                                            .bodySmall
-                                                                            .fontStyle,
-                                                                  ),
-                                                                  color: Colors.white,
-                                                                  letterSpacing: 0.0,
-                                                                ),
+                                                            style: BinaType.labelSm.copyWith(
+                                                              color: Colors.white,
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
                                                           ),
                                                         ),
                                                       ],
                                                     ),
                                                   ),
                                                 );
-                                              }).toList(),
+                                              }),
                                             ],
                                             // Teeth Detected Section
                                             if (teethDetections.isNotEmpty) ...[
-                                              SizedBox(height: 16.0),
+                                              const SizedBox(height: BinaSpace.s4),
                                               Text(
                                                 'Teeth Detected',
-                                                style:
-                                                    AppTheme.of(context)
-                                                        .titleSmall
-                                                        .override(
-                                                          font: GoogleFonts.inter(
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle:
-                                                                AppTheme.of(context)
-                                                                    .titleSmall
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                        ),
+                                                style: BinaType.titleSm,
                                               ),
-                                              SizedBox(height: 8.0),
+                                              const SizedBox(height: BinaSpace.s2),
                                               Container(
                                                 width: double.infinity,
-                                                padding: EdgeInsets.all(12.0),
+                                                padding: const EdgeInsets.all(BinaSpace.s3),
                                                 decoration: BoxDecoration(
-                                                  color: AppTheme.of(context)
-                                                      .primaryBackground,
-                                                  borderRadius: BorderRadius.circular(8.0),
+                                                  color: BinaColors.surfaceSunken,
+                                                  borderRadius: BorderRadius.circular(BinaRadius.sm),
                                                 ),
                                                 child: Wrap(
-                                                  spacing: 8.0,
-                                                  runSpacing: 8.0,
+                                                  spacing: BinaSpace.s2,
+                                                  runSpacing: BinaSpace.s2,
                                                   children: teethDetections.map((d) {
                                                     final det = d as Map<String, dynamic>;
                                                     final className = det['className'] as String;
                                                     final toothNumber = className.replaceFirst('tooth_', '');
                                                     return Container(
-                                                      padding: EdgeInsets.symmetric(
+                                                      padding: const EdgeInsets.symmetric(
                                                           horizontal: 10.0, vertical: 6.0),
                                                       decoration: BoxDecoration(
-                                                        color: AppTheme.of(context).success,
-                                                        borderRadius: BorderRadius.circular(16.0),
+                                                        color: BinaColors.dxGood,
+                                                        borderRadius: BorderRadius.circular(BinaRadius.pill),
                                                       ),
                                                       child: Text(
                                                         '#$toothNumber',
-                                                        style: AppTheme.of(context)
-                                                            .bodySmall
-                                                            .override(
-                                                              font: GoogleFonts.inter(
-                                                                fontWeight: FontWeight.w600,
-                                                                fontStyle:
-                                                                    AppTheme.of(context)
-                                                                        .bodySmall
-                                                                        .fontStyle,
-                                                              ),
-                                                              color: Colors.white,
-                                                              letterSpacing: 0.0,
-                                                            ),
+                                                        style: BinaType.labelSm.copyWith(
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
                                                       ),
                                                     );
                                                   }).toList(),
@@ -641,34 +447,17 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                                             ],
                                             // No detections message
                                             if (detectionCount == 0) ...[
-                                              SizedBox(height: 16.0),
+                                              const SizedBox(height: BinaSpace.s4),
                                               Container(
                                                 width: double.infinity,
-                                                padding: EdgeInsets.all(12.0),
+                                                padding: const EdgeInsets.all(BinaSpace.s3),
                                                 decoration: BoxDecoration(
-                                                  color: AppTheme.of(context)
-                                                      .primaryBackground,
-                                                  borderRadius: BorderRadius.circular(8.0),
+                                                  color: BinaColors.surfaceSunken,
+                                                  borderRadius: BorderRadius.circular(BinaRadius.sm),
                                                 ),
                                                 child: Text(
                                                   'No detections found in the image. Try uploading a clearer dental image.',
-                                                  style: AppTheme.of(context)
-                                                      .bodySmall
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              AppTheme.of(context)
-                                                                  .bodySmall
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              AppTheme.of(context)
-                                                                  .bodySmall
-                                                                  .fontStyle,
-                                                        ),
-                                                        color: AppTheme.of(context)
-                                                            .secondaryText,
-                                                        letterSpacing: 0.0,
-                                                      ),
+                                                  style: BinaType.bodySm,
                                                 ),
                                               ),
                                             ],
@@ -683,55 +472,21 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                             ),
                           ),
                           // Bottom button
-                          Container(
-                            width: double.infinity,
-                            constraints: BoxConstraints(
-                              maxWidth: 570.0,
-                            ),
-                            decoration: BoxDecoration(),
-                            child: Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 12.0, 16.0, 24.0),
-                              child: AppButtonWidget(
-                                onPressed: () async {
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                                BinaSpace.s4, BinaSpace.s3, BinaSpace.s4, BinaSpace.s6),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: 570.0,
+                              ),
+                              child: BinaButton(
+                                label: 'Back to Diagnose',
+                                icon: Icons.arrow_back,
+                                fullWidth: true,
+                                size: BinaButtonSize.lg,
+                                onPressed: () {
                                   context.goNamed('Main_Diagnose');
                                 },
-                                text: 'Back to Diagnose',
-                                icon: Icon(
-                                  Icons.arrow_back,
-                                  size: 20.0,
-                                ),
-                                options: AppButtonOptions(
-                                  width: double.infinity,
-                                  height: 52.0,
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      24.0, 0.0, 24.0, 0.0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 0.0, 8.0, 0.0),
-                                  color: AppTheme.of(context).primary,
-                                  textStyle: AppTheme.of(context)
-                                      .titleSmall
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight:
-                                              AppTheme.of(context)
-                                                  .titleSmall
-                                                  .fontWeight,
-                                          fontStyle:
-                                              AppTheme.of(context)
-                                                  .titleSmall
-                                                  .fontStyle,
-                                        ),
-                                        color: Colors.white,
-                                        letterSpacing: 0.0,
-                                      ),
-                                  elevation: 3.0,
-                                  borderSide: BorderSide(
-                                    color: Colors.transparent,
-                                    width: 1.0,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
                               ),
                             ),
                           ),
@@ -750,7 +505,10 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
             ))
               Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.of(context).secondaryBackground,
+                  color: BinaColors.surface,
+                  border: Border(
+                    top: BorderSide(color: BinaColors.line, width: 1),
+                  ),
                 ),
                 child: BottomNavigationBar(
                   currentIndex: 2,
@@ -763,15 +521,13 @@ class _DiagnosisResultWidgetState extends State<DiagnosisResultWidget>
                     ];
                     context.goNamed(pages[i]);
                   },
-                  backgroundColor:
-                      AppTheme.of(context).secondaryBackground,
-                  selectedItemColor: AppTheme.of(context).primary,
-                  unselectedItemColor:
-                      AppTheme.of(context).secondaryText,
+                  backgroundColor: BinaColors.surface,
+                  selectedItemColor: BinaColors.primary,
+                  unselectedItemColor: BinaColors.ink3,
                   showSelectedLabels: true,
                   showUnselectedLabels: false,
                   type: BottomNavigationBarType.fixed,
-                  items: <BottomNavigationBarItem>[
+                  items: const <BottomNavigationBarItem>[
                     BottomNavigationBarItem(
                       icon: Icon(Icons.home_outlined, size: 24.0),
                       activeIcon: Icon(Icons.home, size: 32.0),

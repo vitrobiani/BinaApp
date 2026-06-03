@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
+import '/bina_design/bina_design.dart';
 import 'help_support_model.dart';
 
 export 'help_support_model.dart';
@@ -23,67 +22,29 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
   late HelpSupportModel _model;
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // Placeholder generic contact info for now
   static const String _supportEmail = 'support@bina-system.com';
-  static const String _supportPhone = '+972501234567';
+  static const String _supportPhone = '+972 50 123 4567';
 
-  // Placeholder generic FAQ items for now
-  static const List<Map<String, String>> _faqItems = [
+  List<Map<String, String>> _getFaqItems(BuildContext context) => [
     {
-      'question': 'How do I start a dental scan?',
-      'answer': 'Navigate to the Diagnose tab, select a family member, and follow the on-screen instructions to capture images of your teeth.',
+      'question': AppLocalizations.of(context).getText('help_faq_q1'),
+      'answer': AppLocalizations.of(context).getText('help_faq_a1'),
     },
     {
-      'question': 'How accurate are the scan results?',
-      'answer': 'Our AI-powered analysis provides preliminary assessments. For definitive diagnosis, always consult with a dental professional.',
+      'question': AppLocalizations.of(context).getText('help_faq_q2'),
+      'answer': AppLocalizations.of(context).getText('help_faq_a2'),
     },
     {
-      'question': 'Can I add multiple family members?',
-      'answer': 'Yes! Go to the Family section from the home screen to add and manage family members. Each member has their own scan history.',
+      'question': AppLocalizations.of(context).getText('help_faq_q3'),
+      'answer': AppLocalizations.of(context).getText('help_faq_a3'),
     },
     {
-      'question': 'How do I change the app language?',
-      'answer': 'Go to Profile → Preferences and Accessibility → Language and Region to select your preferred language.',
-    },
-    {
-      'question': 'Is my data secure?',
-      'answer': 'Yes, all your data is encrypted and stored securely. We do not share your personal health information with third parties.',
+      'question': AppLocalizations.of(context).getText('help_faq_q4'),
+      'answer': AppLocalizations.of(context).getText('help_faq_a4'),
     },
   ];
 
-  // Placeholder generic tutorial items for now
-  static const List<Map<String, dynamic>> _tutorialItems = [
-    {
-      'title': 'Getting Started',
-      'description': 'Learn the basics of using Bina System',
-      'icon': Icons.play_circle_outline,
-    },
-    {
-      'title': 'Taking Your First Scan',
-      'description': 'Step-by-step guide to dental scanning',
-      'icon': Icons.camera_alt_outlined,
-    },
-    {
-      'title': 'Understanding Results',
-      'description': 'How to interpret your scan results',
-      'icon': Icons.analytics_outlined,
-    },
-    {
-      'title': 'Managing Family Members',
-      'description': 'Add and track multiple family members',
-      'icon': Icons.family_restroom,
-    },
-  ];
-
-  // Feedback categories
-  String _selectedCategory = 'General Feedback';
-  static const List<String> _feedbackCategories = [
-    'General Feedback',
-    'Bug Report',
-    'Feature Request',
-    'Question',
-    'Other',
-  ];
+  int _openFaqIndex = 0;
 
   @override
   void initState() {
@@ -101,9 +62,7 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: _supportEmail,
-      queryParameters: {
-        'subject': 'Bina System Support Request',
-      },
+      queryParameters: {'subject': 'Bina System Support Request'},
     );
     if (await canLaunchUrl(emailUri)) {
       await launchUrl(emailUri);
@@ -111,38 +70,31 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
   }
 
   Future<void> _launchPhone() async {
-    final Uri phoneUri = Uri(scheme: 'tel', path: _supportPhone);
+    final Uri phoneUri = Uri(scheme: 'tel', path: _supportPhone.replaceAll(' ', ''));
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
     }
-  }
-
-  void _copyEmail() {
-    Clipboard.setData(const ClipboardData(text: _supportEmail));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Email copied to clipboard'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   void _submitFeedback() {
     if (_model.feedbackController?.text.isEmpty ?? true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please enter your feedback'),
-          backgroundColor: AppTheme.of(context).error,
+          content: Text(AppLocalizations.of(context).getText('help_enter_feedback')),
+          backgroundColor: BinaColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       return;
     }
 
-    // Placeholder - would send to backend
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Thank you for your feedback!'),
-        backgroundColor: AppTheme.of(context).success,
+        content: Text(AppLocalizations.of(context).getText('help_thank_you')),
+        backgroundColor: BinaColors.success,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
     _model.feedbackController?.clear();
@@ -150,474 +102,356 @@ class _HelpSupportWidgetState extends State<HelpSupportWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: scaffoldKey,
-      backgroundColor: AppTheme.of(context).primaryBackground,
-      appBar: AppBar(
-        backgroundColor: AppTheme.of(context).secondaryBackground,
-        automaticallyImplyLeading: true,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: AppTheme.of(context).primaryText,
-            size: 24.0,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Help and Support',
-          style: AppTheme.of(context).headlineSmall,
-        ),
-        centerTitle: false,
-        elevation: 0.0,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        key: scaffoldKey,
+        backgroundColor: BinaColors.surfaceAlt,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(
+              top: 12,
+              bottom: 40,
+            ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Contact Us Section
-              _buildSectionHeader('Contact Us'),
-              _buildContactCard(),
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Row(
+                  children: [
+                    BinaIconButton(
+                      icon: Icons.chevron_left_rounded,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          AppLocalizations.of(context).getText('help_title'),
+                          style: BinaType.titleMd,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 44),
+                  ],
+                ),
+              ).animate()
+                  .fadeIn(duration: 300.ms)
+                  .moveY(begin: -10, end: 0, duration: 300.ms),
 
-              const SizedBox(height: 24.0),
+              const SizedBox(height: 16),
 
-              // Send Feedback Section
-              _buildSectionHeader('Send Feedback'),
-              _buildFeedbackForm(),
-
-              const SizedBox(height: 24.0),
+              // Contact Section
+              _SettingsSection(
+                title: AppLocalizations.of(context).getText('help_contact'),
+                child: Column(
+                  children: [
+                    _ContactRow(
+                      icon: Icons.email_outlined,
+                      iconBgColor: BinaColors.primary100,
+                      iconColor: BinaColors.primary700,
+                      label: AppLocalizations.of(context).getText('help_email'),
+                      subtitle: _supportEmail,
+                      onTap: _launchEmail,
+                      showBorder: true,
+                    ),
+                    _ContactRow(
+                      icon: Icons.phone_outlined,
+                      iconBgColor: BinaColors.aqua100,
+                      iconColor: BinaColors.aqua700,
+                      label: AppLocalizations.of(context).getText('help_phone'),
+                      subtitle: _supportPhone,
+                      onTap: _launchPhone,
+                    ),
+                  ],
+                ),
+              ).animate()
+                  .fadeIn(delay: 100.ms, duration: 400.ms)
+                  .moveY(begin: 20, end: 0, delay: 100.ms, duration: 400.ms),
 
               // FAQ Section
-              _buildSectionHeader('Frequently Asked Questions'),
-              _buildFaqSection(),
+              _SettingsSection(
+                title: AppLocalizations.of(context).getText('help_faq'),
+                child: Builder(
+                  builder: (context) {
+                    final faqItems = _getFaqItems(context);
+                    return Column(
+                      children: faqItems.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final faq = entry.value;
+                    final isOpen = _openFaqIndex == index;
+                    final isLast = index == faqItems.length - 1;
 
-              const SizedBox(height: 24.0),
+                    return _FaqItem(
+                      question: faq['question']!,
+                      answer: faq['answer']!,
+                      isOpen: isOpen,
+                      isLast: isLast,
+                      onToggle: () {
+                        setState(() {
+                          _openFaqIndex = isOpen ? -1 : index;
+                        });
+                      },
+                    );
+                  }).toList(),
+                    );
+                  },
+                ),
+              ).animate()
+                  .fadeIn(delay: 200.ms, duration: 400.ms)
+                  .moveY(begin: 20, end: 0, delay: 200.ms, duration: 400.ms),
 
-              // Tutorials Section
-              _buildSectionHeader('Tutorials & Guides'),
-              _buildTutorialsSection(),
-
-              const SizedBox(height: 32.0),
-            ],
+              // Send Feedback Section
+              _SettingsSection(
+                title: AppLocalizations.of(context).getText('help_send_feedback'),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _model.feedbackController,
+                        maxLines: 4,
+                        style: BinaType.bodyMd,
+                        decoration: InputDecoration(
+                          hintText: AppLocalizations.of(context).getText('help_feedback_hint'),
+                          hintStyle: BinaType.bodyMd.copyWith(color: BinaColors.ink3),
+                          filled: true,
+                          fillColor: BinaColors.surface,
+                          contentPadding: const EdgeInsets.all(12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: BinaColors.lineStrong),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: BinaColors.lineStrong),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: BinaColors.primary, width: 2),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      BinaButton(
+                        label: AppLocalizations.of(context).getText('help_submit_feedback'),
+                        variant: BinaButtonVariant.primary,
+                        fullWidth: true,
+                        onPressed: _submitFeedback,
+                      ),
+                    ],
+                  ),
+                ),
+              ).animate()
+                  .fadeIn(delay: 300.ms, duration: 400.ms)
+                  .moveY(begin: 20, end: 0, delay: 300.ms, duration: 400.ms),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildSectionHeader(String title) {
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS SECTION
+// ═══════════════════════════════════════════════════════════════
+
+class _SettingsSection extends StatelessWidget {
+  const _SettingsSection({
+    required this.title,
+    required this.child,
+  });
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
-      child: Text(
-        title,
-        style: AppTheme.of(context).titleSmall.override(
-              font: GoogleFonts.inter(),
-              color: AppTheme.of(context).primaryText,
-              fontWeight: FontWeight.w600,
-            ),
-      ),
-    );
-  }
-
-  Widget _buildContactCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppTheme.of(context).secondaryBackground,
-          borderRadius: BorderRadius.circular(12.0),
-          border: Border.all(color: AppTheme.of(context).alternate),
-        ),
-        child: Column(
-          children: [
-            // Email row
-            InkWell(
-              onTap: _launchEmail,
-              onLongPress: _copyEmail,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10.0),
-                      decoration: BoxDecoration(
-                        color: AppTheme.of(context).primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: Icon(
-                        Icons.email_outlined,
-                        color: AppTheme.of(context).primary,
-                        size: 24.0,
-                      ),
-                    ),
-                    const SizedBox(width: 16.0),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Email',
-                            style: AppTheme.of(context).bodySmall.override(
-                                  font: GoogleFonts.inter(),
-                                  color: AppTheme.of(context).secondaryText,
-                                ),
-                          ),
-                          const SizedBox(height: 2.0),
-                          Text(
-                            _supportEmail,
-                            style: AppTheme.of(context).bodyMedium.override(
-                                  font: GoogleFonts.inter(),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: AppTheme.of(context).secondaryText,
-                      size: 16.0,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Divider(
-              height: 1,
-              color: AppTheme.of(context).alternate,
-            ),
-            // Phone row
-            InkWell(
-              onTap: _launchPhone,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10.0),
-                      decoration: BoxDecoration(
-                        color: AppTheme.of(context).success.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: Icon(
-                        Icons.phone_outlined,
-                        color: AppTheme.of(context).success,
-                        size: 24.0,
-                      ),
-                    ),
-                    const SizedBox(width: 16.0),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Phone',
-                            style: AppTheme.of(context).bodySmall.override(
-                                  font: GoogleFonts.inter(),
-                                  color: AppTheme.of(context).secondaryText,
-                                ),
-                          ),
-                          const SizedBox(height: 2.0),
-                          Text(
-                            _supportPhone,
-                            style: AppTheme.of(context).bodyMedium.override(
-                                  font: GoogleFonts.inter(),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: AppTheme.of(context).secondaryText,
-                      size: 16.0,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeedbackForm() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: AppTheme.of(context).secondaryBackground,
-          borderRadius: BorderRadius.circular(12.0),
-          border: Border.all(color: AppTheme.of(context).alternate),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Category dropdown
-            Text(
-              'Category',
-              style: AppTheme.of(context).bodySmall.override(
-                    font: GoogleFonts.inter(),
-                    color: AppTheme.of(context).secondaryText,
-                  ),
-            ),
-            const SizedBox(height: 8.0),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              decoration: BoxDecoration(
-                color: AppTheme.of(context).primaryBackground,
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(color: AppTheme.of(context).alternate),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedCategory,
-                  isExpanded: true,
-                  icon: Icon(
-                    Icons.keyboard_arrow_down,
-                    color: AppTheme.of(context).secondaryText,
-                  ),
-                  items: _feedbackCategories.map((category) {
-                    return DropdownMenuItem<String>(
-                      value: category,
-                      child: Text(
-                        category,
-                        style: AppTheme.of(context).bodyMedium,
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedCategory = value);
-                    }
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            // Message field
-            Text(
-              'Message',
-              style: AppTheme.of(context).bodySmall.override(
-                    font: GoogleFonts.inter(),
-                    color: AppTheme.of(context).secondaryText,
-                  ),
-            ),
-            const SizedBox(height: 8.0),
-            TextField(
-              controller: _model.feedbackController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'Tell us what you think...',
-                hintStyle: AppTheme.of(context).bodyMedium.override(
-                      font: GoogleFonts.inter(),
-                      color: AppTheme.of(context).secondaryText,
-                    ),
-                filled: true,
-                fillColor: AppTheme.of(context).primaryBackground,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: AppTheme.of(context).alternate),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: AppTheme.of(context).alternate),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: AppTheme.of(context).primary),
-                ),
-              ),
-              style: AppTheme.of(context).bodyMedium,
-            ),
-            const SizedBox(height: 16.0),
-            // Submit button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _submitFeedback,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-                child: Text(
-                  'Submit Feedback',
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFaqSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.of(context).secondaryBackground,
-          borderRadius: BorderRadius.circular(12.0),
-          border: Border.all(color: AppTheme.of(context).alternate),
-        ),
-        child: Column(
-          children: List.generate(_faqItems.length, (index) {
-            final item = _faqItems[index];
-            final isExpanded = _model.isFaqExpanded(index);
-            final isLast = index == _faqItems.length - 1;
-
-            return Column(
-              children: [
-                InkWell(
-                  onTap: () {
-                    setState(() => _model.toggleFaqItem(index));
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item['question']!,
-                            style: AppTheme.of(context).bodyMedium.override(
-                                  font: GoogleFonts.inter(),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                        ),
-                        const SizedBox(width: 8.0),
-                        AnimatedRotation(
-                          turns: isExpanded ? 0.5 : 0.0,
-                          duration: const Duration(milliseconds: 200),
-                          child: Icon(
-                            Icons.keyboard_arrow_down,
-                            color: AppTheme.of(context).secondaryText,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                AnimatedCrossFade(
-                  firstChild: const SizedBox.shrink(),
-                  secondChild: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-                    child: Text(
-                      item['answer']!,
-                      style: AppTheme.of(context).bodySmall.override(
-                            font: GoogleFonts.inter(),
-                            color: AppTheme.of(context).secondaryText,
-                          ),
-                    ),
-                  ),
-                  crossFadeState: isExpanded
-                      ? CrossFadeState.showSecond
-                      : CrossFadeState.showFirst,
-                  duration: const Duration(milliseconds: 200),
-                ),
-                if (!isLast)
-                  Divider(
-                    height: 1,
-                    color: AppTheme.of(context).alternate,
-                  ),
-              ],
-            );
-          }),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTutorialsSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
-        children: _tutorialItems.map((tutorial) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: InkWell(
-              onTap: () {
-                // Placeholder - would navigate to tutorial
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${tutorial['title']} - Coming soon!'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(12.0),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: AppTheme.of(context).secondaryBackground,
-                  borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(color: AppTheme.of(context).alternate),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12.0),
-                      decoration: BoxDecoration(
-                        color: AppTheme.of(context).primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: Icon(
-                        tutorial['icon'] as IconData,
-                        color: AppTheme.of(context).primary,
-                        size: 24.0,
-                      ),
-                    ),
-                    const SizedBox(width: 16.0),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            tutorial['title'] as String,
-                            style: AppTheme.of(context).bodyMedium.override(
-                                  font: GoogleFonts.inter(),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                          const SizedBox(height: 2.0),
-                          Text(
-                            tutorial['description'] as String,
-                            style: AppTheme.of(context).bodySmall.override(
-                                  font: GoogleFonts.inter(),
-                                  color: AppTheme.of(context).secondaryText,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: AppTheme.of(context).secondaryText,
-                      size: 16.0,
-                    ),
-                  ],
-                ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 8),
+            child: Text(
+              title,
+              style: BinaType.overline.copyWith(
+                color: BinaColors.ink3,
+                letterSpacing: 0.8,
               ),
             ),
-          );
-        }).toList(),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: BinaColors.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: BinaColors.line),
+              boxShadow: BinaElevation.sh2,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: child,
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTACT ROW
+// ═══════════════════════════════════════════════════════════════
+
+class _ContactRow extends StatelessWidget {
+  const _ContactRow({
+    required this.icon,
+    required this.iconBgColor,
+    required this.iconColor,
+    required this.label,
+    required this.subtitle,
+    required this.onTap,
+    this.showBorder = false,
+  });
+
+  final IconData icon;
+  final Color iconBgColor;
+  final Color iconColor;
+  final String label;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool showBorder;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          border: showBorder
+              ? Border(bottom: BorderSide(color: BinaColors.line))
+              : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: BinaType.bodyLg),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: BinaColors.ink3, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FAQ ITEM
+// ═══════════════════════════════════════════════════════════════
+
+class _FaqItem extends StatelessWidget {
+  const _FaqItem({
+    required this.question,
+    required this.answer,
+    required this.isOpen,
+    required this.isLast,
+    required this.onToggle,
+  });
+
+  final String question;
+  final String answer;
+  final bool isOpen;
+  final bool isLast;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onToggle,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    question,
+                    style: BinaType.bodyLg.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                AnimatedRotation(
+                  turns: isOpen ? 0.5 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: BinaColors.surfaceSunken,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: BinaColors.ink2,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            child: Text(
+              answer,
+              style: BinaType.bodyMd.copyWith(
+                color: BinaColors.ink2,
+                height: 1.55,
+              ),
+            ),
+          ),
+          crossFadeState: isOpen
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 200),
+        ),
+        if (!isLast)
+          Divider(height: 1, color: BinaColors.line),
+      ],
     );
   }
 }

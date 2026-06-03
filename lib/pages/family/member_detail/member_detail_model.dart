@@ -1,8 +1,8 @@
 import '/app_core/app_util.dart';
-import 'image_detail_sheet_widget.dart' show ImageDetailSheetWidget;
+import 'member_detail_widget.dart' show MemberDetailWidget;
 import 'package:flutter/material.dart';
 
-class ImageDetailSheetModel extends AppModel<ImageDetailSheetWidget> {
+class MemberDetailModel extends AppModel<MemberDetailWidget> {
   @override
   void initState(BuildContext context) {}
 

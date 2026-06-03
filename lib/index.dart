@@ -50,3 +50,9 @@ export '/pages/accessibility_pages/help_support/help_support_widget.dart'
     show HelpSupportWidget;
 export '/pages/accessibility_pages/language_settings/language_settings_widget.dart'
     show LanguageSettingsWidget;
+export '/components/accessibility/accessibility_widget.dart'
+    show AccessibilityWidget;
+export '/pages/family/member_detail/member_detail_widget.dart'
+    show MemberDetailWidget;
+export '/pages/account_settings/account_settings_widget.dart'
+    show AccountSettingsWidget;
