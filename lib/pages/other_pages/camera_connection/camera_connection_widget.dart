@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:bina_system/services/motor_controller_service.dart';
 
-import '/app_core/app_theme.dart';
 import '/app_core/app_util.dart';
 import '/bina_design/bina_design.dart';
 import '/services/wifi_direct_service.dart';
@@ -298,29 +297,6 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                if (isConnected)
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: AppButtonWidget(
-                      onPressed: () => MotorControllerService.instance.rotate(revolutions: 51),
-                      showLoadingIndicator: false,
-                      text: "Motor move",
-                      options: AppButtonOptions(
-                        width: double.infinity,
-                        height: 48.0,
-                        color: AppTheme.of(context).primary,
-                        textStyle: AppTheme.of(context).titleSmall.override(
-                          font: GoogleFonts.inter(),
-                          color: Colors.white,
-                          letterSpacing: 0.0,
-                        ),
-                        elevation: 0.0,
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                    ),
-                  ),
 
                       // Error message
                       if (_errorMessage != null) ...[
