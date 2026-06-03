@@ -1,11 +1,9 @@
-import '/app_core/app_animations.dart';
-import '/app_core/app_theme.dart';
+import '/bina_design/bina_design.dart';
 import '/app_core/app_util.dart';
 import '/pages/account_profile_creation/edit_profile_auth_2/edit_profile_auth2_widget.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'auth2_create_profile_model.dart';
 export 'auth2_create_profile_model.dart';
 
@@ -20,63 +18,21 @@ class Auth2CreateProfileWidget extends StatefulWidget {
       _Auth2CreateProfileWidgetState();
 }
 
-class _Auth2CreateProfileWidgetState extends State<Auth2CreateProfileWidget>
-    with TickerProviderStateMixin {
+class _Auth2CreateProfileWidgetState extends State<Auth2CreateProfileWidget> {
   late Auth2CreateProfileModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
-
-  final animationsMap = <String, AnimationInfo>{};
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => Auth2CreateProfileModel());
-
-    animationsMap.addAll({
-      'containerOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          FadeEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.0, 140.0),
-            end: Offset(0.0, 0.0),
-          ),
-          ScaleEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.9, 0.9),
-            end: Offset(1.0, 1.0),
-          ),
-          TiltEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(-0.349, 0),
-            end: Offset(0, 0),
-          ),
-        ],
-      ),
-    });
-
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
   }
 
@@ -89,97 +45,61 @@ class _Auth2CreateProfileWidgetState extends State<Auth2CreateProfileWidget>
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: AppTheme.of(context).secondaryBackground,
+        backgroundColor: BinaColors.surface,
         body: Container(
           height: double.infinity,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.of(context).primary,
-                AppTheme.of(context).tertiary
-              ],
-              stops: [0.0, 1.0],
-              begin: AlignmentDirectional(0.87, -1.0),
-              end: AlignmentDirectional(-0.87, 1.0),
-            ),
+            gradient: BinaColors.gradHero,
           ),
-          alignment: AlignmentDirectional(0.0, -1.0),
+          alignment: Alignment.topCenter,
           child: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Logo
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 70.0, 0.0, 32.0),
-                  child: Container(
-                    width: 200.0,
-                    height: 70.0,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16.0),
-                    ),
-                    alignment: AlignmentDirectional(0.0, 0.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 12.0, 0.0),
-                          child: Icon(
-                            Icons.flourescent_rounded,
-                            color: AppTheme.of(context).info,
-                            size: 50.0,
-                          ),
+                  padding: const EdgeInsets.only(top: 70, bottom: 32),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        Text(
-                          AppLocalizations.of(context).getText(
-                            '7g2ljvog' /* Bina  */,
-                          ),
-                          style: AppTheme.of(context)
-                              .displayMedium
-                              .override(
-                                font: GoogleFonts.readexPro(
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: AppTheme.of(context)
-                                      .displayMedium
-                                      .fontStyle,
-                                ),
-                                fontSize: 55.0,
-                                letterSpacing: 0.0,
-                                fontWeight: FontWeight.w600,
-                                fontStyle: AppTheme.of(context)
-                                    .displayMedium
-                                    .fontStyle,
-                              ),
+                        child: const Icon(
+                          Icons.flourescent_rounded,
+                          color: Colors.white,
+                          size: 28,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        AppLocalizations.of(context).getText('7g2ljvog'),
+                        style: BinaType.displaySm.copyWith(
+                          color: Colors.white,
+                          fontSize: 55,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                // Card
                 Padding(
-                  padding: EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16),
                   child: Container(
                     width: double.infinity,
-                    constraints: BoxConstraints(
-                      maxWidth: 570.0,
-                    ),
+                    constraints: const BoxConstraints(maxWidth: 570),
                     decoration: BoxDecoration(
-                      color: AppTheme.of(context).secondaryBackground,
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 4.0,
-                          color: Color(0x33000000),
-                          offset: Offset(
-                            0.0,
-                            2.0,
-                          ),
-                        )
-                      ],
-                      borderRadius: BorderRadius.circular(12.0),
+                      color: BinaColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: BinaElevation.sh3,
                     ),
                     child: Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 24.0),
+                      padding: const EdgeInsets.symmetric(vertical: 24),
                       child: wrapWithModel(
                         model: _model.editProfileAuth2Model,
                         updateCallback: () => safeSetState(() {}),
@@ -192,9 +112,15 @@ class _Auth2CreateProfileWidgetState extends State<Auth2CreateProfileWidget>
                         ),
                       ),
                     ),
-                  ).animateOnPageLoad(
-                      animationsMap['containerOnPageLoadAnimation']!),
-                ),
+                  ),
+                ).animate()
+                    .fadeIn(duration: 300.ms)
+                    .moveY(begin: 140, end: 0, duration: 300.ms)
+                    .scale(
+                      begin: const Offset(0.9, 0.9),
+                      end: const Offset(1, 1),
+                      duration: 300.ms,
+                    ),
               ],
             ),
           ),

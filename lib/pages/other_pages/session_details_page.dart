@@ -1,10 +1,8 @@
 import '/backend/sqlite/sqlite_manager.dart';
 import '/backend/supabase/supabase.dart';
-import '/app_core/app_icon_button.dart';
-import '/app_core/app_theme.dart';
+import '/bina_design/bina_design.dart';
 import '/app_core/app_util.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'session_details_page_model.dart';
 export 'session_details_page_model.dart';
 
@@ -128,7 +126,7 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
       backgroundColor: Colors.transparent,
       enableDrag: true,
       context: context,
-      builder: (context) => ImageDetailSheetWidgetWithBytes(
+      builder: (context) => _ImageDetailSheet(
         originalImage: image.originalImage,
         diagnosedImage: image.diagnosedImage,
         detections: jsonDecode(image.rawResponse),
@@ -144,91 +142,80 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: scaffoldKey,
-      backgroundColor: AppTheme.of(context).primaryBackground,
-      appBar: AppBar(
-        backgroundColor: AppTheme.of(context).secondaryBackground,
-        automaticallyImplyLeading: false,
-        leading: AppIconButton(
-          borderColor: Colors.transparent,
-          borderRadius: 30.0,
-          borderWidth: 1.0,
-          buttonSize: 60.0,
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: AppTheme.of(context).primaryText,
-            size: 30.0,
-          ),
-          onPressed: () async {
-            context.pop();
-          },
-        ),
-        title: Text(
-          AppLocalizations.of(context).getText('sesd001' /* Session Details */),
-          style: AppTheme.of(context).headlineMedium.override(
-                font: GoogleFonts.readexPro(
-                  fontWeight: AppTheme.of(context).headlineMedium.fontWeight,
-                  fontStyle: AppTheme.of(context).headlineMedium.fontStyle,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        key: scaffoldKey,
+        backgroundColor: BinaColors.surfaceAlt,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+                decoration: BoxDecoration(
+                  color: BinaColors.surface,
+                  border: Border(bottom: BorderSide(color: BinaColors.line)),
                 ),
-                letterSpacing: 0.0,
+                child: Row(
+                  children: [
+                    BinaIconButton(
+                      icon: Icons.chevron_left_rounded,
+                      onPressed: () => context.pop(),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      AppLocalizations.of(context).getText('sesd001'),
+                      style: BinaType.titleLg,
+                    ),
+                  ],
+                ),
               ),
+              // Content
+              Expanded(child: _buildBody()),
+            ],
+          ),
         ),
-        actions: [],
-        centerTitle: false,
-        elevation: 2.0,
       ),
-      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) {
       return Center(
-        child: CircularProgressIndicator(
-          color: AppTheme.of(context).primary,
-        ),
+        child: CircularProgressIndicator(color: BinaColors.primary),
       );
     }
 
     if (_error != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: AppTheme.of(context).error,
-              size: 64.0,
-            ),
-            SizedBox(height: 16.0),
-            Text(
-              AppLocalizations.of(context).getText('sesd009' /* Error loading images */),
-              style: AppTheme.of(context).titleMedium.override(
-                    font: GoogleFonts.inter(
-                      fontWeight: AppTheme.of(context).titleMedium.fontWeight,
-                      fontStyle: AppTheme.of(context).titleMedium.fontStyle,
-                    ),
-                    letterSpacing: 0.0,
-                  ),
-            ),
-            SizedBox(height: 8.0),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32.0),
-              child: Text(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: BinaColors.error100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(Icons.error_outline_rounded, color: BinaColors.error, size: 36),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                AppLocalizations.of(context).getText('sesd009'),
+                style: BinaType.titleMd,
+              ),
+              const SizedBox(height: 8),
+              Text(
                 _error!,
-                style: AppTheme.of(context).bodySmall.override(
-                      font: GoogleFonts.inter(
-                        fontWeight: AppTheme.of(context).bodySmall.fontWeight,
-                        fontStyle: AppTheme.of(context).bodySmall.fontStyle,
-                      ),
-                      color: AppTheme.of(context).secondaryText,
-                      letterSpacing: 0.0,
-                    ),
+                style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
                 textAlign: TextAlign.center,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -238,33 +225,24 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.photo_library_outlined,
-              color: AppTheme.of(context).secondaryText,
-              size: 64.0,
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: BinaColors.surfaceSunken,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(Icons.photo_library_outlined, color: BinaColors.ink3, size: 36),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 20),
             Text(
-              AppLocalizations.of(context).getText('sesd011' /* No images found */),
-              style: AppTheme.of(context).titleMedium.override(
-                    font: GoogleFonts.inter(
-                      fontWeight: AppTheme.of(context).titleMedium.fontWeight,
-                      fontStyle: AppTheme.of(context).titleMedium.fontStyle,
-                    ),
-                    color: AppTheme.of(context).secondaryText,
-                    letterSpacing: 0.0,
-                  ),
+              AppLocalizations.of(context).getText('sesd011'),
+              style: BinaType.titleMd.copyWith(color: BinaColors.ink2),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context).getText('sesd012' /* This session has no images */),
-              style: AppTheme.of(context).bodySmall.override(
-                    font: GoogleFonts.inter(
-                      fontWeight: AppTheme.of(context).bodySmall.fontWeight,
-                      fontStyle: AppTheme.of(context).bodySmall.fontStyle,
-                    ),
-                    letterSpacing: 0.0,
-                  ),
+              AppLocalizations.of(context).getText('sesd012'),
+              style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
             ),
           ],
         ),
@@ -272,88 +250,61 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
     }
 
     return GridView.builder(
-      padding: EdgeInsets.all(16.0),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        crossAxisSpacing: 10.0,
-        mainAxisSpacing: 10.0,
-        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1,
       ),
       itemCount: _images.length,
       itemBuilder: (context, index) {
         final image = _images[index];
-        return InkWell(
+        return GestureDetector(
           onTap: () => _showImageDetailSheet(image),
           child: Container(
             decoration: BoxDecoration(
-              color: AppTheme.of(context).secondaryBackground,
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(
-                color: AppTheme.of(context).alternate,
-                width: 2.0,
-              ),
+              color: BinaColors.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: BinaColors.line),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(6.0),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (image.diagnosedImage != null)
-                    Image.memory(
-                      image.diagnosedImage!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        debugPrint('Error loading image: $error');
-                        return Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            color: AppTheme.of(context).error,
-                            size: 30.0,
-                          ),
-                        );
-                      },
-                    )
-                  else if (image.originalImage != null)
-                    Image.memory(
-                      image.originalImage!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        debugPrint('Error loading original image: $error');
-                        return Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            color: AppTheme.of(context).error,
-                            size: 30.0,
-                          ),
-                        );
-                      },
-                    )
-                  else
-                    Center(
-                      child: Icon(
-                        Icons.image_not_supported,
-                        color: AppTheme.of(context).secondaryText,
-                        size: 30.0,
-                      ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (image.diagnosedImage != null)
+                  Image.memory(
+                    image.diagnosedImage!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Center(
+                      child: Icon(Icons.broken_image_rounded, color: BinaColors.error, size: 28),
                     ),
-                  Positioned(
-                    bottom: 4.0,
-                    right: 4.0,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(4.0),
-                      ),
-                      child: Icon(
-                        Icons.zoom_in,
-                        color: Colors.white,
-                        size: 16.0,
-                      ),
+                  )
+                else if (image.originalImage != null)
+                  Image.memory(
+                    image.originalImage!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Center(
+                      child: Icon(Icons.broken_image_rounded, color: BinaColors.error, size: 28),
                     ),
+                  )
+                else
+                  Center(
+                    child: Icon(Icons.image_not_supported_rounded, color: BinaColors.ink3, size: 28),
                   ),
-                ],
-              ),
+                Positioned(
+                  bottom: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: BinaColors.ink.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 14),
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -379,7 +330,301 @@ class _ImageData {
   });
 }
 
-// New widget that handles bytes instead of file paths
+// Image detail bottom sheet
+class _ImageDetailSheet extends StatefulWidget {
+  const _ImageDetailSheet({
+    this.originalImage,
+    this.diagnosedImage,
+    this.detections,
+  });
+
+  final Uint8List? originalImage;
+  final Uint8List? diagnosedImage;
+  final List<dynamic>? detections;
+
+  @override
+  State<_ImageDetailSheet> createState() => _ImageDetailSheetState();
+}
+
+class _ImageDetailSheetState extends State<_ImageDetailSheet> {
+  bool _showAnnotated = true;
+
+  String _formatClassName(String className) {
+    final words = className.split('_');
+    return words.map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final issueDetections = widget.detections?.where((d) {
+          final className = (d as Map<String, dynamic>)['className'] as String;
+          return !className.startsWith('tooth_');
+        }).toList() ??
+        [];
+    final teethDetections = widget.detections?.where((d) {
+          final className = (d as Map<String, dynamic>)['className'] as String;
+          return className.startsWith('tooth_');
+        }).toList() ??
+        [];
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: BoxDecoration(
+        color: BinaColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: BinaColors.line,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image toggle
+                  Row(
+                    children: [
+                      Text('Image Preview', style: BinaType.titleMd),
+                      const Spacer(),
+                      if (widget.diagnosedImage != null && widget.originalImage != null)
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: BinaColors.surfaceSunken,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              _ToggleChip(
+                                label: 'Annotated',
+                                isSelected: _showAnnotated,
+                                onTap: () => setState(() => _showAnnotated = true),
+                              ),
+                              _ToggleChip(
+                                label: 'Original',
+                                isSelected: !_showAnnotated,
+                                onTap: () => setState(() => _showAnnotated = false),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Image
+                  Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(maxHeight: 280),
+                    decoration: BoxDecoration(
+                      color: BinaColors.surfaceSunken,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: BinaColors.line),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: _buildImagePreview(),
+                  ),
+                  const SizedBox(height: 24),
+                  // Detection Summary
+                  Text(
+                    AppLocalizations.of(context).getText('sesd015'),
+                    style: BinaType.titleMd,
+                  ),
+                  const SizedBox(height: 12),
+                  // Issues section
+                  if (issueDetections.isNotEmpty) ...[
+                    Text(
+                      AppLocalizations.of(context).getText('sesd016'),
+                      style: BinaType.labelLg.copyWith(color: BinaColors.error),
+                    ),
+                    const SizedBox(height: 8),
+                    ...issueDetections.map((d) {
+                      final det = d as Map<String, dynamic>;
+                      final className = det['className'] as String;
+                      final confidence = det['confidence'] as double;
+                      final displayName = _formatClassName(className);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: BinaColors.error100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.warning_amber_rounded, color: BinaColors.error, size: 20),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(displayName, style: BinaType.bodyMd),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: BinaColors.error,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${(confidence * 100).toStringAsFixed(0)}%',
+                                  style: BinaType.labelSm.copyWith(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ] else
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: BinaColors.success100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.check_circle_rounded, color: BinaColors.success, size: 20),
+                          const SizedBox(width: 10),
+                          Text(
+                            AppLocalizations.of(context).getText('sesd017'),
+                            style: BinaType.bodyMd.copyWith(color: BinaColors.success),
+                          ),
+                        ],
+                      ),
+                    ),
+                  // Teeth section
+                  if (teethDetections.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      AppLocalizations.of(context).getText('sesd018'),
+                      style: BinaType.labelLg,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: BinaColors.surfaceSunken,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: teethDetections.map((d) {
+                          final det = d as Map<String, dynamic>;
+                          final className = det['className'] as String;
+                          final toothNumber = className.replaceFirst('tooth_', '');
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: BinaColors.success,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '#$toothNumber',
+                              style: BinaType.labelSm.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePreview() {
+    final imageToShow = _showAnnotated ? widget.diagnosedImage : widget.originalImage;
+    final fallbackImage = _showAnnotated ? widget.originalImage : widget.diagnosedImage;
+    final displayImage = imageToShow ?? fallbackImage;
+
+    if (displayImage != null) {
+      return Image.memory(
+        displayImage,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.broken_image_rounded, color: BinaColors.ink3, size: 40),
+              const SizedBox(height: 8),
+              Text('Failed to load image', style: BinaType.bodySm.copyWith(color: BinaColors.ink3)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.image_not_supported_rounded, color: BinaColors.ink3, size: 40),
+          const SizedBox(height: 8),
+          Text('Image not available', style: BinaType.bodySm.copyWith(color: BinaColors.ink3)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleChip extends StatelessWidget {
+  const _ToggleChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: BinaMotion.d1,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? BinaColors.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected ? BinaElevation.sh1 : null,
+        ),
+        child: Text(
+          label,
+          style: BinaType.labelSm.copyWith(
+            color: isSelected ? BinaColors.ink : BinaColors.ink3,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Legacy export for backwards compatibility
 class ImageDetailSheetWidgetWithBytes extends StatelessWidget {
   const ImageDetailSheetWidgetWithBytes({
     super.key,
@@ -392,378 +637,12 @@ class ImageDetailSheetWidgetWithBytes extends StatelessWidget {
   final Uint8List? diagnosedImage;
   final List<dynamic>? detections;
 
-  String _formatClassName(String className) {
-    final words = className.split('_');
-    return words.map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
-  }
-
   @override
   Widget build(BuildContext context) {
-    final issueDetections = detections?.where((d) {
-          final className = (d as Map<String, dynamic>)['className'] as String;
-          return !className.startsWith('tooth_');
-        }).toList() ??
-        [];
-    final teethDetections = detections?.where((d) {
-          final className = (d as Map<String, dynamic>)['className'] as String;
-          return className.startsWith('tooth_');
-        }).toList() ??
-        [];
-
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: BoxDecoration(
-          color: AppTheme.of(context).secondaryBackground,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16.0),
-            topRight: Radius.circular(16.0),
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Drag handle
-              Center(
-                child: Container(
-                  width: 40.0,
-                  height: 4.0,
-                  margin: EdgeInsets.symmetric(vertical: 12.0),
-                  decoration: BoxDecoration(
-                    color: AppTheme.of(context).alternate,
-                    borderRadius: BorderRadius.circular(2.0),
-                  ),
-                ),
-              ),
-              // Original Image Section
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
-                child: Text(
-                  AppLocalizations.of(context).getText('sesd013' /* Original Image */),
-                  style: AppTheme.of(context).titleMedium.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: AppTheme.of(context).titleMedium.fontWeight,
-                          fontStyle: AppTheme.of(context).titleMedium.fontStyle,
-                        ),
-                        letterSpacing: 0.0,
-                      ),
-                ),
-              ),
-              SizedBox(height: 8.0),
-              if (originalImage != null)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    width: double.infinity,
-                    constraints: BoxConstraints(maxHeight: 250.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12.0),
-                      border: Border.all(
-                        color: AppTheme.of(context).alternate,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(11.0),
-                      child: Image.memory(
-                        originalImage!,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    width: double.infinity,
-                    height: 150.0,
-                    decoration: BoxDecoration(
-                      color: AppTheme.of(context).alternate,
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Center(
-                      child: Text(
-                        AppLocalizations.of(context).getText('sesd019' /* Original image not available */),
-                        style: AppTheme.of(context).bodyMedium.override(
-                              font: GoogleFonts.inter(
-                                fontWeight: AppTheme.of(context).bodyMedium.fontWeight,
-                                fontStyle: AppTheme.of(context).bodyMedium.fontStyle,
-                              ),
-                              color: AppTheme.of(context).secondaryText,
-                              letterSpacing: 0.0,
-                            ),
-                      ),
-                    ),
-                  ),
-                ),
-              SizedBox(height: 16.0),
-              // Diagnosed Image Section
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                child: Text(
-                  AppLocalizations.of(context).getText('sesd014' /* Diagnosed Image */),
-                  style: AppTheme.of(context).titleMedium.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: AppTheme.of(context).titleMedium.fontWeight,
-                          fontStyle: AppTheme.of(context).titleMedium.fontStyle,
-                        ),
-                        letterSpacing: 0.0,
-                      ),
-                ),
-              ),
-              SizedBox(height: 8.0),
-              if (diagnosedImage != null)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    width: double.infinity,
-                    constraints: BoxConstraints(maxHeight: 250.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12.0),
-                      border: Border.all(
-                        color: AppTheme.of(context).alternate,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(11.0),
-                      child: Image.memory(
-                        diagnosedImage!,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    width: double.infinity,
-                    height: 150.0,
-                    decoration: BoxDecoration(
-                      color: AppTheme.of(context).alternate,
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Center(
-                      child: Text(
-                        AppLocalizations.of(context).getText('sesd020' /* Diagnosed image not available */),
-                        style: AppTheme.of(context).bodyMedium.override(
-                              font: GoogleFonts.inter(
-                                fontWeight: AppTheme.of(context).bodyMedium.fontWeight,
-                                fontStyle: AppTheme.of(context).bodyMedium.fontStyle,
-                              ),
-                              color: AppTheme.of(context).secondaryText,
-                              letterSpacing: 0.0,
-                            ),
-                      ),
-                    ),
-                  ),
-                ),
-              SizedBox(height: 16.0),
-              // Detection Summary Section
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                child: Text(
-                  AppLocalizations.of(context).getText('sesd015' /* Detection Summary */),
-                  style: AppTheme.of(context).titleMedium.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: AppTheme.of(context).titleMedium.fontWeight,
-                          fontStyle: AppTheme.of(context).titleMedium.fontStyle,
-                        ),
-                        letterSpacing: 0.0,
-                      ),
-                ),
-              ),
-              SizedBox(height: 12.0),
-              // Issues Found Section
-              if (issueDetections.isNotEmpty)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context).getText('sesd016' /* Issues Found */),
-                        style: AppTheme.of(context).titleSmall.override(
-                              font: GoogleFonts.inter(
-                                fontWeight: FontWeight.w600,
-                                fontStyle: AppTheme.of(context).titleSmall.fontStyle,
-                              ),
-                              color: AppTheme.of(context).error,
-                              letterSpacing: 0.0,
-                            ),
-                      ),
-                      SizedBox(height: 8.0),
-                      ...issueDetections.map((d) {
-                        final det = d as Map<String, dynamic>;
-                        final className = det['className'] as String;
-                        final confidence = det['confidence'] as double;
-                        final displayName = _formatClassName(className);
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: 8.0),
-                          child: Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(12.0),
-                            decoration: BoxDecoration(
-                              color: AppTheme.of(context).error.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8.0),
-                              border: Border.all(
-                                color: AppTheme.of(context).error.withOpacity(0.3),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.warning_amber_rounded,
-                                      color: AppTheme.of(context).error,
-                                      size: 20.0,
-                                    ),
-                                    SizedBox(width: 8.0),
-                                    Text(
-                                      displayName,
-                                      style: AppTheme.of(context).bodyMedium.override(
-                                            font: GoogleFonts.inter(
-                                              fontWeight: FontWeight.w500,
-                                              fontStyle: AppTheme.of(context).bodyMedium.fontStyle,
-                                            ),
-                                            letterSpacing: 0.0,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                                Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.of(context).error,
-                                    borderRadius: BorderRadius.circular(12.0),
-                                  ),
-                                  child: Text(
-                                    '${(confidence * 100).toStringAsFixed(0)}%',
-                                    style: AppTheme.of(context).bodySmall.override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight: FontWeight.w600,
-                                            fontStyle: AppTheme.of(context).bodySmall.fontStyle,
-                                          ),
-                                          color: Colors.white,
-                                          letterSpacing: 0.0,
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                ),
-              // No issues message
-              if (issueDetections.isEmpty)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(12.0),
-                    decoration: BoxDecoration(
-                      color: AppTheme.of(context).success.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8.0),
-                      border: Border.all(
-                        color: AppTheme.of(context).success.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.check_circle,
-                          color: AppTheme.of(context).success,
-                          size: 20.0,
-                        ),
-                        SizedBox(width: 8.0),
-                        Text(
-                          AppLocalizations.of(context).getText('sesd017' /* No issues detected */),
-                          style: AppTheme.of(context).bodyMedium.override(
-                                font: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w500,
-                                  fontStyle: AppTheme.of(context).bodyMedium.fontStyle,
-                                ),
-                                color: AppTheme.of(context).success,
-                                letterSpacing: 0.0,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              SizedBox(height: 16.0),
-              // Teeth Detected Section
-              if (teethDetections.isNotEmpty)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context).getText('sesd018' /* Teeth Detected */),
-                        style: AppTheme.of(context).titleSmall.override(
-                              font: GoogleFonts.inter(
-                                fontWeight: FontWeight.w600,
-                                fontStyle: AppTheme.of(context).titleSmall.fontStyle,
-                              ),
-                              letterSpacing: 0.0,
-                            ),
-                      ),
-                      SizedBox(height: 8.0),
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(12.0),
-                        decoration: BoxDecoration(
-                          color: AppTheme.of(context).primaryBackground,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
-                          children: teethDetections.map((d) {
-                            final det = d as Map<String, dynamic>;
-                            final className = det['className'] as String;
-                            final toothNumber = className.replaceFirst('tooth_', '');
-                            return Container(
-                              padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-                              decoration: BoxDecoration(
-                                color: AppTheme.of(context).success,
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              child: Text(
-                                '#$toothNumber',
-                                style: AppTheme.of(context).bodySmall.override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FontWeight.w600,
-                                        fontStyle: AppTheme.of(context).bodySmall.fontStyle,
-                                      ),
-                                      color: Colors.white,
-                                      letterSpacing: 0.0,
-                                    ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              SizedBox(height: 24.0),
-            ],
-          ),
-        ),
-      ),
+    return _ImageDetailSheet(
+      originalImage: originalImage,
+      diagnosedImage: diagnosedImage,
+      detections: detections,
     );
   }
 }

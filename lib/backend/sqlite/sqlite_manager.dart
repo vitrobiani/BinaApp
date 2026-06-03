@@ -234,6 +234,16 @@ class SQLiteManager {
         id: id,
       );
 
+  Future updateScanSessionNotes({
+    String? notes,
+    String? id,
+  }) =>
+      performUpdateScanSessionNotes(
+        _database,
+        notes: notes,
+        id: id,
+      );
+
   Future createChatConversation({
     String? id,
     String? familyMemberId,

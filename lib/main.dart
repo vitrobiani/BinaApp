@@ -1,6 +1,7 @@
 import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
@@ -13,6 +14,7 @@ import '/services/gemma_service.dart';
 import '/services/accessibility_settings_service.dart';
 import '/backend/sqlite/sqlite_manager.dart';
 import '/app_core/app_theme.dart';
+import '/bina_design/bina_design_tokens.dart';
 import 'app_core/app_util.dart';
 import 'app_core/internationalization.dart';
 import 'index.dart';
@@ -22,12 +24,28 @@ void main() async {
   GoRouter.optionURLReflectsImperativeAPIs = true;
   usePathUrlStrategy();
 
+  // Configure status bar to be transparent with dark icons (for light theme)
+  // This ensures status bar icons are visible on all devices including tablets
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark, // Dark icons for light background
+    statusBarBrightness: Brightness.light, // iOS: light status bar
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.dark,
+  ));
+
+  // Enable edge-to-edge mode for modern UI
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
   await SupaFlow.initialize();
 
   await SQLiteManager.initialize();
   await AppTheme.initialize();
   await AppLocalizations.initialize();
   await AccessibilitySettingsService.instance.init();
+
+  // Sync contrast level from settings to design tokens
+  BinaColors.setContrastLevel(AccessibilitySettingsService.instance.contrastLevel);
 
   // Start loading Gemma model in background (don't block app startup)
   // For large models like Gemma 4, this downloads from HuggingFace
@@ -66,7 +84,7 @@ class MyAppScrollBehavior extends MaterialScrollBehavior {
 }
 
 class _MyAppState extends State<MyApp> {
-  Locale? _locale;
+  Locale? _locale = AppLocalizations.getStoredLocale();
 
   ThemeMode _themeMode = AppTheme.themeMode;
 

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mjpeg_stream/mjpeg_stream.dart';
-import '/app_core/app_theme.dart';
-import '/app_core/app_util.dart';
-import '/app_core/app_widgets.dart';
+import '/bina_design/bina_design.dart';
 import '/services/mjpeg_capture_service.dart';
 
 class BinaCameraPreviewWidget extends StatefulWidget {
@@ -60,48 +57,67 @@ class _BinaCameraPreviewWidgetState extends State<BinaCameraPreviewWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
+      height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
-        color: AppTheme.of(context).secondaryBackground,
+        color: BinaColors.surface,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24.0),
-          topRight: Radius.circular(24.0),
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
         ),
       ),
       child: Column(
         children: [
           // Handle bar
           Padding(
-            padding: const EdgeInsets.only(top: 12.0),
+            padding: const EdgeInsets.only(top: 12),
             child: Container(
-              width: 40.0,
-              height: 4.0,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: AppTheme.of(context).alternate,
-                borderRadius: BorderRadius.circular(2.0),
+                color: BinaColors.lineStrong,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
 
           // Header
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Bina Camera Preview',
-                  style: AppTheme.of(context).headlineSmall.override(
-                        font: GoogleFonts.inter(),
-                        letterSpacing: 0.0,
-                      ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Bina Camera',
+                      style: BinaType.headlineSm,
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: BinaColors.success,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Connected · ${widget.cameraIP}',
+                          style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: Icon(
-                    Icons.close,
-                    color: AppTheme.of(context).secondaryText,
-                  ),
+                BinaIconButton(
+                  icon: Icons.close_rounded,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -111,19 +127,60 @@ class _BinaCameraPreviewWidgetState extends State<BinaCameraPreviewWidget> {
           // Stream preview
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppTheme.of(context).primaryBackground,
-                  borderRadius: BorderRadius.circular(16.0),
+                  color: BinaColors.surfaceSunken,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: BinaColors.line, width: 2),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16.0),
-                  child: MJPEGStreamScreen(
-                    streamUrl: streamUrl,
-                    fit: BoxFit.contain,
-                    showLiveIcon: true,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Stream
+                      MJPEGStreamScreen(
+                        streamUrl: streamUrl,
+                        fit: BoxFit.contain,
+                        showLiveIcon: true,
+                      ),
+                      // Live indicator overlay
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: BinaColors.error,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'LIVE',
+                                style: BinaType.labelSm.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -133,29 +190,25 @@ class _BinaCameraPreviewWidgetState extends State<BinaCameraPreviewWidget> {
           // Error message
           if (_errorMessage != null)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Container(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.of(context).error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8.0),
+                  color: BinaColors.error100,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      Icons.error_outline,
-                      color: AppTheme.of(context).error,
-                      size: 20.0,
+                      Icons.error_outline_rounded,
+                      color: BinaColors.error,
+                      size: 20,
                     ),
-                    const SizedBox(width: 8.0),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         _errorMessage!,
-                        style: AppTheme.of(context).bodySmall.override(
-                              font: GoogleFonts.inter(),
-                              color: AppTheme.of(context).error,
-                              letterSpacing: 0.0,
-                            ),
+                        style: BinaType.bodySm.copyWith(color: BinaColors.error),
                       ),
                     ),
                   ],
@@ -165,64 +218,112 @@ class _BinaCameraPreviewWidgetState extends State<BinaCameraPreviewWidget> {
 
           // Capture button
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
             child: Row(
               children: [
+                // Cancel button
                 Expanded(
-                  child: AppButtonWidget(
+                  child: BinaButton(
+                    label: 'Cancel',
+                    variant: BinaButtonVariant.secondary,
                     onPressed: () => Navigator.of(context).pop(),
-                    text: 'Cancel',
-                    options: AppButtonOptions(
-                      height: 56.0,
-                      color: AppTheme.of(context).primaryBackground,
-                      textStyle: AppTheme.of(context).titleSmall.override(
-                            font: GoogleFonts.inter(),
-                            color: AppTheme.of(context).primaryText,
-                            letterSpacing: 0.0,
-                          ),
-                      elevation: 0.0,
-                      borderSide: BorderSide(
-                        color: AppTheme.of(context).alternate,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
                   ),
                 ),
-                const SizedBox(width: 16.0),
+                const SizedBox(width: 12),
+                // Capture button
                 Expanded(
                   flex: 2,
-                  child: AppButtonWidget(
-                    onPressed: _isCapturing ? null : _capturePhoto,
-                    text: _isCapturing ? 'Capturing...' : 'Capture Photo',
-                    icon: _isCapturing
-                        ? null
-                        : Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 24.0,
-                          ),
-                    options: AppButtonOptions(
-                      height: 56.0,
-                      color: AppTheme.of(context).primary,
-                      textStyle: AppTheme.of(context).titleSmall.override(
-                            font: GoogleFonts.inter(),
-                            color: Colors.white,
-                            letterSpacing: 0.0,
-                          ),
-                      elevation: 3.0,
-                      borderRadius: BorderRadius.circular(12.0),
-                      disabledColor: AppTheme.of(context).alternate,
-                    ),
+                  child: _CaptureButton(
+                    isCapturing: _isCapturing,
+                    onPressed: _capturePhoto,
                   ),
                 ),
               ],
             ),
           ),
-
-          // Bottom safe area
-          SizedBox(height: MediaQuery.of(context).padding.bottom),
         ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CAPTURE BUTTON
+// ═══════════════════════════════════════════════════════════════
+
+class _CaptureButton extends StatefulWidget {
+  const _CaptureButton({
+    required this.isCapturing,
+    required this.onPressed,
+  });
+
+  final bool isCapturing;
+  final VoidCallback onPressed;
+
+  @override
+  State<_CaptureButton> createState() => _CaptureButtonState();
+}
+
+class _CaptureButtonState extends State<_CaptureButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isEnabled = !widget.isCapturing;
+
+    return GestureDetector(
+      onTapDown: isEnabled ? (_) => setState(() => _isPressed = true) : null,
+      onTapUp: isEnabled ? (_) => setState(() => _isPressed = false) : null,
+      onTapCancel: isEnabled ? () => setState(() => _isPressed = false) : null,
+      onTap: isEnabled ? widget.onPressed : null,
+      child: AnimatedContainer(
+        duration: BinaMotion.d1,
+        height: 56,
+        transform: _isPressed
+            ? (Matrix4.identity()..scale(0.97, 0.97))
+            : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: isEnabled ? BinaColors.gradHero : null,
+          color: isEnabled ? null : BinaColors.surfaceSunken,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isEnabled ? BinaElevation.shHero : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (widget.isCapturing) ...[
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Capturing...',
+                style: BinaType.labelLg.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ] else ...[
+              const Icon(
+                Icons.camera_alt_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Capture Photo',
+                style: BinaType.labelLg.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

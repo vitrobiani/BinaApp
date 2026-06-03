@@ -5,9 +5,7 @@ import 'package:provider/provider.dart';
 
 import '/backend/schema/structs/index.dart';
 import '/auth/base_auth_user_provider.dart';
-import '/app_state.dart';
 
-import '/main.dart';
 import '/app_core/app_util.dart';
 
 import '/index.dart';
@@ -79,34 +77,31 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       refreshListenable: appStateNotifier,
       navigatorKey: appNavigatorKey,
       errorBuilder: (context, state) =>
-          appStateNotifier.loggedIn ? NavBarPage() : Auth2LoginWidget(),
+          appStateNotifier.loggedIn ? MainHomeWidget() : Auth2LoginWidget(),
       routes: [
         AppRoute(
           name: '_initialize',
           path: '/',
           builder: (context, _) =>
-              appStateNotifier.loggedIn ? NavBarPage() : Auth2LoginWidget(),
+              appStateNotifier.loggedIn ? MainHomeWidget() : Auth2LoginWidget(),
           routes: [
             AppRoute(
               name: MainHomeWidget.routeName,
               path: MainHomeWidget.routePath,
-              builder: (context, params) => params.isEmpty
-                  ? NavBarPage(initialPage: 'Main_Home')
-                  : MainHomeWidget(),
+              builder: (context, params) => MainHomeWidget(),
             ),
             AppRoute(
               name: MainDIagnosticsWidget.routeName,
               path: MainDIagnosticsWidget.routePath,
-              builder: (context, params) => params.isEmpty
-                  ? NavBarPage(initialPage: 'Main_DIagnostics')
-                  : MainDIagnosticsWidget(),
+              builder: (context, params) => MainDIagnosticsWidget(
+                preselectedMemberId: params.getParam('preselectedMemberId', ParamType.String),
+                preselectedMemberName: params.getParam('preselectedMemberName', ParamType.String),
+              ),
             ),
             AppRoute(
               name: MainDiagnoseWidget.routeName,
               path: MainDiagnoseWidget.routePath,
-              builder: (context, params) => params.isEmpty
-                  ? NavBarPage(initialPage: 'Main_Diagnose')
-                  : MainDiagnoseWidget(),
+              builder: (context, params) => MainDiagnoseWidget(),
             ),
             AppRoute(
               name: FamilyWidget.routeName,
@@ -116,9 +111,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
             AppRoute(
               name: MainProfilePageWidget.routeName,
               path: MainProfilePageWidget.routePath,
-              builder: (context, params) => params.isEmpty
-                  ? NavBarPage(initialPage: 'Main_profilePage')
-                  : MainProfilePageWidget(),
+              builder: (context, params) => MainProfilePageWidget(),
             ),
             AppRoute(
               name: CameraWidget.routeName,
@@ -219,6 +212,20 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                   params.getParam('familyMemberId', ParamType.String)),
             ),
             AppRoute(
+              name: AccessibilityWidget.routeName,
+              path: AccessibilityWidget.routePath,
+              builder: (context, params) => AccessibilityWidget(),
+            ),
+            AppRoute(
+              name: MemberDetailWidget.routeName,
+              path: MemberDetailWidget.routePath,
+              builder: (context, params) => MemberDetailWidget(
+                member: params.getParam('member', ParamType.DataStruct,
+                    structBuilder: FamilyMemberStruct.fromSerializableMap) ??
+                    FamilyMemberStruct(),
+              ),
+            ),
+            AppRoute(
               name: ChatRoomWidget.routeName,
               path: ChatRoomWidget.routePath,
               builder: (context, params) => ChatRoomWidget(
@@ -249,6 +256,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               name: LanguageSettingsWidget.routeName,
               path: LanguageSettingsWidget.routePath,
               builder: (context, params) => LanguageSettingsWidget(),
+            ),
+            AppRoute(
+              name: AccountSettingsWidget.routeName,
+              path: AccountSettingsWidget.routePath,
+              builder: (context, params) => AccountSettingsWidget(),
             ),
           ].map((r) => r.toRoute(appStateNotifier)).toList(),
         ),
