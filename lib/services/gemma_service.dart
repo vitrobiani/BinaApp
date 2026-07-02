@@ -105,6 +105,25 @@ class GemmaService {
   bool get requiresDownload => _selectedModel.requiresDownload;
   GemmaModel get currentModel => _selectedModel;
 
+  /// Reset the model after an error (e.g., LiteRT tensor buffer errors)
+  /// This tries to get a fresh model instance without re-downloading
+  Future<void> resetModel() async {
+    debugPrint('GemmaService: Resetting model after error...');
+    try {
+      // Try to get a fresh model instance
+      _model = await FlutterGemma.getActiveModel(
+        maxTokens: _selectedModel.maxTokens,
+      );
+      _modelLoaded = true;
+      debugPrint('GemmaService: Model reset successful');
+    } catch (e) {
+      debugPrint('GemmaService: Model reset failed: $e');
+      // Mark as not loaded so it can be reinitialized
+      _modelLoaded = false;
+      _model = null;
+    }
+  }
+
   /// Initialize flutter_gemma, install/download model, and load it.
   /// Call once at app startup. Safe to call multiple times.
   ///
@@ -201,21 +220,36 @@ class GemmaService {
   }
 
   Future<String> generateResponse(String prompt) async {
-    if (!_modelLoaded || _model == null) return '';
+    if (!_modelLoaded) {
+      debugPrint('GemmaService: Model not loaded!');
+      return '[ERROR: Model not loaded]';
+    }
+    if (_model == null) {
+      debugPrint('GemmaService: Model is null!');
+      return '[ERROR: Model is null]';
+    }
 
     try {
+      debugPrint('GemmaService: Creating chat...');
       final chat = await _model!.createChat(
         temperature: 0.7,
         topK: 40,
       );
 
+      debugPrint('GemmaService: Adding query (${prompt.length} chars)...');
       await chat.addQuery(Message.text(text: prompt, isUser: true));
-      final response = await chat.generateChatResponse();
 
-      return _extractResponseText(response);
-    } catch (e) {
+      debugPrint('GemmaService: Generating response...');
+      final response = await chat.generateChatResponse();
+      debugPrint('GemmaService: Got response type: ${response.runtimeType}');
+
+      final text = _extractResponseText(response);
+      debugPrint('GemmaService: Extracted text (${text.length} chars): ${text.substring(0, text.length.clamp(0, 100))}...');
+      return text;
+    } catch (e, stack) {
       debugPrint('GemmaService generateResponse error: $e');
-      return '';
+      debugPrint('Stack: $stack');
+      return '[ERROR: $e]';
     }
   }
 

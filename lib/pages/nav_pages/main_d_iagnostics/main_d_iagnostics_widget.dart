@@ -253,16 +253,29 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
     }
 
     // Otherwise use phone camera
-    final picker = ImagePicker();
-    final image = await picker.pickImage(
-      source: ImageSource.camera,
-      maxWidth: 1920,
-      maxHeight: 1920,
-      imageQuality: 90,
-    );
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 90,
+      );
 
-    if (image != null) {
-      await _processImageFromPath(image.path);
+      if (image != null) {
+        await _processImageFromPath(image.path);
+      }
+    } catch (e, stack) {
+      debugPrint('Camera capture error: $e');
+      debugPrint('Stack: $stack');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Camera error: $e'),
+            backgroundColor: BinaColors.error,
+          ),
+        );
+      }
     }
   }
 

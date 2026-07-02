@@ -2,7 +2,7 @@ import '/app_core/app_util.dart';
 import '/bina_design/bina_design.dart';
 import '/services/gemma_service.dart';
 import '/services/chat_manager.dart';
-import '/services/llm_prompts.dart';
+import '/services/gemma_agent/index.dart';
 import '/components/gemma_download_progress/gemma_download_progress_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -93,29 +93,41 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
     });
 
     try {
-      // Build a single-turn prompt with recent context.
-      final conversation =
-          ChatManager.instance.getConversation(widget.conversationId!);
-      if (conversation == null) return;
+      // Get the current member context from the conversation
+      final conversation = ChatManager.instance.getConversation(widget.conversationId!);
+      final familyMemberId = conversation?.familyMemberId;
+      debugPrint('Conversation ID: ${widget.conversationId}');
+      debugPrint('Family Member ID: $familyMemberId');
 
-      final recentMessages = conversation.messages.length > 8
-          ? conversation.messages.sublist(conversation.messages.length - 8)
-          : conversation.messages;
-
-      final contextBuffer = StringBuffer();
-      contextBuffer.writeln(LlmPrompts.chatbotSystemPrompt);
-      contextBuffer.writeln();
-      for (final msg in recentMessages) {
-        final role = msg.role == 'user' ? 'User' : 'Assistant';
-        contextBuffer.writeln('$role: ${msg.content}');
+      // Find the member name from AppState
+      String? memberName;
+      if (familyMemberId != null) {
+        final family = AppState().UserSession.family;
+        final member = family.where((m) => m.id == familyMemberId).firstOrNull;
+        memberName = member?.name;
+        debugPrint('Member name: $memberName');
+      } else {
+        debugPrint('WARNING: No family member ID - self commands will fail');
       }
-      contextBuffer.writeln('Assistant:');
 
-      final response =
-          await GemmaService.instance.generateResponse(contextBuffer.toString());
+      // Use the agent service for intelligent responses
+      final agentResponse = await GemmaAgentService.instance.processMessage(
+        userMessage: text,
+        context: context,
+        currentMemberId: familyMemberId,
+        currentMemberName: memberName,
+      );
 
-      final assistantContent =
-          response.isNotEmpty ? response : 'Sorry, I could not generate a response.';
+      String assistantContent;
+      if (agentResponse.hasError) {
+        assistantContent = 'Error: ${agentResponse.error}';
+        debugPrint('Agent error: ${agentResponse.error}');
+      } else if (agentResponse.textResponse.isNotEmpty) {
+        assistantContent = agentResponse.textResponse;
+      } else {
+        assistantContent = 'Sorry, I could not generate a response.';
+        debugPrint('Empty response from Gemma');
+      }
 
       ChatManager.instance.addMessage(
         widget.conversationId!,
@@ -127,6 +139,24 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
           timestamp: DateTime.now(),
         ),
       );
+
+      // Handle navigation intent if present
+      if (agentResponse.hasNavigation && mounted) {
+        // Small delay to let the message appear first
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          NavigationExecutor.navigate(context, agentResponse.navigationIntent!);
+        }
+      }
+
+      // Handle action intent if present
+      if (agentResponse.hasAction && mounted) {
+        // Small delay to let the message appear first
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          ActionExecutor.performAction(context, agentResponse.actionIntent!);
+        }
+      }
     } catch (e) {
       ChatManager.instance.addMessage(
         widget.conversationId!,

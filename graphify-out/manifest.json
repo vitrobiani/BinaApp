@@ -1,0 +1,1267 @@
+{
+  "/home/vitrobiani/Documents/BinaApp/test/widget_test.dart": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "430d6d9c1f55349691966f1856f0ea60",
+    "semantic_hash": "430d6d9c1f55349691966f1856f0ea60"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Flutter/GeneratedPluginRegistrant.swift": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "93854d079cf2b0792c17a2b745ff0ade",
+    "semantic_hash": "93854d079cf2b0792c17a2b745ff0ade"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Flutter/ephemeral/flutter_export_environment.sh": {
+    "mtime": 1778587325.704983,
+    "ast_hash": "d501f680ea422d61bb15d5064125e1c2",
+    "semantic_hash": "d501f680ea422d61bb15d5064125e1c2"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Runner/MainFlutterWindow.swift": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "da69378dd4558360d3f2132c07003750",
+    "semantic_hash": "da69378dd4558360d3f2132c07003750"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Runner/AppDelegate.swift": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "ce90ac27873ef28bc53a7dbc142459e5",
+    "semantic_hash": "ce90ac27873ef28bc53a7dbc142459e5"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "5bd47c3ef1d1a261037c87fb3ddb9cfd",
+    "semantic_hash": "5bd47c3ef1d1a261037c87fb3ddb9cfd"
+  },
+  "/home/vitrobiani/Documents/BinaApp/web/flutter_bootstrap.js": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "214f29b2c80b12594062767d0a97667c",
+    "semantic_hash": "214f29b2c80b12594062767d0a97667c"
+  },
+  "/home/vitrobiani/Documents/BinaApp/web/manifest.json": {
+    "mtime": 1776612086.5989897,
+    "ast_hash": "077fa05ae257dbda2ed99b360750d1f0",
+    "semantic_hash": "077fa05ae257dbda2ed99b360750d1f0"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/settings.gradle": {
+    "mtime": 1776612086.5399892,
+    "ast_hash": "63a7ffbf76b51006c1d49793aef4ecf9",
+    "semantic_hash": "63a7ffbf76b51006c1d49793aef4ecf9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/gradlew": {
+    "mtime": 1776636383.2833698,
+    "ast_hash": "9019a9595929a33e1f6dcff884853845",
+    "semantic_hash": "9019a9595929a33e1f6dcff884853845"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/build.gradle": {
+    "mtime": 1776612086.5399892,
+    "ast_hash": "8a8dabc51fca745c388be80acb5f26dc",
+    "semantic_hash": "8a8dabc51fca745c388be80acb5f26dc"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/app/build.gradle": {
+    "mtime": 1776612086.5389893,
+    "ast_hash": "dd085b07cf8211a7d91f9d67878f37af",
+    "semantic_hash": "dd085b07cf8211a7d91f9d67878f37af"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java": {
+    "mtime": 1777935450.8170576,
+    "ast_hash": "8f3cf2d17ece4176770aeecd15057c03",
+    "semantic_hash": "8f3cf2d17ece4176770aeecd15057c03"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/app/src/main/kotlin/com/example/my_project/WifiDirectPlugin.kt": {
+    "mtime": 1778252058.0537865,
+    "ast_hash": "eaee8f692b4b065bdc309d33092b9cb4",
+    "semantic_hash": "eaee8f692b4b065bdc309d33092b9cb4"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/app/src/main/kotlin/com/example/my_project/MainActivity.kt": {
+    "mtime": 1778252058.0537865,
+    "ast_hash": "57598be00574f73fec4e34df8acaf312",
+    "semantic_hash": "57598be00574f73fec4e34df8acaf312"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/runner/flutter_window.cpp": {
+    "mtime": 1776612086.59999,
+    "ast_hash": "33cfe7edb15df580c3b9f20c12337c60",
+    "semantic_hash": "33cfe7edb15df580c3b9f20c12337c60"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/runner/utils.cpp": {
+    "mtime": 1776612086.59999,
+    "ast_hash": "871560f4eecc7e1ac44398a0ee748702",
+    "semantic_hash": "871560f4eecc7e1ac44398a0ee748702"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/runner/win32_window.h": {
+    "mtime": 1776612086.59999,
+    "ast_hash": "fb1ab730377ad5aa5c1dee1cfdc5a093",
+    "semantic_hash": "fb1ab730377ad5aa5c1dee1cfdc5a093"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/runner/win32_window.cpp": {
+    "mtime": 1776612086.59999,
+    "ast_hash": "5912f5ea9be16f88da68751ea557e86a",
+    "semantic_hash": "5912f5ea9be16f88da68751ea557e86a"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/runner/main.cpp": {
+    "mtime": 1776612086.59999,
+    "ast_hash": "eec8a2b8b158fcafe26c95e0e51582f5",
+    "semantic_hash": "eec8a2b8b158fcafe26c95e0e51582f5"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/runner/resource.h": {
+    "mtime": 1776612086.59999,
+    "ast_hash": "c8f809a4f8d3f2f625e358fd90f72fee",
+    "semantic_hash": "c8f809a4f8d3f2f625e358fd90f72fee"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/runner/flutter_window.h": {
+    "mtime": 1776612086.59999,
+    "ast_hash": "79bea736711adda00c49419a39a4a0b4",
+    "semantic_hash": "79bea736711adda00c49419a39a4a0b4"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/runner/utils.h": {
+    "mtime": 1776612086.59999,
+    "ast_hash": "c741fb9cddbf3a62f4688b6cca39ddcc",
+    "semantic_hash": "c741fb9cddbf3a62f4688b6cca39ddcc"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/flutter/generated_plugin_registrant.cc": {
+    "mtime": 1778252058.0547864,
+    "ast_hash": "d9824e167334a34cab3987110772d3ab",
+    "semantic_hash": "d9824e167334a34cab3987110772d3ab"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/flutter/generated_plugin_registrant.h": {
+    "mtime": 1776612086.5989897,
+    "ast_hash": "0ea33875f9f8e118f9c2ded03e2e2835",
+    "semantic_hash": "0ea33875f9f8e118f9c2ded03e2e2835"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/ImageNotification/NotificationService.swift": {
+    "mtime": 1776612086.5879898,
+    "ast_hash": "01984e30ac009e70ca6ef005561ea6d8",
+    "semantic_hash": "01984e30ac009e70ca6ef005561ea6d8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Flutter/flutter_export_environment.sh": {
+    "mtime": 1778587325.698983,
+    "ast_hash": "a56dabe30dd1c8c4facd846049ff2943",
+    "semantic_hash": "a56dabe30dd1c8c4facd846049ff2943"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Flutter/ephemeral/flutter_lldb_helper.py": {
+    "mtime": 1778587325.695983,
+    "ast_hash": "98fc75412162af387e2e3461e4e58094",
+    "semantic_hash": "98fc75412162af387e2e3461e4e58094"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/GeneratedPluginRegistrant.m": {
+    "mtime": 1777935450.8240578,
+    "ast_hash": "a53b48b4abd83872970ede5c27735177",
+    "semantic_hash": "a53b48b4abd83872970ede5c27735177"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/AppDelegate.swift": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "4744abae3385c4c3b8fadac0694fb628",
+    "semantic_hash": "4744abae3385c4c3b8fadac0694fb628"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Runner-Bridging-Header.h": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "e07862ac930ed4d8479185d52c6cc66d",
+    "semantic_hash": "e07862ac930ed4d8479185d52c6cc66d"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/GeneratedPluginRegistrant.h": {
+    "mtime": 1776635684.8279645,
+    "ast_hash": "decb9041b5e91a07e66f4664e5dac408",
+    "semantic_hash": "decb9041b5e91a07e66f4664e5dac408"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "770f4f65e02ca2fc57f46f4f4148d15d",
+    "semantic_hash": "770f4f65e02ca2fc57f46f4f4148d15d"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "c3cdf9688b604d14f2e76a8287e16167",
+    "semantic_hash": "c3cdf9688b604d14f2e76a8287e16167"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_state.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "cfd8a046cf2debde091896cee529f67f",
+    "semantic_hash": "cfd8a046cf2debde091896cee529f67f"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/main.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "98ac1a4166240b4606449ebae55e66c9",
+    "semantic_hash": "98ac1a4166240b4606449ebae55e66c9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/index.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "76d46011f6ea661f599cc80daa7b93bf",
+    "semantic_hash": "76d46011f6ea661f599cc80daa7b93bf"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_constants.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "9cb4ff999f7f5377838161fb06f70499",
+    "semantic_hash": "9cb4ff999f7f5377838161fb06f70499"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/nav_pages/main_diagnose/main_diagnose_model.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "5289471fd3e5a8d290f6cbd9986a69b2",
+    "semantic_hash": "5289471fd3e5a8d290f6cbd9986a69b2"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/nav_pages/main_diagnose/main_diagnose_widget.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "77e68eda7163b96b32ef2291f912bcde",
+    "semantic_hash": "77e68eda7163b96b32ef2291f912bcde"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/nav_pages/web_nav/web_nav_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "dcd85810af37553a2012539af79b332b",
+    "semantic_hash": "dcd85810af37553a2012539af79b332b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/nav_pages/web_nav/web_nav_widget.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "6ca5b3afabc9770b6efa250e5bc3b7ee",
+    "semantic_hash": "6ca5b3afabc9770b6efa250e5bc3b7ee"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/nav_pages/main_home/main_home_widget.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "b985ef7766329cf8dbb60ac64be062a4",
+    "semantic_hash": "b985ef7766329cf8dbb60ac64be062a4"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/nav_pages/main_home/main_home_model.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "7cf10c6778ad1bb02211a55737c23968",
+    "semantic_hash": "7cf10c6778ad1bb02211a55737c23968"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/nav_pages/main_d_iagnostics/main_d_iagnostics_widget.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "38e9ad6da1daa548798de8184e450b59",
+    "semantic_hash": "38e9ad6da1daa548798de8184e450b59"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/nav_pages/main_d_iagnostics/main_d_iagnostics_model.dart": {
+    "mtime": 1777414343.3336494,
+    "ast_hash": "5a1822982b2af022166fe593f81e516e",
+    "semantic_hash": "5a1822982b2af022166fe593f81e516e"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/nav_pages/main_profile_page/main_profile_page_widget.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "6e561316071e9caf5f0f51bac0e7a63b",
+    "semantic_hash": "6e561316071e9caf5f0f51bac0e7a63b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/nav_pages/main_profile_page/main_profile_page_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "85c82a4b9d46fea045a6e30fe9422dc5",
+    "semantic_hash": "85c82a4b9d46fea045a6e30fe9422dc5"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/auth_2_create_profile/auth2_create_profile_widget.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "5972ff66cc439aee1cfdc164b0819e31",
+    "semantic_hash": "5972ff66cc439aee1cfdc164b0819e31"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/auth_2_create_profile/auth2_create_profile_model.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "fd00478baa368191240914a5efd68dd9",
+    "semantic_hash": "fd00478baa368191240914a5efd68dd9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/auth_2_edit_profile/auth2_edit_profile_model.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "f298fcc518a395c252c9e675e2825bf6",
+    "semantic_hash": "f298fcc518a395c252c9e675e2825bf6"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/auth_2_edit_profile/auth2_edit_profile_widget.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "b6b3155299a17284db0086c770139fc3",
+    "semantic_hash": "b6b3155299a17284db0086c770139fc3"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/edit_profile_auth_2/edit_profile_auth2_model.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "3e34a45458476db28a78e6a0ae4f240c",
+    "semantic_hash": "3e34a45458476db28a78e6a0ae4f240c"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/edit_profile_auth_2/edit_profile_auth2_widget.dart": {
+    "mtime": 1780523950.3016,
+    "ast_hash": "8a08d33300d8c9cb4561dee1cff00c9f",
+    "semantic_hash": "8a08d33300d8c9cb4561dee1cff00c9f"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/auth_2_login/auth2_login_widget.dart": {
+    "mtime": 1780523950.3016,
+    "ast_hash": "7e0bc683528ac44606ce58a67158bbe7",
+    "semantic_hash": "7e0bc683528ac44606ce58a67158bbe7"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/auth_2_login/auth2_login_model.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "ff552cc671d9e881b938ae9fda67951a",
+    "semantic_hash": "ff552cc671d9e881b938ae9fda67951a"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/auth_2_profile/auth2_profile_widget.dart": {
+    "mtime": 1780523950.3016,
+    "ast_hash": "a14efc25bcbfa4a6d73f18e5b13a02d8",
+    "semantic_hash": "a14efc25bcbfa4a6d73f18e5b13a02d8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/auth_2_profile/auth2_profile_model.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "9ed716f1efb079e4cda1a28af6a77c8e",
+    "semantic_hash": "9ed716f1efb079e4cda1a28af6a77c8e"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/auth_2_create/auth2_create_widget.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "903c2c76fbacb34bb753e2b78957b62e",
+    "semantic_hash": "903c2c76fbacb34bb753e2b78957b62e"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_profile_creation/auth_2_create/auth2_create_model.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "365157a5cf6d728dae32d6036cc38e1b",
+    "semantic_hash": "365157a5cf6d728dae32d6036cc38e1b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/session_details_page_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "544b399b4df1065e64dcc43f4fe73111",
+    "semantic_hash": "544b399b4df1065e64dcc43f4fe73111"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/session_details_page.dart": {
+    "mtime": 1780523950.3036,
+    "ast_hash": "d7a13b2b027c6db5e73fa2176bce770f",
+    "semantic_hash": "d7a13b2b027c6db5e73fa2176bce770f"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/diagnosis_plack/diagnosis_plack_widget.dart": {
+    "mtime": 1780523950.3036,
+    "ast_hash": "5e9253a13564046cde2d4b03c0293fde",
+    "semantic_hash": "5e9253a13564046cde2d4b03c0293fde"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/diagnosis_plack/diagnosis_plack_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "e55b614d7999a4351e21c75ee7131eba",
+    "semantic_hash": "e55b614d7999a4351e21c75ee7131eba"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/diagnosis_cavity/diagnosis_cavity_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "75bd73e3424704076161ca35bb389628",
+    "semantic_hash": "75bd73e3424704076161ca35bb389628"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/diagnosis_cavity/diagnosis_cavity_widget.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "5819d7aca70b3b864ae371ad67ffb5bd",
+    "semantic_hash": "5819d7aca70b3b864ae371ad67ffb5bd"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/session_summary/session_summary_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "2c039de7da80efba55d4f7e0ae74ca94",
+    "semantic_hash": "2c039de7da80efba55d4f7e0ae74ca94"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/session_summary/session_summary_widget.dart": {
+    "mtime": 1780523950.3036,
+    "ast_hash": "146d3162826e02eace5fd46bb035ecaa",
+    "semantic_hash": "146d3162826e02eace5fd46bb035ecaa"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/diagnosis_plack_cavity/diagnosis_plack_cavity_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "81829a73d5975af10b51be212c1b1462",
+    "semantic_hash": "81829a73d5975af10b51be212c1b1462"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/diagnosis_plack_cavity/diagnosis_plack_cavity_widget.dart": {
+    "mtime": 1780523950.3036,
+    "ast_hash": "e4f376b8addc898931289d3732be181a",
+    "semantic_hash": "e4f376b8addc898931289d3732be181a"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/camera_connection/camera_connection_widget.dart": {
+    "mtime": 1780524503.1384413,
+    "ast_hash": "33a3115468da003e595f9cae78adc8e2",
+    "semantic_hash": "33a3115468da003e595f9cae78adc8e2"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/photo_session/photo_session_widget.dart": {
+    "mtime": 1780523950.3036,
+    "ast_hash": "38045f4cf05489816764565be59597ad",
+    "semantic_hash": "38045f4cf05489816764565be59597ad"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/photo_session/photo_session_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "68ab779df23afbed5540acbbe5ec1687",
+    "semantic_hash": "68ab779df23afbed5540acbbe5ec1687"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/diagnosis_good/diagnosis_good_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "c2dc33b21cd603e74f29a8725aeb0717",
+    "semantic_hash": "c2dc33b21cd603e74f29a8725aeb0717"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/diagnosis_good/diagnosis_good_widget.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "7c26eb5dd5e84368f8866285845eee2e",
+    "semantic_hash": "7c26eb5dd5e84368f8866285845eee2e"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/camera/camera_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "9a1f3ed7ff6e51fc41fdb2e51095201e",
+    "semantic_hash": "9a1f3ed7ff6e51fc41fdb2e51095201e"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/camera/camera_widget.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "1883a25fde6fc466985f2de7fbf40a14",
+    "semantic_hash": "1883a25fde6fc466985f2de7fbf40a14"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/diagnosis_result/diagnosis_result_widget.dart": {
+    "mtime": 1780523950.3036,
+    "ast_hash": "d7ca1ec3b218c88ddaba766d60ef5d4a",
+    "semantic_hash": "d7ca1ec3b218c88ddaba766d60ef5d4a"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/other_pages/diagnosis_result/diagnosis_result_model.dart": {
+    "mtime": 1776612086.5949898,
+    "ast_hash": "e10f8fe9da1a9e1cc4bce2461de901fc",
+    "semantic_hash": "e10f8fe9da1a9e1cc4bce2461de901fc"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/accessibility_pages/language_settings/language_settings_widget.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "3d57487913123a98760aaf5ce8f182d9",
+    "semantic_hash": "3d57487913123a98760aaf5ce8f182d9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/accessibility_pages/language_settings/language_settings_model.dart": {
+    "mtime": 1778535433.6001172,
+    "ast_hash": "75dc320e89f305113ad329696a971c59",
+    "semantic_hash": "75dc320e89f305113ad329696a971c59"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/accessibility_pages/theme_settings/theme_settings_widget.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "57c3896abe36eaab9d1fdf72eaeb2628",
+    "semantic_hash": "57c3896abe36eaab9d1fdf72eaeb2628"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/accessibility_pages/theme_settings/theme_settings_model.dart": {
+    "mtime": 1778535433.6011171,
+    "ast_hash": "f0cb001f01af2b615de1bdc2faec6e33",
+    "semantic_hash": "f0cb001f01af2b615de1bdc2faec6e33"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/accessibility_pages/text_settings/text_settings_model.dart": {
+    "mtime": 1778535433.6001172,
+    "ast_hash": "8efcfbca38f412fe8279a62257cd389a",
+    "semantic_hash": "8efcfbca38f412fe8279a62257cd389a"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/accessibility_pages/text_settings/text_settings_widget.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "1a973f50cc0ce5b544b871f7431ae28a",
+    "semantic_hash": "1a973f50cc0ce5b544b871f7431ae28a"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/accessibility_pages/help_support/help_support_model.dart": {
+    "mtime": 1778535433.6001172,
+    "ast_hash": "294f108ff62055019293ca9ff860c8dc",
+    "semantic_hash": "294f108ff62055019293ca9ff860c8dc"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/accessibility_pages/help_support/help_support_widget.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "40c3553e2c746f92531bc4b3e78e1f2f",
+    "semantic_hash": "40c3553e2c746f92531bc4b3e78e1f2f"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/chatbot_pages/chat_history/chat_history_widget.dart": {
+    "mtime": 1780680157.6774244,
+    "ast_hash": "783658b025c2a1f4b800e9a90fb49d77",
+    "semantic_hash": "783658b025c2a1f4b800e9a90fb49d77"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/chatbot_pages/chat_history/chat_history_model.dart": {
+    "mtime": 1780523950.3016,
+    "ast_hash": "5a51f7d9629ad49cfa7df01a07c1667b",
+    "semantic_hash": "5a51f7d9629ad49cfa7df01a07c1667b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/chatbot_pages/chat_room/chat_room_model.dart": {
+    "mtime": 1776612086.5939898,
+    "ast_hash": "905742f5e18198d3c90981445dc19617",
+    "semantic_hash": "905742f5e18198d3c90981445dc19617"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/chatbot_pages/chat_room/chat_room_widget.dart": {
+    "mtime": 1780680193.0868158,
+    "ast_hash": "f2b1ae8e5cb8d821185722e5f8b5242c",
+    "semantic_hash": "f2b1ae8e5cb8d821185722e5f8b5242c"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/family/family_member/family_member_model.dart": {
+    "mtime": 1776612086.5939898,
+    "ast_hash": "2506c14bd1bc171eb3ee08fa0e1f5fd2",
+    "semantic_hash": "2506c14bd1bc171eb3ee08fa0e1f5fd2"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/family/family_member/family_member_widget.dart": {
+    "mtime": 1780523950.3016,
+    "ast_hash": "98c98450248b219fbf65086c70efb341",
+    "semantic_hash": "98c98450248b219fbf65086c70efb341"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/family/member_detail/member_detail_widget.dart": {
+    "mtime": 1780523950.3026,
+    "ast_hash": "b082317ef4569729237cc16845f58d8b",
+    "semantic_hash": "b082317ef4569729237cc16845f58d8b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/family/member_detail/member_detail_model.dart": {
+    "mtime": 1780523950.3016,
+    "ast_hash": "f396a8cd9461455eaa5cb1942e17b6f3",
+    "semantic_hash": "f396a8cd9461455eaa5cb1942e17b6f3"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/family/family/family_model.dart": {
+    "mtime": 1780523950.3016,
+    "ast_hash": "1c42a20d2055dbebefcf9e3cc6fd054e",
+    "semantic_hash": "1c42a20d2055dbebefcf9e3cc6fd054e"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/family/family/family_widget.dart": {
+    "mtime": 1780523950.3016,
+    "ast_hash": "ade2a30e424fb6e99e10bdde8638df38",
+    "semantic_hash": "ade2a30e424fb6e99e10bdde8638df38"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_settings/account_settings_widget.dart": {
+    "mtime": 1780523950.3016,
+    "ast_hash": "9745fdf7ebbe5378a7d801f11b9d6800",
+    "semantic_hash": "9745fdf7ebbe5378a7d801f11b9d6800"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/pages/account_settings/account_settings_model.dart": {
+    "mtime": 1780523950.3016,
+    "ast_hash": "f9d193d76c6efa6f5457a445b7867e63",
+    "semantic_hash": "f9d193d76c6efa6f5457a445b7867e63"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/app_util.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "5a74ac5c06ed8a9beabd89d5e2ce0766",
+    "semantic_hash": "5a74ac5c06ed8a9beabd89d5e2ce0766"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/place.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "9b5d06a760fd2fc856b60ae2365bd4ea",
+    "semantic_hash": "9b5d06a760fd2fc856b60ae2365bd4ea"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/instant_timer.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "4796c0b8890c85aaadbff42a08c20931",
+    "semantic_hash": "4796c0b8890c85aaadbff42a08c20931"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/custom_functions.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "2a2ba2b5d16b0103d09e1b64d63ee653",
+    "semantic_hash": "2a2ba2b5d16b0103d09e1b64d63ee653"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/keep_alive_wrapper.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "af2f46f8c54d96c361300c459054bf28",
+    "semantic_hash": "af2f46f8c54d96c361300c459054bf28"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/app_theme.dart": {
+    "mtime": 1778535433.5991173,
+    "ast_hash": "618c0332e5e0325f4bd8d9f7f7d5f53b",
+    "semantic_hash": "618c0332e5e0325f4bd8d9f7f7d5f53b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/text_scale.dart": {
+    "mtime": 1778535433.5991173,
+    "ast_hash": "2a9aa9d55be7c220fea9f0b633332600",
+    "semantic_hash": "2a9aa9d55be7c220fea9f0b633332600"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/app_model.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "a7ec212438e5f09ee474074c118e67a5",
+    "semantic_hash": "a7ec212438e5f09ee474074c118e67a5"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/app_animations.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "eb923ba970497fac3d4402e461e65692",
+    "semantic_hash": "eb923ba970497fac3d4402e461e65692"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/internationalization.dart": {
+    "mtime": 1780523950.2996,
+    "ast_hash": "9d5e22ae50f5378b7c902d4f91ce761e",
+    "semantic_hash": "9d5e22ae50f5378b7c902d4f91ce761e"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/random_data_util.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "ec6ba2bfa04da79d60f6e2ff15dde3b7",
+    "semantic_hash": "ec6ba2bfa04da79d60f6e2ff15dde3b7"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/upload_data.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "e302f40d15b09e46f683cdf594bee184",
+    "semantic_hash": "e302f40d15b09e46f683cdf594bee184"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/uploaded_file.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "c8243abc64a02b9618552004eee2135c",
+    "semantic_hash": "c8243abc64a02b9618552004eee2135c"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/app_drop_down.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "4957a89036788c9843fda57d4e80c8eb",
+    "semantic_hash": "4957a89036788c9843fda57d4e80c8eb"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/app_button_tabbar.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "5572dfe8c7e04d5d6eca410993f69ce3",
+    "semantic_hash": "5572dfe8c7e04d5d6eca410993f69ce3"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/lat_lng.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "f244894b017d00d110f1e3f568fbcf08",
+    "semantic_hash": "f244894b017d00d110f1e3f568fbcf08"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/form_field_controller.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "a82b3c9d2ad8ea2fcdd91fb5670220df",
+    "semantic_hash": "a82b3c9d2ad8ea2fcdd91fb5670220df"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/app_widgets.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "7dd2e0ec7228941bd36a082462c5607d",
+    "semantic_hash": "7dd2e0ec7228941bd36a082462c5607d"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/app_theme_type.dart": {
+    "mtime": 1778535433.5991173,
+    "ast_hash": "f975729c297472abbd17b8cee29de8b6",
+    "semantic_hash": "f975729c297472abbd17b8cee29de8b6"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/app_icon_button.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "22e685f5f699d26f2d728d7d4b2945a4",
+    "semantic_hash": "22e685f5f699d26f2d728d7d4b2945a4"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/nav/serialization_util.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "4df37be52bb85abba3ac04d88c0c2f8c",
+    "semantic_hash": "4df37be52bb85abba3ac04d88c0c2f8c"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/app_core/nav/nav.dart": {
+    "mtime": 1780523950.2996,
+    "ast_hash": "af8205742211009de1fcbe2b813570a3",
+    "semantic_hash": "af8205742211009de1fcbe2b813570a3"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/custom_code/HashService.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "6e3c54a21e843395f65f3fabcd6585d8",
+    "semantic_hash": "6e3c54a21e843395f65f3fabcd6585d8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/custom_code/actions/get_u_u_i_d.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "bcec39401eca7f0c69cb85013d27695e",
+    "semantic_hash": "bcec39401eca7f0c69cb85013d27695e"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/custom_code/actions/draw_bounding_boxes.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "66c1c9367c93370d1d65c61af8329ce1",
+    "semantic_hash": "66c1c9367c93370d1d65c61af8329ce1"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/custom_code/actions/days_since_last_check.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "7e17eb3445106e0f8a45ec351adb56a3",
+    "semantic_hash": "7e17eb3445106e0f8a45ec351adb56a3"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/custom_code/actions/yolo_inference_native.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "74ea01d6963d3d1581ca5d3ede360fc4",
+    "semantic_hash": "74ea01d6963d3d1581ca5d3ede360fc4"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/custom_code/actions/yolo_inference_stub.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "8f549890a9b2fe032dc1d8933bea3aab",
+    "semantic_hash": "8f549890a9b2fe032dc1d8933bea3aab"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/custom_code/actions/index.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "60ecb30d9a1f285f48ab556345df09bc",
+    "semantic_hash": "60ecb30d9a1f285f48ab556345df09bc"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/custom_code/actions/run_yolo_inference.dart": {
+    "mtime": 1776612086.5929897,
+    "ast_hash": "27f452473d182b36f0144c7d8697fb32",
+    "semantic_hash": "27f452473d182b36f0144c7d8697fb32"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/bina_design/bina_components.dart": {
+    "mtime": 1780523950.2996,
+    "ast_hash": "9eeee5323e79145ef8f3fd547f54d6b7",
+    "semantic_hash": "9eeee5323e79145ef8f3fd547f54d6b7"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/bina_design/bina_add_member_sheet.dart": {
+    "mtime": 1780523950.2996,
+    "ast_hash": "38df7b7244f5f00e305103858e234a30",
+    "semantic_hash": "38df7b7244f5f00e305103858e234a30"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/bina_design/bina_design.dart": {
+    "mtime": 1780523950.2996,
+    "ast_hash": "f361155a4589e10a67e9bea4f9594eec",
+    "semantic_hash": "f361155a4589e10a67e9bea4f9594eec"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/bina_design/bina_sidebar.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "6d160931a007d021dc580aebbe296f21",
+    "semantic_hash": "6d160931a007d021dc580aebbe296f21"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/bina_design/bina_responsive.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "fa218ab5a9c81fe2f213b2b53460cf44",
+    "semantic_hash": "fa218ab5a9c81fe2f213b2b53460cf44"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/bina_design/bina_progress_rings.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "c1da58632dc3d84ffd85d4bd20ec005b",
+    "semantic_hash": "c1da58632dc3d84ffd85d4bd20ec005b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/bina_design/bina_floating_nav.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "3d95c7365f537ea48b8c483031da4cee",
+    "semantic_hash": "3d95c7365f537ea48b8c483031da4cee"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/mjpeg_capture_service.dart": {
+    "mtime": 1778252058.0537865,
+    "ast_hash": "454ba01bdebcf49f0ed0158e8f17ace3",
+    "semantic_hash": "454ba01bdebcf49f0ed0158e8f17ace3"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_service.dart": {
+    "mtime": 1778587247.2682586,
+    "ast_hash": "070f4f623cfcdc635694f178e925a846",
+    "semantic_hash": "070f4f623cfcdc635694f178e925a846"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/accessibility_settings_service.dart": {
+    "mtime": 1780523950.3036,
+    "ast_hash": "e9f2ce1f351e684be718281538e7b1d9",
+    "semantic_hash": "e9f2ce1f351e684be718281538e7b1d9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/llm_prompts.dart": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "9cb6154cec7a91df8f4a092c833bd65d",
+    "semantic_hash": "9cb6154cec7a91df8f4a092c833bd65d"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/motor_controller_service.dart": {
+    "mtime": 1780523955.919659,
+    "ast_hash": "b18ea8e6fe087425be15f2de7fbbcd55",
+    "semantic_hash": "b18ea8e6fe087425be15f2de7fbbcd55"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/wifi_direct_service.dart": {
+    "mtime": 1778252058.0547864,
+    "ast_hash": "fb5211802fa11dba14b8ea59a2b5cd84",
+    "semantic_hash": "fb5211802fa11dba14b8ea59a2b5cd84"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/chat_manager.dart": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "8f2da6a55068f57264959f4e559a60de",
+    "semantic_hash": "8f2da6a55068f57264959f4e559a60de"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_agent/member_name_resolver.dart": {
+    "mtime": 1780680262.23958,
+    "ast_hash": "9f0061441814eb02f8ea5c8300d4b1d8",
+    "semantic_hash": "9f0061441814eb02f8ea5c8300d4b1d8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_agent/gemma_agent_service.dart": {
+    "mtime": 1780680408.3061924,
+    "ast_hash": "3ebe78516864a871b02f45e267cb730c",
+    "semantic_hash": "3ebe78516864a871b02f45e267cb730c"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_agent/agent_prompts.dart": {
+    "mtime": 1780679900.2835743,
+    "ast_hash": "ce635b812d9b034b21c1549256e5a09f",
+    "semantic_hash": "ce635b812d9b034b21c1549256e5a09f"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_agent/response_formatter.dart": {
+    "mtime": 1780680381.9539018,
+    "ast_hash": "52267974d0c6bf7fbf597654d1a1535e",
+    "semantic_hash": "52267974d0c6bf7fbf597654d1a1535e"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_agent/command_registry.dart": {
+    "mtime": 1780679810.5545783,
+    "ast_hash": "50a868c94393c8dc146bfd577af8f829",
+    "semantic_hash": "50a868c94393c8dc146bfd577af8f829"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_agent/action_executor.dart": {
+    "mtime": 1780680003.5787194,
+    "ast_hash": "19f51b8677ef4f738c7373f26ff534a3",
+    "semantic_hash": "19f51b8677ef4f738c7373f26ff534a3"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_agent/navigation_executor.dart": {
+    "mtime": 1780679987.8295448,
+    "ast_hash": "7fb88f4a7e5e326be716c2ef02d12d95",
+    "semantic_hash": "7fb88f4a7e5e326be716c2ef02d12d95"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_agent/command_executor.dart": {
+    "mtime": 1780680436.899508,
+    "ast_hash": "7025c26b7cae3acd5c01179d373bef49",
+    "semantic_hash": "7025c26b7cae3acd5c01179d373bef49"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_agent/index.dart": {
+    "mtime": 1780680049.4872277,
+    "ast_hash": "db3d4d25ef3d5b60dae91802ebeb2ff8",
+    "semantic_hash": "db3d4d25ef3d5b60dae91802ebeb2ff8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/services/gemma_agent/command_parser.dart": {
+    "mtime": 1780679827.706769,
+    "ast_hash": "6db198559bc061d58b9bb2cec77a8271",
+    "semantic_hash": "6db198559bc061d58b9bb2cec77a8271"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/auth/base_auth_user_provider.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "42d5955211228af0ec206ba1c4198b33",
+    "semantic_hash": "42d5955211228af0ec206ba1c4198b33"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/auth/auth_manager.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "4270250906c0fc5adb10d829d28d950b",
+    "semantic_hash": "4270250906c0fc5adb10d829d28d950b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/auth/supabase_auth/supabase_auth_manager.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "f086b3e8beec0d1ac3eb8ce35efd0f44",
+    "semantic_hash": "f086b3e8beec0d1ac3eb8ce35efd0f44"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/auth/supabase_auth/auth_util.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "2ec40f4c3a42f488902de736097b83cd",
+    "semantic_hash": "2ec40f4c3a42f488902de736097b83cd"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/auth/supabase_auth/supabase_user_provider.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "a71f1fe0f344782c79e999a121583fd3",
+    "semantic_hash": "a71f1fe0f344782c79e999a121583fd3"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/auth/supabase_auth/email_auth.dart": {
+    "mtime": 1776612086.5899897,
+    "ast_hash": "add2a9b557c6a91d150f451dc33098e9",
+    "semantic_hash": "add2a9b557c6a91d150f451dc33098e9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/sqlite/init.dart": {
+    "mtime": 1778252058.0537865,
+    "ast_hash": "3a2f9a9a1dc3296cfc0d2f18a75276c6",
+    "semantic_hash": "3a2f9a9a1dc3296cfc0d2f18a75276c6"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/sqlite/sqlite_manager.dart": {
+    "mtime": 1780523950.2996,
+    "ast_hash": "9389ead98dc38ac50c77923458e46ede",
+    "semantic_hash": "9389ead98dc38ac50c77923458e46ede"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/sqlite/queries/delete.dart": {
+    "mtime": 1777414343.3336494,
+    "ast_hash": "317c8719d18a05834f3cbc460b80b7c1",
+    "semantic_hash": "317c8719d18a05834f3cbc460b80b7c1"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/sqlite/queries/update.dart": {
+    "mtime": 1780523950.2996,
+    "ast_hash": "c7b93ee5037c36622eebf56f5be9cec2",
+    "semantic_hash": "c7b93ee5037c36622eebf56f5be9cec2"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/sqlite/queries/read.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "8067bd4b18098c21924bac0b54a50327",
+    "semantic_hash": "8067bd4b18098c21924bac0b54a50327"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/sqlite/queries/sqlite_row.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "99a2f35e1963f288abf8cc8953c62a1f",
+    "semantic_hash": "99a2f35e1963f288abf8cc8953c62a1f"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/schema/enums/enums.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "77a76498c011cb2ec6331b25168add82",
+    "semantic_hash": "77a76498c011cb2ec6331b25168add82"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/schema/util/schema_util.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "d438d21a8b9aa1e203087d27f81fb837",
+    "semantic_hash": "d438d21a8b9aa1e203087d27f81fb837"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/schema/structs/family_member_struct.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "752d8ecec16348f301f0376eba15b4f8",
+    "semantic_hash": "752d8ecec16348f301f0376eba15b4f8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/schema/structs/scan_session_struct.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "a07dd615e0c76053af30ebb7471707b8",
+    "semantic_hash": "a07dd615e0c76053af30ebb7471707b8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/schema/structs/scan_image_struct.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "1c8569af53649371c459e899c34d7d03",
+    "semantic_hash": "1c8569af53649371c459e899c34d7d03"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/schema/structs/user_session_struct.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "5aebb1885c66df338a77d00d9ac863da",
+    "semantic_hash": "5aebb1885c66df338a77d00d9ac863da"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/schema/structs/camera_connection_struct.dart": {
+    "mtime": 1778252058.0537865,
+    "ast_hash": "7dc00ed5bc7be597cbbf07b71b10bdbe",
+    "semantic_hash": "7dc00ed5bc7be597cbbf07b71b10bdbe"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/schema/structs/index.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "29445c9b458d2ba0ae09a4bd5ec6de33",
+    "semantic_hash": "29445c9b458d2ba0ae09a4bd5ec6de33"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/schema/structs/dental_record_struct.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "3034348bea0293ad778ff0590fb2ab6f",
+    "semantic_hash": "3034348bea0293ad778ff0590fb2ab6f"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/supabase/supabase.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "b832891b597b117d562ee21700ae037c",
+    "semantic_hash": "b832891b597b117d562ee21700ae037c"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/supabase/storage/storage.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "a4144ac0b58e204e7390bca76a524137",
+    "semantic_hash": "a4144ac0b58e204e7390bca76a524137"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/supabase/database/database.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "03200a450cf0d0ae03942b0c3f7f9613",
+    "semantic_hash": "03200a450cf0d0ae03942b0c3f7f9613"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/supabase/database/row.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "17cab54d56964fac56e575878ab9743b",
+    "semantic_hash": "17cab54d56964fac56e575878ab9743b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/supabase/database/table.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "235c49e10b9fcd8aa226feee1c114b40",
+    "semantic_hash": "235c49e10b9fcd8aa226feee1c114b40"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/supabase/database/tables/scan_sessions.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "d48c8ba161c17c488b421b3a1dc69503",
+    "semantic_hash": "d48c8ba161c17c488b421b3a1dc69503"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/supabase/database/tables/scan_images.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "6e6aa7c2c846fe5e34cc9b8ad626a437",
+    "semantic_hash": "6e6aa7c2c846fe5e34cc9b8ad626a437"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/supabase/database/tables/family_members.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "1ee3ce00786c2fbe4f5602e1bb0897f5",
+    "semantic_hash": "1ee3ce00786c2fbe4f5602e1bb0897f5"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/supabase/database/tables/dental_records.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "ea4c09b9174f2fd44b418dad53242d11",
+    "semantic_hash": "ea4c09b9174f2fd44b418dad53242d11"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/backend/supabase/database/tables/users_info.dart": {
+    "mtime": 1776612086.5909898,
+    "ast_hash": "5f52abf2e86780111a06fa96ca9ed24c",
+    "semantic_hash": "5f52abf2e86780111a06fa96ca9ed24c"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/actions/actions.dart": {
+    "mtime": 1780523950.2996,
+    "ast_hash": "d16b35b58d86123ceffa3d27a5aa92d7",
+    "semantic_hash": "d16b35b58d86123ceffa3d27a5aa92d7"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/components/bina_camera_preview/bina_camera_preview_widget.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "a4a7842eca6b544d47aa96cc6f931eb2",
+    "semantic_hash": "a4a7842eca6b544d47aa96cc6f931eb2"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/components/accessibility/accessibility_widget.dart": {
+    "mtime": 1780523950.3006,
+    "ast_hash": "c77952682bc96801e344c74af055a0f5",
+    "semantic_hash": "c77952682bc96801e344c74af055a0f5"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/components/accessibility/accessibility_model.dart": {
+    "mtime": 1778535433.5991173,
+    "ast_hash": "11218c1e62747f74222919fcfe83e07b",
+    "semantic_hash": "11218c1e62747f74222919fcfe83e07b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/components/camera_selection_dialog/camera_selection_dialog_widget.dart": {
+    "mtime": 1778252058.0537865,
+    "ast_hash": "bfcab23603d4dee68e1768711ff4d520",
+    "semantic_hash": "bfcab23603d4dee68e1768711ff4d520"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/components/camera_selection_dialog/camera_selection_dialog_model.dart": {
+    "mtime": 1778252058.0537865,
+    "ast_hash": "c078cd657fa81c43ca1e7a5fe478f715",
+    "semantic_hash": "c078cd657fa81c43ca1e7a5fe478f715"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/components/gemma_download_progress/gemma_download_progress_widget.dart": {
+    "mtime": 1778535433.6001172,
+    "ast_hash": "ca55a4aa78ebadeb9fe8f93ca7f80dc3",
+    "semantic_hash": "ca55a4aa78ebadeb9fe8f93ca7f80dc3"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/components/dialogs/loading_dialog.dart": {
+    "mtime": 1778535433.6001172,
+    "ast_hash": "992249305ad4d430e23bc9cdee3307df",
+    "semantic_hash": "992249305ad4d430e23bc9cdee3307df"
+  },
+  "/home/vitrobiani/Documents/BinaApp/lib/components/dialogs/confirm_dialog.dart": {
+    "mtime": 1778535433.5991173,
+    "ast_hash": "ffbb03249d70c387547a877473ec4bf2",
+    "semantic_hash": "ffbb03249d70c387547a877473ec4bf2"
+  },
+  "/home/vitrobiani/Documents/BinaApp/linux/main.cc": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "0643b8609698e96b3abd63c210361a87",
+    "semantic_hash": "0643b8609698e96b3abd63c210361a87"
+  },
+  "/home/vitrobiani/Documents/BinaApp/linux/my_application.cc": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "f2a7329a1945eba387ac8bfed64f0dcd",
+    "semantic_hash": "f2a7329a1945eba387ac8bfed64f0dcd"
+  },
+  "/home/vitrobiani/Documents/BinaApp/linux/my_application.h": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "7bd839b67ebee22174be9f4da4521b6f",
+    "semantic_hash": "7bd839b67ebee22174be9f4da4521b6f"
+  },
+  "/home/vitrobiani/Documents/BinaApp/linux/flutter/generated_plugin_registrant.cc": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "b33c18b8f51a089ca81a9ab784060697",
+    "semantic_hash": "b33c18b8f51a089ca81a9ab784060697"
+  },
+  "/home/vitrobiani/Documents/BinaApp/linux/flutter/generated_plugin_registrant.h": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "d295462c9da9f7fef22dc86c34492318",
+    "semantic_hash": "d295462c9da9f7fef22dc86c34492318"
+  },
+  "/home/vitrobiani/Documents/BinaApp/devtools_options.yaml": {
+    "mtime": 1776612086.5879898,
+    "ast_hash": "d1ff5187b1b67653e7357395895e8449",
+    "semantic_hash": "d1ff5187b1b67653e7357395895e8449"
+  },
+  "/home/vitrobiani/Documents/BinaApp/analysis_options.yaml": {
+    "mtime": 1776612086.5389893,
+    "ast_hash": "4fd75352ef021d8df2ab6cb354ac2910",
+    "semantic_hash": "4fd75352ef021d8df2ab6cb354ac2910"
+  },
+  "/home/vitrobiani/Documents/BinaApp/pubspec.yaml": {
+    "mtime": 1778587247.2692585,
+    "ast_hash": "fe41a186ef4b29c33b9bd46471e7bdc9",
+    "semantic_hash": "fe41a186ef4b29c33b9bd46471e7bdc9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/web/index.html": {
+    "mtime": 1776612086.5989897,
+    "ast_hash": "a983977a081bdf12630b2c573f871ace",
+    "semantic_hash": "a983977a081bdf12630b2c573f871ace"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/CMakeLists.txt": {
+    "mtime": 1776612086.5989897,
+    "ast_hash": "f6966baaf4535fab83c5c160ff4d0243",
+    "semantic_hash": "f6966baaf4535fab83c5c160ff4d0243"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/runner/CMakeLists.txt": {
+    "mtime": 1776612086.5989897,
+    "ast_hash": "5ea8d1d28f2c1b3941ad228b4a1405b8",
+    "semantic_hash": "5ea8d1d28f2c1b3941ad228b4a1405b8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/windows/flutter/CMakeLists.txt": {
+    "mtime": 1776612086.5989897,
+    "ast_hash": "7867eb064320d30b8a1e56f6292c07cb",
+    "semantic_hash": "7867eb064320d30b8a1e56f6292c07cb"
+  },
+  "/home/vitrobiani/Documents/BinaApp/linux/CMakeLists.txt": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "efb790c67736eca8b714b05e839195d9",
+    "semantic_hash": "efb790c67736eca8b714b05e839195d9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/linux/flutter/CMakeLists.txt": {
+    "mtime": 1776612086.5959897,
+    "ast_hash": "66a8ccde85d32f0bb51bdfcd6c3eebcc",
+    "semantic_hash": "66a8ccde85d32f0bb51bdfcd6c3eebcc"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "64b46626103336f80c23fc64656272a1",
+    "semantic_hash": "64b46626103336f80c23fc64656272a1"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "e3516d01efaafaf34ca2ee2142181cad",
+    "semantic_hash": "e3516d01efaafaf34ca2ee2142181cad"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "b7da05eb1e3dde358fb6591cf3a29348",
+    "semantic_hash": "b7da05eb1e3dde358fb6591cf3a29348"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "8a4fb0d67f0ecf1865d9d9f97e0f449a",
+    "semantic_hash": "8a4fb0d67f0ecf1865d9d9f97e0f449a"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "9e943798973d8337e94637a639bf1a57",
+    "semantic_hash": "9e943798973d8337e94637a639bf1a57"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "4a7edbb5a7b3072d6452de36331bb2a8",
+    "semantic_hash": "4a7edbb5a7b3072d6452de36331bb2a8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "586d6c7e93b7f746e6e94e35a7dbb6a5",
+    "semantic_hash": "586d6c7e93b7f746e6e94e35a7dbb6a5"
+  },
+  "/home/vitrobiani/Documents/BinaApp/web/favicon.png": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "2704101cb06ce66e2000356a312be25c",
+    "semantic_hash": "2704101cb06ce66e2000356a312be25c"
+  },
+  "/home/vitrobiani/Documents/BinaApp/web/icons/Icon-192.png": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "ac9a721a12bbc803b44f645561ecb1e1",
+    "semantic_hash": "ac9a721a12bbc803b44f645561ecb1e1"
+  },
+  "/home/vitrobiani/Documents/BinaApp/web/icons/Icon-512.png": {
+    "mtime": 1776612086.5969899,
+    "ast_hash": "96e752610906ba2a93c65f8abe1645f1",
+    "semantic_hash": "96e752610906ba2a93c65f8abe1645f1"
+  },
+  "/home/vitrobiani/Documents/BinaApp/web/icons/app_launcher_icon.png": {
+    "mtime": 1776612086.5989897,
+    "ast_hash": "147ff135ca9928d006f13da13313a2c9",
+    "semantic_hash": "147ff135ca9928d006f13da13313a2c9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/app/src/main/res/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1776612086.5399892,
+    "ast_hash": "13e9c72ec37fac220397aa819fa1ef2d",
+    "semantic_hash": "13e9c72ec37fac220397aa819fa1ef2d"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1776612086.5399892,
+    "ast_hash": "a0a8db5985280b3679d99a820ae2db79",
+    "semantic_hash": "a0a8db5985280b3679d99a820ae2db79"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1776612086.5399892,
+    "ast_hash": "57838d52c318faff743130c3fcfae0c6",
+    "semantic_hash": "57838d52c318faff743130c3fcfae0c6"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1776612086.5399892,
+    "ast_hash": "afe1b655b9f32da22f9a4301bb8e6ba8",
+    "semantic_hash": "afe1b655b9f32da22f9a4301bb8e6ba8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/android/app/src/main/res/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1776612086.5399892,
+    "ast_hash": "6270344430679711b81476e29878caa7",
+    "semantic_hash": "6270344430679711b81476e29878caa7"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "978c1bee49d7ad5fc1a4d81099b13e18",
+    "semantic_hash": "978c1bee49d7ad5fc1a4d81099b13e18"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "978c1bee49d7ad5fc1a4d81099b13e18",
+    "semantic_hash": "978c1bee49d7ad5fc1a4d81099b13e18"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "978c1bee49d7ad5fc1a4d81099b13e18",
+    "semantic_hash": "978c1bee49d7ad5fc1a4d81099b13e18"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@2x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "c0fa6a088a2d486e4d75a012096d611b",
+    "semantic_hash": "c0fa6a088a2d486e4d75a012096d611b"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@2x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "27c7e24d5bfb4f14a7978883bebfaf73",
+    "semantic_hash": "27c7e24d5bfb4f14a7978883bebfaf73"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "c785f8932297af4acd5f5ccb7630f01c",
+    "semantic_hash": "c785f8932297af4acd5f5ccb7630f01c"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@2x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "2adf6396c0f80a2ddc96ead2f2405220",
+    "semantic_hash": "2adf6396c0f80a2ddc96ead2f2405220"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@2x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "19898f3eea0783250a0e2a20dc147827",
+    "semantic_hash": "19898f3eea0783250a0e2a20dc147827"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@1x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "9595f5692fac4a15b50616d6549e9ed4",
+    "semantic_hash": "9595f5692fac4a15b50616d6549e9ed4"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@2x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "a34a631e106b9e7251e55fa199d34bca",
+    "semantic_hash": "a34a631e106b9e7251e55fa199d34bca"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@1x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "975d8a8c44f5d28ac65263294b84b0c5",
+    "semantic_hash": "975d8a8c44f5d28ac65263294b84b0c5"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@3x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "128e30cc061e49f503f48c338a21380e",
+    "semantic_hash": "128e30cc061e49f503f48c338a21380e"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "7af6f2ed506e771a319d46846dde1f26",
+    "semantic_hash": "7af6f2ed506e771a319d46846dde1f26"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@3x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "f8e7955550407d4ec71d28e7c2d8c8c6",
+    "semantic_hash": "f8e7955550407d4ec71d28e7c2d8c8c6"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-83.5x83.5@2x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "d86de75e9341c42432a12b3d58e364b8",
+    "semantic_hash": "d86de75e9341c42432a12b3d58e364b8"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@1x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "e2b9a9fb66c6f8165a179d370eb723c0",
+    "semantic_hash": "e2b9a9fb66c6f8165a179d370eb723c0"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@3x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "27c7e24d5bfb4f14a7978883bebfaf73",
+    "semantic_hash": "27c7e24d5bfb4f14a7978883bebfaf73"
+  },
+  "/home/vitrobiani/Documents/BinaApp/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@1x.png": {
+    "mtime": 1776612086.5889897,
+    "ast_hash": "19898f3eea0783250a0e2a20dc147827",
+    "semantic_hash": "19898f3eea0783250a0e2a20dc147827"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/audios/favicon.png": {
+    "mtime": 1776612086.5399892,
+    "ast_hash": "5dcef449791fa27946b3d35ad8803796",
+    "semantic_hash": "5dcef449791fa27946b3d35ad8803796"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/jsons/favicon.png": {
+    "mtime": 1776612086.5879898,
+    "ast_hash": "5dcef449791fa27946b3d35ad8803796",
+    "semantic_hash": "5dcef449791fa27946b3d35ad8803796"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/videos/favicon.png": {
+    "mtime": 1776612086.5879898,
+    "ast_hash": "5dcef449791fa27946b3d35ad8803796",
+    "semantic_hash": "5dcef449791fa27946b3d35ad8803796"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/rive_animations/favicon.png": {
+    "mtime": 1776612086.5879898,
+    "ast_hash": "5dcef449791fa27946b3d35ad8803796",
+    "semantic_hash": "5dcef449791fa27946b3d35ad8803796"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/images/adaptive_foreground_icon.png": {
+    "mtime": 1776612086.5859897,
+    "ast_hash": "147ff135ca9928d006f13da13313a2c9",
+    "semantic_hash": "147ff135ca9928d006f13da13313a2c9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/images/favicon.png": {
+    "mtime": 1776612086.5879898,
+    "ast_hash": "5dcef449791fa27946b3d35ad8803796",
+    "semantic_hash": "5dcef449791fa27946b3d35ad8803796"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/images/addImage@2x.png": {
+    "mtime": 1776612086.5859897,
+    "ast_hash": "e684bd8b00aac765414b257df5f74fd9",
+    "semantic_hash": "e684bd8b00aac765414b257df5f74fd9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/images/congrats@2x.png": {
+    "mtime": 1776612086.5879898,
+    "ast_hash": "2a1eeef24cffd4f9a9d74307955c526f",
+    "semantic_hash": "2a1eeef24cffd4f9a9d74307955c526f"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/images/BinaSplash.png": {
+    "mtime": 1776612086.5829897,
+    "ast_hash": "806eec0cc7f270bda13a090f4e463d22",
+    "semantic_hash": "806eec0cc7f270bda13a090f4e463d22"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/images/app_launcher_icon.png": {
+    "mtime": 1776612086.5869896,
+    "ast_hash": "147ff135ca9928d006f13da13313a2c9",
+    "semantic_hash": "147ff135ca9928d006f13da13313a2c9"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/fonts/favicon.png": {
+    "mtime": 1776612086.5399892,
+    "ast_hash": "5dcef449791fa27946b3d35ad8803796",
+    "semantic_hash": "5dcef449791fa27946b3d35ad8803796"
+  },
+  "/home/vitrobiani/Documents/BinaApp/assets/pdfs/favicon.png": {
+    "mtime": 1776612086.5879898,
+    "ast_hash": "5dcef449791fa27946b3d35ad8803796",
+    "semantic_hash": "5dcef449791fa27946b3d35ad8803796"
+  }
+}
