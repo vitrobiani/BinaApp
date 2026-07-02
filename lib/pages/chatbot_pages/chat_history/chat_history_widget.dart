@@ -3,7 +3,7 @@ import '/backend/schema/structs/index.dart';
 import '/bina_design/bina_design.dart';
 import '/services/chat_manager.dart';
 import '/services/gemma_service.dart';
-import '/services/llm_prompts.dart';
+import '/services/gemma_agent/index.dart';
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
 import '/components/gemma_download_progress/gemma_download_progress_widget.dart';
 import 'package:flutter/material.dart';
@@ -709,26 +709,14 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
     });
 
     try {
-      final conversation = ChatManager.instance.getConversation(widget.conversation.id);
-      if (conversation == null) return;
+      // Use the agent service for intelligent responses
+      final agentResponse = await GemmaAgentService.instance.processMessage(
+        userMessage: text,
+        context: context,
+      );
 
-      final recentMessages = conversation.messages.length > 8
-          ? conversation.messages.sublist(conversation.messages.length - 8)
-          : conversation.messages;
-
-      final contextBuffer = StringBuffer();
-      contextBuffer.writeln(LlmPrompts.chatbotSystemPrompt);
-      contextBuffer.writeln();
-      for (final msg in recentMessages) {
-        final role = msg.role == 'user' ? 'User' : 'Assistant';
-        contextBuffer.writeln('$role: ${msg.content}');
-      }
-      contextBuffer.writeln('Assistant:');
-
-      final response = await GemmaService.instance.generateResponse(contextBuffer.toString());
-
-      final assistantContent = response.isNotEmpty
-          ? response
+      final assistantContent = agentResponse.textResponse.isNotEmpty
+          ? agentResponse.textResponse
           : 'Sorry, I could not generate a response.';
 
       ChatManager.instance.addMessage(
@@ -741,6 +729,24 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
           timestamp: DateTime.now(),
         ),
       );
+
+      // Handle navigation intent if present
+      if (agentResponse.hasNavigation && mounted) {
+        // Small delay to let the message appear first
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          NavigationExecutor.navigate(context, agentResponse.navigationIntent!);
+        }
+      }
+
+      // Handle action intent if present
+      if (agentResponse.hasAction && mounted) {
+        // Small delay to let the message appear first
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          ActionExecutor.performAction(context, agentResponse.actionIntent!);
+        }
+      }
     } catch (e) {
       ChatManager.instance.addMessage(
         widget.conversation.id,
