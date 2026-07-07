@@ -1,9 +1,10 @@
 // Native implementation for mobile/desktop platforms
-// Uses TFLite for inference
+// Uses TFLite for inference with GPU acceleration
 
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
@@ -20,104 +21,156 @@ class YoloResult {
   });
 }
 
-Future<YoloResult> runYoloInferenceImpl(String imagePath, List<String> classLabels) async {
-  Interpreter? interpreter;
+/// Singleton service for YOLO inference - loads model once and reuses it
+class YoloService {
+  static final YoloService _instance = YoloService._internal();
+  factory YoloService() => _instance;
+  YoloService._internal();
 
-  try {
-    // Load the model from assets
-    interpreter = await Interpreter.fromAsset('assets/yolo11n_float16.tflite');
+  Interpreter? _interpreter;
+  List<int>? _inputShape;
+  List<int>? _outputShape;
+  bool _isLoading = false;
 
-    // Get input and output shapes
-    final inputShape = interpreter.getInputTensor(0).shape;
-    final outputShape = interpreter.getOutputTensor(0).shape;
+  final double minConfScore = 0.15;
 
-    print('YOLO Input shape: $inputShape');
-    print('YOLO Output shape: $outputShape');
+  bool get isLoaded => _interpreter != null;
 
-    final inputHeight = inputShape[1];
-    final inputWidth = inputShape[2];
+  /// Initialize the model (call once at app start or before first use)
+  Future<void> loadModel() async {
+    if (_interpreter != null || _isLoading) return;
+    _isLoading = true;
 
-    // Load and preprocess the image
-    final imageFile = File(imagePath);
-    final imageBytes = await imageFile.readAsBytes();
-    img.Image? originalImage = img.decodeImage(imageBytes);
+    try {
+      final options = InterpreterOptions();
+      options.threads = 4; // Use multiple CPU threads
 
-    if (originalImage == null) {
-      print('Failed to decode image');
-      return YoloResult(imagePath: imagePath, detections: []);
-    }
-
-    final originalWidth = originalImage.width;
-    final originalHeight = originalImage.height;
-    print('Original image size: ${originalWidth}x${originalHeight}');
-    print('Input size: ${inputWidth}x${inputHeight}');
-
-    // Resize image to model input size
-    final resizedImage = img.copyResize(
-      originalImage,
-      width: inputWidth,
-      height: inputHeight,
-      interpolation: img.Interpolation.linear,
-    );
-
-    // Prepare input tensor - normalize to 0-1 and convert to float32
-    final inputBuffer = Float32List(1 * inputHeight * inputWidth * 3);
-    int pixelIndex = 0;
-
-    for (int y = 0; y < inputHeight; y++) {
-      for (int x = 0; x < inputWidth; x++) {
-        final pixel = resizedImage.getPixel(x, y);
-        inputBuffer[pixelIndex++] = pixel.r / 255.0;
-        inputBuffer[pixelIndex++] = pixel.g / 255.0;
-        inputBuffer[pixelIndex++] = pixel.b / 255.0;
+      // Try GPU delegate on Android
+      if (Platform.isAndroid) {
+        try {
+          final gpuDelegate = GpuDelegateV2();
+          options.addDelegate(gpuDelegate);
+          debugPrint('>>> YOLO: GPU delegate added');
+        } catch (e) {
+          debugPrint('>>> YOLO: GPU delegate failed: $e, using CPU only');
+        }
       }
+
+      _interpreter = await Interpreter.fromAsset(
+        // 'assets/best_model.tflite',
+        'assets/cavity_detector_no_nms.tflite',
+        // 'assets/best_float32.tflite',
+        options: options,
+      );
+
+      _inputShape = _interpreter!.getInputTensor(0).shape;
+      _outputShape = _interpreter!.getOutputTensor(0).shape;
+
+      debugPrint('>>> YOLO: Model loaded successfully');
+      debugPrint('>>> YOLO: Input shape: $_inputShape');
+      debugPrint('>>> YOLO: Output shape: $_outputShape');
+    } catch (e) {
+      debugPrint('>>> YOLO: Failed to load model: $e');
+      _interpreter = null;
+    } finally {
+      _isLoading = false;
+    }
+  }
+
+  /// Fast inference for real-time - returns only detections, no image processing
+  Future<List<Map<String, dynamic>>> inferFast(
+    Uint8List imageBytes,
+    int originalWidth,
+    int originalHeight,
+    List<String> classLabels,
+  ) async {
+    if (_interpreter == null) {
+      await loadModel();
+      if (_interpreter == null) return [];
     }
 
-    final input = inputBuffer.reshape([1, inputHeight, inputWidth, 3]);
+    final sw = Stopwatch()..start();
 
-    // Prepare output tensor
-    final output = List.generate(
-      outputShape[0],
-      (_) => List.generate(
-        outputShape[1],
-        (_) => List.filled(outputShape[2], 0.0),
-      ),
-    );
+    try {
+      final inputHeight = _inputShape![1];
+      final inputWidth = _inputShape![2];
 
-    // Run inference
-    interpreter.run(input, output);
+      // Decode image
+      img.Image? image = img.decodeImage(imageBytes);
+      if (image == null) return [];
+      final decodeTime = sw.elapsedMilliseconds;
 
-    // Process output
+      // Resize
+      final resizedImage = img.copyResize(
+        image,
+        width: inputWidth,
+        height: inputHeight,
+        interpolation: img.Interpolation.nearest,
+      );
+      final resizeTime = sw.elapsedMilliseconds;
+
+      // Prepare input tensor - OPTIMIZED: multiply instead of divide
+      final inputBuffer = Float32List(1 * inputHeight * inputWidth * 3);
+      const double scale = 1.0 / 255.0;
+      int bufIdx = 0;
+
+      for (final pixel in resizedImage) {
+        inputBuffer[bufIdx++] = pixel.r * scale;
+        inputBuffer[bufIdx++] = pixel.g * scale;
+        inputBuffer[bufIdx++] = pixel.b * scale;
+      }
+
+      final input = inputBuffer.reshape([1, inputHeight, inputWidth, 3]);
+      final prepareTime = sw.elapsedMilliseconds;
+
+      // Prepare output tensor
+      final output = List.generate(
+        _outputShape![0],
+        (_) => List.generate(
+          _outputShape![1],
+          (_) => List.filled(_outputShape![2], 0.0),
+        ),
+      );
+
+      // Run inference
+      _interpreter!.run(input, output);
+      final inferTime = sw.elapsedMilliseconds;
+
+      debugPrint('>>> INFER DETAIL: decode=${decodeTime}ms, resize=${resizeTime - decodeTime}ms, prep=${prepareTime - resizeTime}ms, model=${inferTime - prepareTime}ms');
+
+      // Parse detections
+      return _parseDetections(
+        output,
+        originalWidth,
+        originalHeight,
+        inputWidth,
+        inputHeight,
+        classLabels,
+      );
+    } catch (e) {
+      debugPrint('>>> YOLO inference error: $e');
+      return [];
+    }
+  }
+
+  List<Map<String, dynamic>> _parseDetections(
+    List<List<List<double>>> output,
+    int originalWidth,
+    int originalHeight,
+    int inputWidth,
+    int inputHeight,
+    List<String> classLabels,
+  ) {
     List<Map<String, dynamic>> detections = [];
 
-    // Detect output format based on shape
-    // Format A (with built-in NMS): [1, num_detections, 6] where 6 = [x1, y1, x2, y2, conf, class_id]
-    // Format B (raw YOLO): [1, num_features, num_boxes] where features = 4 + num_classes
-
-    final bool isNMSFormat = outputShape[2] <= 6 || outputShape[2] <= classLabels.length + 5;
-
-    print('Output format detected: ${isNMSFormat ? "NMS (post-processed)" : "Raw YOLO"}');
-    print('Output shape: [${outputShape[0]}, ${outputShape[1]}, ${outputShape[2]}]');
+    final bool isNMSFormat = _outputShape![2] <= 6 || _outputShape![2] <= classLabels.length + 5;
 
     if (isNMSFormat) {
-      // Format: [1, 300, 6] - Model has built-in NMS
-      // Each detection: [x1, y1, x2, y2, confidence, class_id]
-      final numDetections = outputShape[1];
-      final numFeatures = outputShape[2];
-
-      print('NMS Format - Num detections: $numDetections, Features per detection: $numFeatures');
-
-      // Sample raw output for debugging
-      if (numDetections > 0) {
-        print('First detection raw: [${output[0][0][0]}, ${output[0][0][1]}, ${output[0][0][2]}, ${output[0][0][3]}, ${output[0][0][4]}, ${output[0][0][5]}]');
-      }
+      final numDetections = _outputShape![1];
 
       for (int i = 0; i < numDetections; i++) {
-        // Access: output[batch][detection_index][feature]
         final confidence = output[0][i][4];
-
-        // Skip low confidence or empty detections
-        if (confidence < 0.25) continue;
+        if (confidence < minConfScore) continue;
 
         final rawX1 = output[0][i][0];
         final rawY1 = output[0][i][1];
@@ -126,32 +179,24 @@ Future<YoloResult> runYoloInferenceImpl(String imagePath, List<String> classLabe
         final classIdRaw = output[0][i][5];
         final classId = classIdRaw.round().clamp(0, classLabels.length - 1);
 
-        // Determine if coordinates are normalized (0-1) or in pixels
         bool isNormalized = rawX1 <= 1.0 && rawY1 <= 1.0 && rawX2 <= 1.0 && rawY2 <= 1.0 &&
                            rawX1 >= 0.0 && rawY1 >= 0.0;
 
         double x1, y1, x2, y2;
 
         if (isNormalized) {
-          // Normalized coordinates - scale to original image
           x1 = (rawX1 * originalWidth).clamp(0.0, originalWidth.toDouble());
           y1 = (rawY1 * originalHeight).clamp(0.0, originalHeight.toDouble());
           x2 = (rawX2 * originalWidth).clamp(0.0, originalWidth.toDouble());
           y2 = (rawY2 * originalHeight).clamp(0.0, originalHeight.toDouble());
         } else {
-          // Pixel coordinates relative to input size - scale to original
           x1 = (rawX1 / inputWidth * originalWidth).clamp(0.0, originalWidth.toDouble());
           y1 = (rawY1 / inputHeight * originalHeight).clamp(0.0, originalHeight.toDouble());
           x2 = (rawX2 / inputWidth * originalWidth).clamp(0.0, originalWidth.toDouble());
           y2 = (rawY2 / inputHeight * originalHeight).clamp(0.0, originalHeight.toDouble());
         }
 
-        // Skip invalid boxes
         if (x2 <= x1 || y2 <= y1) continue;
-
-        print('Detection $i: class=${classLabels[classId]}, conf=${confidence.toStringAsFixed(2)}, '
-              'raw=($rawX1, $rawY1, $rawX2, $rawY2), classId=$classIdRaw, '
-              'box=(${x1.toStringAsFixed(0)}, ${y1.toStringAsFixed(0)}, ${x2.toStringAsFixed(0)}, ${y2.toStringAsFixed(0)})');
 
         detections.add({
           'x1': x1,
@@ -163,24 +208,11 @@ Future<YoloResult> runYoloInferenceImpl(String imagePath, List<String> classLabe
           'confidence': confidence,
         });
       }
-
-      print('Total detections (NMS already applied by model): ${detections.length}');
-
     } else {
-      // Format: [1, num_features, num_boxes] - Raw YOLO output
-      final numBoxes = outputShape[2];
-      final numFeatures = outputShape[1];
+      // Raw YOLO format
+      final numBoxes = _outputShape![2];
+      final numFeatures = _outputShape![1];
       final numClasses = classLabels.length;
-
-      print('Raw Format - Num boxes: $numBoxes, Num features: $numFeatures');
-
-      // Sample raw output for debugging
-      if (numBoxes > 0) {
-        print('Sample raw output [0][0][0]: ${output[0][0][0]}');
-        print('Sample raw output [0][1][0]: ${output[0][1][0]}');
-        print('Sample raw output [0][2][0]: ${output[0][2][0]}');
-        print('Sample raw output [0][3][0]: ${output[0][3][0]}');
-      }
 
       for (int i = 0; i < numBoxes; i++) {
         final xCenter = output[0][0][i];
@@ -199,7 +231,7 @@ Future<YoloResult> runYoloInferenceImpl(String imagePath, List<String> classLabe
           }
         }
 
-        if (maxScore > 0.25) {
+        if (maxScore > minConfScore) {
           bool isNormalized = xCenter <= 1.0 && yCenter <= 1.0 && bboxWidth <= 1.0 && bboxHeight <= 1.0;
 
           double x1, y1, x2, y2;
@@ -216,11 +248,6 @@ Future<YoloResult> runYoloInferenceImpl(String imagePath, List<String> classLabe
             y2 = ((yCenter + bboxHeight / 2) / inputHeight * originalHeight).clamp(0.0, originalHeight.toDouble());
           }
 
-          print('Detection $i: class=${classLabels[maxClassIdx]}, conf=${maxScore.toStringAsFixed(2)}, '
-                'raw=(${xCenter.toStringAsFixed(1)}, ${yCenter.toStringAsFixed(1)}, ${bboxWidth.toStringAsFixed(1)}, ${bboxHeight.toStringAsFixed(1)}), '
-                'normalized=$isNormalized, '
-                'box=(${x1.toStringAsFixed(0)}, ${y1.toStringAsFixed(0)}, ${x2.toStringAsFixed(0)}, ${y2.toStringAsFixed(0)})');
-
           detections.add({
             'x1': x1,
             'y1': y1,
@@ -233,24 +260,67 @@ Future<YoloResult> runYoloInferenceImpl(String imagePath, List<String> classLabe
         }
       }
 
-      print('Total detections before NMS: ${detections.length}');
       detections = _applyNMS(detections, 0.45);
-      print('Total detections after NMS: ${detections.length}');
     }
 
-    // Draw bounding boxes
-    final annotatedImagePath = await _drawDetections(originalImage, detections, classLabels);
+    return detections;
+  }
 
-    print('Annotated image saved to: $annotatedImagePath');
+  void dispose() {
+    _interpreter?.close();
+    _interpreter = null;
+  }
+}
 
-    interpreter.close();
+// Keep the original function for backward compatibility
+Future<YoloResult> runYoloInferenceImpl(String imagePath, List<String> classLabels, {bool drawDetections = true}) async {
+  final service = YoloService();
 
-    return YoloResult(imagePath: annotatedImagePath, detections: detections);
+  try {
+    // Load image
+    final imageFile = File(imagePath);
+    final imageBytes = await imageFile.readAsBytes();
+    img.Image? originalImage = img.decodeImage(imageBytes);
+
+    if (originalImage == null) {
+      print('Failed to decode image');
+      return YoloResult(imagePath: imagePath, detections: []);
+    }
+
+    final originalWidth = originalImage.width;
+    final originalHeight = originalImage.height;
+
+    if (drawDetections) {
+      print('Original image size: ${originalWidth}x${originalHeight}');
+    }
+
+    // Run inference
+    final detections = await service.inferFast(
+      imageBytes,
+      originalWidth,
+      originalHeight,
+      classLabels,
+    );
+
+    if (drawDetections) {
+      print('Total detections: ${detections.length}');
+      for (int i = 0; i < detections.length; i++) {
+        final det = detections[i];
+        print('Detection $i: class=${det['className']}, conf=${(det['confidence'] as double).toStringAsFixed(2)}');
+      }
+    }
+
+    // Only draw bounding boxes if requested
+    if (drawDetections) {
+      final annotatedImagePath = await _drawDetections(originalImage, detections, classLabels);
+      return YoloResult(imagePath: annotatedImagePath, detections: detections);
+    }
+
+    return YoloResult(imagePath: imagePath, detections: detections);
 
   } catch (e, stackTrace) {
     print('Error running YOLO inference: $e');
     print('Stack trace: $stackTrace');
-    interpreter?.close();
     return YoloResult(imagePath: imagePath, detections: []);
   }
 }
@@ -303,6 +373,7 @@ Future<String> _drawDetections(img.Image image, List<Map<String, dynamic>> detec
   final Map<String, img.Color> categoryColors = {
     'tooth': img.ColorRgb8(0, 255, 0),
     'caries': img.ColorRgb8(255, 0, 0),
+    'cavity': img.ColorRgb8(255, 0, 0),
     'restoration': img.ColorRgb8(0, 0, 255),
     'crown': img.ColorRgb8(0, 0, 255),
     'broken': img.ColorRgb8(255, 165, 0),
@@ -314,17 +385,18 @@ Future<String> _drawDetections(img.Image image, List<Map<String, dynamic>> detec
   };
 
   img.Color getColorForClass(String className) {
-    if (className.startsWith('tooth_')) return categoryColors['tooth']!;
-    if (className.contains('caries')) return categoryColors['caries']!;
-    if (className.contains('restoration')) return categoryColors['restoration']!;
-    if (className.contains('crown')) return categoryColors['crown']!;
-    if (className.contains('broken')) return categoryColors['broken']!;
-    if (className.contains('discoloration')) return categoryColors['discoloration']!;
-    if (className.contains('gingivitis')) return categoryColors['gingivitis']!;
-    if (className.contains('gum')) return categoryColors['gum']!;
-    if (className.contains('plaque')) return categoryColors['plaque']!;
-    if (className.toLowerCase().contains('ulcer')) return categoryColors['ulcer']!;
-    return img.ColorRgb8(0, 255, 0);
+    final lowerName = className.toLowerCase();
+    if (lowerName.startsWith('tooth_')) return categoryColors['tooth']!;
+    if (lowerName.contains('caries') || lowerName.contains('cavity')) return categoryColors['cavity']!;
+    if (lowerName.contains('restoration')) return categoryColors['restoration']!;
+    if (lowerName.contains('crown')) return categoryColors['crown']!;
+    if (lowerName.contains('broken')) return categoryColors['broken']!;
+    if (lowerName.contains('discoloration')) return categoryColors['discoloration']!;
+    if (lowerName.contains('gingivitis')) return categoryColors['gingivitis']!;
+    if (lowerName.contains('gum')) return categoryColors['gum']!;
+    if (lowerName.contains('plaque')) return categoryColors['plaque']!;
+    if (lowerName.contains('ulcer')) return categoryColors['ulcer']!;
+    return img.ColorRgb8(255, 0, 0); // Default red for cavity detection
   }
 
   for (final det in detections) {
@@ -364,10 +436,8 @@ Future<String> _drawDetections(img.Image image, List<Map<String, dynamic>> detec
   final tempDir = await getTemporaryDirectory();
   final outputPath = '${tempDir.path}/diagnosis_result_${DateTime.now().millisecondsSinceEpoch}.jpg';
   final outputFile = File(outputPath);
-  final encodedImage = img.encodeJpg(image, quality: 95);
+  final encodedImage = img.encodeJpg(image, quality: 90);
   await outputFile.writeAsBytes(encodedImage);
-
-  print('Saved annotated image: $outputPath (${encodedImage.length} bytes)');
 
   return outputPath;
 }

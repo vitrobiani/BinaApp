@@ -113,6 +113,7 @@ class MotorControllerService {
 
   static const int defaultPort = 8071;
   static const Duration _timeout = Duration(seconds: 5);
+  static const Duration _rotateTimeout = Duration(seconds: 15); // Longer timeout for rotation
 
   String? _host;
   int _port = defaultPort;
@@ -238,16 +239,18 @@ class MotorControllerService {
     }
 
     try {
+      final url = '$_baseUrl/rotate';
+      debugPrint('MotorControllerService: POST to $url');
       final response = await http
           .post(
-            Uri.parse('$_baseUrl/rotate'),
+            Uri.parse(url),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               'revolutions': revolutions,
               'direction': direction == MotorDirection.forward ? 1 : 0,
             }),
           )
-          .timeout(_timeout);
+          .timeout(_rotateTimeout); // Use longer timeout for rotation
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;

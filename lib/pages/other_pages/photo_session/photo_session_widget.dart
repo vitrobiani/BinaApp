@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:image/image.dart' as img;
 import '/backend/supabase/supabase.dart';
 import '/backend/sqlite/sqlite_manager.dart';
 import '/backend/schema/structs/index.dart';
@@ -54,6 +56,13 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
   bool _isInPreviewMode = false;
   bool _isCapturingFromStream = false;
 
+  // Real-time detection state
+  Timer? _analysisTimer;
+  List<Map<String, dynamic>> _realtimeDetections = [];
+  bool _isAnalyzing = false;
+  int _imageWidth = 640;
+  int _imageHeight = 480;
+
   final Map<String, String> _imageInterpretations = {};
   final Set<String> _interpretingImages = {};
 
@@ -69,6 +78,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
 
   @override
   void dispose() {
+    _analysisTimer?.cancel();
     _model.dispose();
     super.dispose();
   }
@@ -139,6 +149,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
   }
 
   Future<void> _captureFromCamera() async {
+    debugPrint('>>> _captureFromCamera called');
     if (kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -150,12 +161,16 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
     }
 
     final cameraConnection = AppState().cameraConnection;
+    debugPrint('>>> Camera connected: ${cameraConnection.isCameraConnected()}');
+    debugPrint('>>> Camera host: ${cameraConnection.cameraHost}:${cameraConnection.cameraPort}');
 
     // If Bina camera is connected, enter preview mode
     if (cameraConnection.isCameraConnected()) {
+      debugPrint('>>> Entering preview mode');
       safeSetState(() {
         _isInPreviewMode = true;
       });
+      _startRealtimeAnalysis();
       return;
     }
 
@@ -174,10 +189,123 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
   }
 
   void _exitPreviewMode() {
+    _stopRealtimeAnalysis();
     safeSetState(() {
       _isInPreviewMode = false;
       _isCapturingFromStream = false;
+      _realtimeDetections = [];
     });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // REAL-TIME DETECTION
+  // ═══════════════════════════════════════════════════════════════
+
+  void _startRealtimeAnalysis() {
+    debugPrint('>>> Starting real-time analysis');
+    _analysisTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      _analyzeCurrentFrame();
+    });
+  }
+
+  void _stopRealtimeAnalysis() {
+    debugPrint('>>> Stopping real-time analysis');
+    _analysisTimer?.cancel();
+    _analysisTimer = null;
+  }
+
+  Future<void> _analyzeCurrentFrame() async {
+    debugPrint('>>> _analyzeCurrentFrame: isAnalyzing=$_isAnalyzing, isInPreviewMode=$_isInPreviewMode');
+    if (_isAnalyzing || !_isInPreviewMode) return;
+    _isAnalyzing = true;
+
+    try {
+      final cameraConnection = AppState().cameraConnection;
+      debugPrint('>>> _analyzeCurrentFrame: camera connected=${cameraConnection.isCameraConnected()}');
+      if (!cameraConnection.isCameraConnected()) return;
+
+      final imagePath = await MjpegCaptureService.instance.captureFrame(
+        cameraIP: cameraConnection.cameraHost,
+        port: cameraConnection.cameraPort,
+      );
+
+      if (imagePath != null) {
+        // Get image dimensions
+        final imageBytes = await File(imagePath).readAsBytes();
+        final decodedImage = img.decodeImage(imageBytes);
+        if (decodedImage != null) {
+          _imageWidth = decodedImage.width;
+          _imageHeight = decodedImage.height;
+        }
+
+        final result = await actions.runYoloInference(imagePath);
+        debugPrint('=== RT DETECTIONS: ${result.detections.length} ===');
+
+        if (mounted) {
+          safeSetState(() {
+            _realtimeDetections = result.detections;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('>>> RT analysis error: $e');
+    } finally {
+      _isAnalyzing = false;
+    }
+  }
+
+  Widget _buildDetectionOverlay() {
+    if (_realtimeDetections.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final widgetWidth = constraints.maxWidth;
+        final widgetHeight = constraints.maxHeight;
+
+        final imageAspect = _imageWidth / _imageHeight;
+        final widgetAspect = widgetWidth / widgetHeight;
+
+        double scale, offsetX = 0, offsetY = 0;
+
+        if (imageAspect > widgetAspect) {
+          scale = widgetWidth / _imageWidth;
+          offsetY = (widgetHeight - (_imageHeight * scale)) / 2;
+        } else {
+          scale = widgetHeight / _imageHeight;
+          offsetX = (widgetWidth - (_imageWidth * scale)) / 2;
+        }
+
+        return Stack(
+          children: [
+            for (final det in _realtimeDetections)
+              Positioned(
+                left: (det['x1'] as double) * scale + offsetX,
+                top: (det['y1'] as double) * scale + offsetY,
+                width: ((det['x2'] as double) - (det['x1'] as double)) * scale,
+                height: ((det['y2'] as double) - (det['y1'] as double)) * scale,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.red, width: 2),
+                  ),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      color: Colors.red,
+                      child: Text(
+                        '${det['className']} ${((det['confidence'] as double) * 100).toStringAsFixed(0)}%',
+                        style: const TextStyle(color: Colors.white, fontSize: 10),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _captureFromStream() async {
@@ -688,8 +816,10 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
   }
 
   Widget _buildCameraPreview() {
+    debugPrint('>>> _buildCameraPreview rendering');
     final cameraConnection = AppState().cameraConnection;
     final streamUrl = 'http://${cameraConnection.cameraHost}:${cameraConnection.cameraPort}/stream.mjpg';
+    debugPrint('>>> Stream URL: $streamUrl');
 
     return Column(
       children: [
@@ -810,6 +940,8 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                         ),
                       ),
                     ),
+                    // Real-time detection overlay
+                    _buildDetectionOverlay(),
                   ],
                 ),
               ),
