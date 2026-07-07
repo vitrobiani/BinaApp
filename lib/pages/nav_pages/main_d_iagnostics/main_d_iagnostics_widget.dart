@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import '/backend/schema/structs/index.dart';
 import '/backend/sqlite/sqlite_manager.dart';
@@ -7,8 +9,13 @@ import '/app_core/app_util.dart';
 import '/bina_design/bina_design.dart';
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
+import '/custom_code/actions/run_yolo_inference.dart' show classLabels;
+// Conditional import for YoloService (only available on native platforms)
+import '/custom_code/actions/yolo_service_stub.dart'
+    if (dart.library.io) '/custom_code/actions/yolo_inference_native.dart' show YoloService;
 import '/index.dart';
 import '/services/mjpeg_capture_service.dart';
+import '/services/motor_controller_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -81,6 +88,16 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
   // Camera preview state
   bool _isInPreviewMode = false;
   bool _isCapturingFromStream = false;
+
+  // Real-time detection state
+  Timer? _analysisTimer;
+  List<Map<String, dynamic>> _realtimeDetections = [];
+  bool _isAnalyzing = false;
+  bool _isRealtimeEnabled = true;  // Toggle for real-time analysis
+  int _imageWidth = 640;   // Stream resolution from RPi
+  int _imageHeight = 360;
+  int? _selectedDetectionIndex;  // Which detection box is showing its label
+  bool _isRotating = false;  // Motor rotation in progress
 
   @override
   void initState() {
@@ -249,6 +266,7 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
       safeSetState(() {
         _isInPreviewMode = true;
       });
+      _startRealtimeAnalysis();
       return;
     }
 
@@ -280,10 +298,299 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
   }
 
   void _exitPreviewMode() {
+    _stopRealtimeAnalysis();
     safeSetState(() {
       _isInPreviewMode = false;
       _isCapturingFromStream = false;
+      _realtimeDetections = [];
     });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // REAL-TIME DETECTION
+  // ═══════════════════════════════════════════════════════════════
+
+  final YoloService _yoloService = YoloService();
+
+  void _startRealtimeAnalysis() async {
+    debugPrint('>>> Starting real-time analysis');
+
+    // Preload model before starting timer
+    await _yoloService.loadModel();
+
+    // Use 300ms interval for smoother updates (model is now cached)
+    _analysisTimer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
+      _analyzeCurrentFrame();
+    });
+  }
+
+  void _stopRealtimeAnalysis() {
+    debugPrint('>>> Stopping real-time analysis');
+    _analysisTimer?.cancel();
+    _analysisTimer = null;
+  }
+
+  void _toggleRealtimeAnalysis() {
+    safeSetState(() {
+      _isRealtimeEnabled = !_isRealtimeEnabled;
+      if (_isRealtimeEnabled) {
+        _startRealtimeAnalysis();
+      } else {
+        _stopRealtimeAnalysis();
+        _realtimeDetections = [];
+        _selectedDetectionIndex = null;
+      }
+    });
+  }
+
+  Future<void> _rotateMotor() async {
+    if (_isRotating) return;
+
+    safeSetState(() => _isRotating = true);
+
+    try {
+      final motorService = MotorControllerService.instance;
+
+      // Configure from camera if not already configured
+      if (!motorService.isConfigured) {
+        if (!motorService.configureFromCamera()) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Camera not connected'),
+                backgroundColor: BinaColors.error,
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      debugPrint('>>> Rotating motor at ${motorService.host}:${motorService.port}');
+
+      final result = await motorService.rotate(
+        revolutions: 0.5,
+        direction: MotorDirection.forward,
+      );
+
+      if (result.success) {
+        debugPrint('>>> Motor rotation successful: ${result.message}');
+      } else {
+        debugPrint('>>> Motor rotation failed: ${result.error}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Motor error: ${result.error ?? "Unknown error"}'),
+              backgroundColor: BinaColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('>>> Motor rotation error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Could not connect to motor controller'),
+            backgroundColor: BinaColors.error,
+          ),
+        );
+      }
+    } finally {
+      safeSetState(() => _isRotating = false);
+    }
+  }
+
+  Future<void> _analyzeCurrentFrame() async {
+    if (_isAnalyzing || !_isInPreviewMode || !_isRealtimeEnabled) return;
+    _isAnalyzing = true;
+
+    final stopwatch = Stopwatch()..start();
+
+    try {
+      final cameraConnection = AppState().cameraConnection;
+      if (!cameraConnection.isCameraConnected()) return;
+
+      // Capture from stream (640x360) instead of snapshot (1920x1080) - much faster!
+      final imageBytes = await MjpegCaptureService.instance.captureFromStreamFast(
+        cameraIP: cameraConnection.cameraHost,
+        port: cameraConnection.cameraPort,
+      );
+      final captureTime = stopwatch.elapsedMilliseconds;
+
+      if (imageBytes != null) {
+        // Get dimensions on first frame
+        if (_imageWidth == 640 && _imageHeight == 480) {
+          final dims = _getJpegDimensions(imageBytes);
+          if (dims != null) {
+            _imageWidth = dims.$1;
+            _imageHeight = dims.$2;
+            debugPrint('>>> Camera resolution: ${_imageWidth}x$_imageHeight');
+          }
+        }
+
+        // Use fast inference directly (model already loaded)
+        final detections = await _yoloService.inferFast(
+          imageBytes,
+          _imageWidth,
+          _imageHeight,
+          classLabels,
+        );
+        final inferTime = stopwatch.elapsedMilliseconds;
+
+        debugPrint('>>> TIMING: capture=${captureTime}ms, infer=${inferTime - captureTime}ms, total=${inferTime}ms, detections=${detections.length}');
+
+        if (mounted) {
+          safeSetState(() {
+            _realtimeDetections = detections;
+            _selectedDetectionIndex = null;  // Clear selection on new detections
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('>>> RT analysis error: $e');
+    } finally {
+      _isAnalyzing = false;
+    }
+  }
+
+  /// Fast JPEG dimension extraction from header (avoids full decode)
+  (int, int)? _getJpegDimensions(Uint8List bytes) {
+    try {
+      int i = 0;
+      if (bytes[i] != 0xFF || bytes[i + 1] != 0xD8) return null; // Not JPEG
+      i += 2;
+
+      while (i < bytes.length - 1) {
+        if (bytes[i] != 0xFF) { i++; continue; }
+        final marker = bytes[i + 1];
+        i += 2;
+
+        // SOF markers contain dimensions
+        if (marker >= 0xC0 && marker <= 0xCF && marker != 0xC4 && marker != 0xC8 && marker != 0xCC) {
+          if (i + 7 > bytes.length) return null;
+          final height = (bytes[i + 3] << 8) | bytes[i + 4];
+          final width = (bytes[i + 5] << 8) | bytes[i + 6];
+          return (width, height);
+        }
+
+        if (i + 1 >= bytes.length) return null;
+        final length = (bytes[i] << 8) | bytes[i + 1];
+        i += length;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Widget _buildDetectionOverlay() {
+    if (_realtimeDetections.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final widgetWidth = constraints.maxWidth;
+        final widgetHeight = constraints.maxHeight;
+
+        final imageAspect = _imageWidth / _imageHeight;
+        final widgetAspect = widgetWidth / widgetHeight;
+
+        double scale, offsetX = 0, offsetY = 0;
+
+        if (imageAspect > widgetAspect) {
+          scale = widgetWidth / _imageWidth;
+          offsetY = (widgetHeight - (_imageHeight * scale)) / 2;
+        } else {
+          scale = widgetHeight / _imageHeight;
+          offsetX = (widgetWidth - (_imageWidth * scale)) / 2;
+        }
+
+        return Stack(
+          children: [
+            for (int i = 0; i < _realtimeDetections.length; i++)
+              _buildDetectionBox(
+                detection: _realtimeDetections[i],
+                index: i,
+                scale: scale,
+                offsetX: offsetX,
+                offsetY: offsetY,
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDetectionBox({
+    required Map<String, dynamic> detection,
+    required int index,
+    required double scale,
+    required double offsetX,
+    required double offsetY,
+  }) {
+    final isSelected = _selectedDetectionIndex == index;
+    final boxWidth = ((detection['x2'] as double) - (detection['x1'] as double)) * scale;
+    final boxHeight = ((detection['y2'] as double) - (detection['y1'] as double)) * scale;
+
+    // Add padding around the box for easier tapping
+    const double touchPadding = 15.0;
+
+    return Positioned(
+      left: (detection['x1'] as double) * scale + offsetX - touchPadding,
+      top: (detection['y1'] as double) * scale + offsetY - touchPadding,
+      width: boxWidth + touchPadding * 2,
+      height: boxHeight + touchPadding * 2,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,  // Makes entire area tappable
+        onTap: () {
+          safeSetState(() {
+            // Toggle: if already selected, deselect; otherwise select this one
+            _selectedDetectionIndex = isSelected ? null : index;
+          });
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(touchPadding),
+          child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Bounding box
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: isSelected ? Colors.yellow : Colors.red,
+                  width: isSelected ? 3 : 2,
+                ),
+              ),
+            ),
+            // Label (only shown when selected)
+            if (isSelected)
+              Positioned(
+                left: 0,
+                bottom: boxHeight, // Position above the box
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.yellow.shade700,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(4),
+                      topRight: Radius.circular(4),
+                    ),
+                  ),
+                  child: Text(
+                    '${detection['className']} ${((detection['confidence'] as double) * 100).toStringAsFixed(0)}%',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        ),
+      ),
+    );
   }
 
   Future<void> _captureFromStream() async {
@@ -686,6 +993,8 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
                         ),
                       ),
                     ),
+                    // Real-time detection overlay
+                    _buildDetectionOverlay(),
                   ],
                 ),
               ),
@@ -702,10 +1011,32 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
           ),
           child: Column(
             children: [
-              // Capture button
-              _CapturePhotoButton(
-                isCapturing: _isCapturingFromStream,
-                onPressed: _captureFromStream,
+              // Control buttons row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Toggle real-time analysis button
+                  _ControlButton(
+                    icon: _isRealtimeEnabled ? Icons.visibility : Icons.visibility_off,
+                    label: _isRealtimeEnabled ? 'AI On' : 'AI Off',
+                    isActive: _isRealtimeEnabled,
+                    onPressed: _toggleRealtimeAnalysis,
+                  ),
+                  const SizedBox(width: 16),
+                  // Capture button
+                  _CapturePhotoButton(
+                    isCapturing: _isCapturingFromStream,
+                    onPressed: _captureFromStream,
+                  ),
+                  const SizedBox(width: 16),
+                  // Motor rotate button
+                  _ControlButton(
+                    icon: Icons.rotate_right,
+                    label: 'Rotate',
+                    isLoading: _isRotating,
+                    onPressed: _rotateMotor,
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               // Instructions
@@ -845,6 +1176,7 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
 
   @override
   void dispose() {
+    _analysisTimer?.cancel();
     _model.dispose();
     super.dispose();
   }
@@ -2054,6 +2386,74 @@ class _CapturePhotoButtonState extends State<_CapturePhotoButton> {
                 color: Colors.white,
                 size: 36,
               ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTROL BUTTON (for motor/toggle actions)
+// ═══════════════════════════════════════════════════════════════
+
+class _ControlButton extends StatelessWidget {
+  const _ControlButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.isActive = false,
+    this.isLoading = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+  final bool isActive;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: isLoading ? null : onPressed,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isActive ? BinaColors.primary100 : BinaColors.surfaceSunken,
+              border: Border.all(
+                color: isActive ? BinaColors.primary : BinaColors.line,
+                width: 2,
+              ),
+            ),
+            child: isLoading
+                ? Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: BinaColors.primary,
+                      ),
+                    ),
+                  )
+                : Icon(
+                    icon,
+                    color: isActive ? BinaColors.primary : BinaColors.ink2,
+                    size: 24,
+                  ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: BinaType.labelSm.copyWith(
+              color: isActive ? BinaColors.primary : BinaColors.ink3,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
     );
   }

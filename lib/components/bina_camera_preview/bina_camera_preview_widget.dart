@@ -1,5 +1,10 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:bina_system/custom_code/actions/index.dart';
 import 'package:flutter/material.dart';
 import 'package:mjpeg_stream/mjpeg_stream.dart';
+import 'package:image/image.dart' as img;
 import '/bina_design/bina_design.dart';
 import '/services/mjpeg_capture_service.dart';
 
@@ -18,10 +23,24 @@ class BinaCameraPreviewWidget extends StatefulWidget {
 }
 
 class _BinaCameraPreviewWidgetState extends State<BinaCameraPreviewWidget> {
+  Timer? _analysisTimer;
   bool _isCapturing = false;
   String? _errorMessage;
+  YoloResult? _detections;
+  bool _isAnalyzing = false;
+
+  // Image dimensions from last capture (for scaling overlay)
+  int _imageWidth = 640;
+  int _imageHeight = 480;
 
   String get streamUrl => 'http://${widget.cameraIP}:${widget.cameraPort}/stream.mjpg';
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('>>> BinaCameraPreviewWidget initState - starting real-time analysis');
+    _startRealTimeAnalysis();
+  }
 
   Future<void> _capturePhoto() async {
     if (_isCapturing) return;
@@ -53,6 +72,129 @@ class _BinaCameraPreviewWidgetState extends State<BinaCameraPreviewWidget> {
         _isCapturing = false;
       });
     }
+  }
+
+  void _startRealTimeAnalysis() {
+    debugPrint('>>> Starting real-time analysis timer (500ms interval)');
+    // Run every 500ms (2 fps) - adjust as needed
+    _analysisTimer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+      _captureAndAnalyze();
+    });
+  }
+
+  void _stopRealTimeAnalysis() {
+    _analysisTimer?.cancel();
+    _analysisTimer = null;
+  }
+
+  @override
+  void dispose() {
+    _analysisTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _captureAndAnalyze() async {
+    debugPrint('>>> _captureAndAnalyze called, _isAnalyzing=$_isAnalyzing');
+    if (_isAnalyzing) return;
+    _isAnalyzing = true;
+
+    try {
+      debugPrint('>>> Capturing frame from ${widget.cameraIP}:${widget.cameraPort}');
+      final imagePath = await MjpegCaptureService.instance.captureFrame(
+        cameraIP: widget.cameraIP,
+        port: widget.cameraPort,
+      );
+      debugPrint('>>> Captured: $imagePath');
+      if (imagePath != null){
+        // Get image dimensions for scaling
+        final imageBytes = await File(imagePath).readAsBytes();
+        final decodedImage = img.decodeImage(imageBytes);
+        if (decodedImage != null) {
+          _imageWidth = decodedImage.width;
+          _imageHeight = decodedImage.height;
+        }
+
+        YoloResult res = await runYoloInference(imagePath);
+        debugPrint('=== DETECTIONS: ${res.detections.length} (image: ${_imageWidth}x${_imageHeight}) ===');
+        for (final det in res.detections) {
+          debugPrint('  ${det['className']}: ${(det['confidence'] * 100).toStringAsFixed(1)}% at (${det['x1'].toStringAsFixed(0)}, ${det['y1'].toStringAsFixed(0)}) -> (${det['x2'].toStringAsFixed(0)}, ${det['y2'].toStringAsFixed(0)})');
+        }
+        if (mounted) {
+          setState(() {
+            _detections = res;
+          });
+        }
+      }
+      else
+        _detections = null;
+    } catch (e, stack) {
+      debugPrint(">>> ERROR in _captureAndAnalyze: $e");
+      debugPrint(">>> Stack: $stack");
+    } finally {
+      _isAnalyzing = false;
+    }
+  }
+
+  Widget _BboxOverlay() {
+    if (_detections == null || _detections!.detections.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate scale factors from image coords to widget coords
+        // The video uses BoxFit.contain, so we need to account for aspect ratio
+        final widgetWidth = constraints.maxWidth;
+        final widgetHeight = constraints.maxHeight;
+
+        final imageAspect = _imageWidth / _imageHeight;
+        final widgetAspect = widgetWidth / widgetHeight;
+
+        double scaleX, scaleY, offsetX = 0, offsetY = 0;
+
+        if (imageAspect > widgetAspect) {
+          // Image is wider - letterbox top/bottom
+          scaleX = widgetWidth / _imageWidth;
+          scaleY = scaleX;
+          offsetY = (widgetHeight - (_imageHeight * scaleY)) / 2;
+        } else {
+          // Image is taller - pillarbox left/right
+          scaleY = widgetHeight / _imageHeight;
+          scaleX = scaleY;
+          offsetX = (widgetWidth - (_imageWidth * scaleX)) / 2;
+        }
+
+        debugPrint('Overlay scale: ${scaleX.toStringAsFixed(3)} offset: ($offsetX, $offsetY)');
+
+        return Stack(
+          children: [
+            for (final det in _detections!.detections)
+              Positioned(
+                left: (det['x1'] as double) * scaleX + offsetX,
+                top: (det['y1'] as double) * scaleY + offsetY,
+                width: ((det['x2'] as double) - (det['x1'] as double)) * scaleX,
+                height: ((det['y2'] as double) - (det['y1'] as double)) * scaleY,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.red, width: 2),
+                  ),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      color: Colors.red,
+                      child: Text(
+                        '${det['className']} ${((det['confidence'] as double) * 100).toStringAsFixed(0)}%',
+                        style: const TextStyle(color: Colors.white, fontSize: 10),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -180,6 +322,7 @@ class _BinaCameraPreviewWidgetState extends State<BinaCameraPreviewWidget> {
                           ),
                         ),
                       ),
+                      _BboxOverlay(),
                     ],
                   ),
                 ),

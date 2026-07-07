@@ -90,20 +90,30 @@ dependency_overrides:
 
 dev_dependencies:
   flutter_launcher_icons: 0.13.1
+  flutter_native_splash: ^2.3.0
   flutter_lints: 4.0.0
   lints: 4.0.0
   flutter_test:
     sdk: flutter
 
 
+flutter_native_splash:
+  image: assets/images/bina_icon.png
+  color: "#FFFFFF"
+  android: true
+  ios: true
+  android_12:
+    image: assets/images/bina_icon.png
+    color: "#FFFFFF"
+
 flutter_launcher_icons:
   android: 'launcher_icon'
   ios: true
   web:
     generate: true
-  image_path: 'assets/images/app_launcher_icon.png'
+  image_path: 'assets/images/bina_icon.png'
   adaptive_icon_background: '#00000000'
-  adaptive_icon_foreground: 'assets/images/adaptive_foreground_icon.png'
+  adaptive_icon_foreground: 'assets/images/bina_icon.png'
 
 
 # For information on the generic Dart part of this file, see the
@@ -128,6 +138,9 @@ flutter:
     - assets/jsons/
     - assets/sqlite_db_files/
     - assets/yolo11n_float16.tflite
+    - assets/best_model.tflite
+    - assets/cavity_detector_no_nms.tflite
+#    - assets/best_float32.tflite
     # Gemma models
     # - Gemma 3 1B is bundled (small enough at ~555MB)
     # - Gemma 4 E2B downloads at runtime (too large at ~2.6GB)

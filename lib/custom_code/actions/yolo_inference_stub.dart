@@ -13,7 +13,7 @@ class YoloResult {
   });
 }
 
-Future<YoloResult> runYoloInferenceImpl(String imagePath, List<String> classLabels) async {
+Future<YoloResult> runYoloInferenceImpl(String imagePath, List<String> classLabels, {bool drawDetections = true}) async {
   print('YOLO inference is not supported on web platform');
   return YoloResult(
     imagePath: imagePath,

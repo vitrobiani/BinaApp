@@ -13,36 +13,98 @@ class MjpegCaptureService {
   static const int _connectionTimeout = 5;
   static const int _receiveTimeout = 10;
 
+  /// Capture frame and return file path (legacy method)
   Future<String?> captureFrame({
     required String cameraIP,
     int port = 8070,
   }) async {
-    if (kIsWeb) {
-      debugPrint('MjpegCaptureService: web platform not supported');
-      return null;
-    }
+    final bytes = await captureFrameBytes(cameraIP: cameraIP, port: port);
+    if (bytes == null) return null;
+    return await _saveImage(bytes);
+  }
+
+  /// Capture frame and return raw bytes (faster - no file I/O)
+  /// Uses snapshot endpoint by default (high-res for capture)
+  Future<Uint8List?> captureFrameBytes({
+    required String cameraIP,
+    int port = 8070,
+  }) async {
+    if (kIsWeb) return null;
 
     final snapshotUrl = 'http://$cameraIP:$port/snapshot.jpg';
-    debugPrint('MjpegCaptureService: capturing from $snapshotUrl');
 
     try {
       final response = await http.get(
         Uri.parse(snapshotUrl),
-      ).timeout(
-        const Duration(seconds: _connectionTimeout + _receiveTimeout),
-      );
+      ).timeout(const Duration(seconds: 3));
 
       if (response.statusCode == 200) {
-        final bytes = response.bodyBytes;
-        return await _saveImage(bytes);
-      } else {
-        debugPrint('MjpegCaptureService: HTTP ${response.statusCode}');
-        return null;
+        return response.bodyBytes;
       }
+      return null;
     } catch (e) {
       debugPrint('MjpegCaptureService: snapshot error: $e');
-      // Fallback: try to parse a frame from the MJPEG stream
-      return await _captureFromStream(cameraIP, port);
+      return null;
+    }
+  }
+
+  /// Fast capture from MJPEG stream (lower-res, for real-time analysis)
+  Future<Uint8List?> captureFromStreamFast({
+    required String cameraIP,
+    int port = 8070,
+  }) async {
+    if (kIsWeb) return null;
+
+    final streamUrl = 'http://$cameraIP:$port/stream.mjpg';
+
+    try {
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(milliseconds: 500);
+
+      final request = await client.getUrl(Uri.parse(streamUrl));
+      final response = await request.close().timeout(const Duration(milliseconds: 800));
+
+      if (response.statusCode != 200) {
+        client.close();
+        return null;
+      }
+
+      // Parse first complete JPEG frame from stream
+      final bytes = <int>[];
+      bool foundStart = false;
+      int prevByte = 0;
+
+      await for (final chunk in response) {
+        for (final byte in chunk) {
+          if (!foundStart) {
+            if (prevByte == 0xFF && byte == 0xD8) {
+              foundStart = true;
+              bytes.add(0xFF);
+              bytes.add(0xD8);
+            }
+            prevByte = byte;
+          } else {
+            bytes.add(byte);
+            if (prevByte == 0xFF && byte == 0xD9) {
+              // Complete JPEG found
+              client.close();
+              return Uint8List.fromList(bytes);
+            }
+            prevByte = byte;
+          }
+
+          // Safety limit
+          if (bytes.length > 500000) {
+            client.close();
+            return null;
+          }
+        }
+      }
+
+      client.close();
+      return null;
+    } catch (e) {
+      return null;
     }
   }
 
