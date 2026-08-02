@@ -112,6 +112,7 @@ class GemmaAgentService {
       final systemPrompt = AgentPrompts.buildSystemPrompt(
         languageHint: languageHint,
         currentMemberName: currentMemberName,
+        memberDocuments: AppState().memberDocuments,
       );
 
       // Keep prompt short - just system + last message

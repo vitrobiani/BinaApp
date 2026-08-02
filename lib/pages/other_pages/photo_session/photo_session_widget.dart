@@ -12,6 +12,9 @@ import '/custom_code/actions/index.dart' as actions;
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
 import '/index.dart';
 import '/services/mjpeg_capture_service.dart';
+import '/services/gyro_controller_service.dart';
+import '/services/mouth_region_estimator.dart';
+import '/components/dialogs/confirm_dialog.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -73,6 +76,9 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
 
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await _initSession();
+      if (widget.memberId != null && widget.memberId!.isNotEmpty) {
+        await AppState().loadMemberCalibration(widget.memberId);
+      }
     });
   }
 
@@ -485,6 +491,15 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
       final imageId = const Uuid().v4();
       final originalBytes = await File(originalPath).readAsBytes();
       final diagnosedBytes = await File(result.imagePath).readAsBytes();
+      final orientation =
+          await GyroControllerService.instance.readOrientationInts();
+      final estimatedRegion = (orientation.pitch != null && orientation.roll != null)
+          ? MouthRegionEstimator.estimate(
+              orientation.pitch!,
+              orientation.roll!,
+              AppState().memberCalibration,
+            )
+          : null;
 
       if (AppState().UserSession.isLocalSession) {
         await SQLiteManager.instance.createScanImage(
@@ -494,6 +509,9 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
           diagnosedImage: diagnosedBytes,
           capturedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
           rawResponse: jsonEncode(result.detections),
+          pitch: orientation.pitch,
+          roll: orientation.roll,
+          estimatedRegion: estimatedRegion,
         );
       } else {
         await ScanImagesTable().insert({
@@ -503,6 +521,9 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
           'diagnosed_image': diagnosedBytes,
           'captured_at': supaSerialize<DateTime>(DateTime.now()),
           'raw_response': jsonEncode(result.detections),
+          if (orientation.pitch != null) 'pitch': orientation.pitch,
+          if (orientation.roll != null) 'roll': orientation.roll,
+          if (estimatedRegion != null) 'estimated_region': estimatedRegion,
         });
       }
 
@@ -516,6 +537,9 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
           diagnosedImagePath: result.imagePath,
           capturedAt: DateTime.now(),
           rawResponse: detectionsJson,
+          pitch: orientation.pitch,
+          roll: orientation.roll,
+          estimatedRegion: estimatedRegion,
         ));
         _isProcessing = false;
       });
@@ -608,6 +632,14 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
                           fit: BoxFit.contain,
                         ),
                       ),
+                    const SizedBox(height: 12),
+                    Text(
+                      (image.pitch != null && image.roll != null)
+                          ? 'Orientation · pitch ${image.pitch}° · roll ${image.roll}°'
+                              '${image.estimatedRegion != null ? ' · region ${image.estimatedRegion}' : ''}'
+                          : 'Orientation · unavailable',
+                      style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
+                    ),
                     const SizedBox(height: 16),
                     Text('Detections: ${detections.length}', style: BinaType.titleMd),
                     const SizedBox(height: 8),
@@ -665,6 +697,23 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
         ),
       );
       return;
+    }
+
+    final uncovered = MouthRegionEstimator.uncoveredRegions(
+      _sessionImages
+          .map((i) => i.estimatedRegion)
+          .whereType<String>(),
+    );
+    if (uncovered.isNotEmpty) {
+      final proceed = await ConfirmDialog.show(
+        context: context,
+        title: 'Some regions weren\'t scanned',
+        message:
+            'You haven\'t captured: ${uncovered.map((o) => o.name).join(', ')}.\n\nEnd the session anyway, or keep scanning?',
+        confirmText: 'End session',
+        cancelText: 'Continue scanning',
+      );
+      if (!proceed) return;
     }
 
     final now = DateTime.now();
@@ -733,6 +782,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
             'imageCount': _sessionImages.length,
             'memberName': widget.memberName,
             'overallStatus': (findings['issues_count'] as int) > 0 ? 'attention_needed' : 'healthy',
+            // 'gemmaAnalysis': '',
           },
         );
       }

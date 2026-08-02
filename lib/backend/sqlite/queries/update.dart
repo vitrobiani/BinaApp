@@ -96,10 +96,13 @@ Future performCreateScanImage(
   Uint8List? diagnosedImage,
   int? capturedAt,
   String? rawResponse,
+  int? pitch,
+  int? roll,
+  String? estimatedRegion,
 }) async {
   return database.rawInsert(
-    'INSERT INTO scan_image (id, scan_session_id, image, diagnosed_image, captured_at, raw_response) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, scanSessionId, image, diagnosedImage, capturedAt, rawResponse],
+    'INSERT INTO scan_image (id, scan_session_id, image, diagnosed_image, captured_at, raw_response, pitch, roll, estimated_region) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, scanSessionId, image, diagnosedImage, capturedAt, rawResponse, pitch, roll, estimatedRegion],
   );
 }
 
@@ -212,3 +215,64 @@ Future performCreateNewMessage(
 }
 
 /// END CREATENEWMESSAGE
+
+/// BEGIN UPSERTCALIBRATION
+/// Insert or replace a calibration point for one (member, region).
+/// The UNIQUE constraint on (family_member_id, region_code) ensures the
+/// old row is replaced, so recalibration is idempotent.
+Future performUpsertCalibration(
+  Database database, {
+  String? id,
+  String? familyMemberId,
+  String? regionCode,
+  int? avgPitch,
+  int? avgRoll,
+  int? sampleCount,
+  int? calibratedAt,
+}) async {
+  return database.rawInsert(
+    'INSERT OR REPLACE INTO family_member_calibration (id, family_member_id, region_code, avg_pitch, avg_roll, sample_count, calibrated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [id, familyMemberId, regionCode, avgPitch, avgRoll, sampleCount, calibratedAt],
+  );
+}
+/// END UPSERTCALIBRATION
+
+/// BEGIN INSERTMEMBERDOCUMENT
+Future performInsertMemberDocument(
+  Database database, {
+  String? id,
+  String? familyMemberId,
+  String? fileName,
+  String? mimeType,
+  int? byteSize,
+  Uint8List? blob,
+  String? extractedText,
+  String? extractionStatus,
+  int? uploadedAt,
+}) async {
+  return database.rawInsert(
+    'INSERT INTO member_document (id, family_member_id, file_name, mime_type, byte_size, blob, extracted_text, extraction_status, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [
+      id,
+      familyMemberId,
+      fileName,
+      mimeType,
+      byteSize,
+      blob,
+      extractedText,
+      extractionStatus,
+      uploadedAt,
+    ],
+  );
+}
+
+Future<int> performDeleteMemberDocument(
+  Database database, {
+  required String id,
+}) async {
+  return database.rawDelete(
+    'DELETE FROM member_document WHERE id = ?',
+    [id],
+  );
+}
+/// END INSERTMEMBERDOCUMENT

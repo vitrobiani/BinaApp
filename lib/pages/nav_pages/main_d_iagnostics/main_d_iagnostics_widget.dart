@@ -16,6 +16,9 @@ import '/custom_code/actions/yolo_service_stub.dart'
 import '/index.dart';
 import '/services/mjpeg_capture_service.dart';
 import '/services/motor_controller_service.dart';
+import '/services/gyro_controller_service.dart';
+import '/services/mouth_region_estimator.dart';
+import '/components/dialogs/confirm_dialog.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -51,6 +54,9 @@ class CapturedImage {
   final String diagnosedPath;
   final List<dynamic> detections;
   final DateTime capturedAt;
+  final int? pitch;
+  final int? roll;
+  final String? estimatedRegion;
 
   CapturedImage({
     required this.id,
@@ -58,6 +64,9 @@ class CapturedImage {
     required this.diagnosedPath,
     required this.detections,
     required this.capturedAt,
+    this.pitch,
+    this.roll,
+    this.estimatedRegion,
   });
 
   int get issuesCount => detections.where((d) =>
@@ -166,6 +175,8 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
         _model.tabBarController!.animateTo(index);
       }
     });
+    // Load this member's mouth-region calibration so captures use it.
+    await AppState().loadMemberCalibration(member.id);
   }
 
   /// Creates the session in the database when the first photo is captured
@@ -693,6 +704,15 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
 
       final imageId = const Uuid().v4();
       final now = DateTime.now();
+      final orientation =
+          await GyroControllerService.instance.readOrientationInts();
+      final estimatedRegion = (orientation.pitch != null && orientation.roll != null)
+          ? MouthRegionEstimator.estimate(
+              orientation.pitch!,
+              orientation.roll!,
+              AppState().memberCalibration,
+            )
+          : null;
 
       // Save image to database
       try {
@@ -709,6 +729,9 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
             diagnosedImage: diagnosedBytes,
             capturedAt: now.millisecondsSinceEpoch ~/ 1000,
             rawResponse: jsonEncode(result.detections),
+            pitch: orientation.pitch,
+            roll: orientation.roll,
+            estimatedRegion: estimatedRegion,
           );
         } else {
           await ScanImagesTable().insert({
@@ -718,6 +741,9 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
             'diagnosed_image_path': result.imagePath,
             'captured_at': supaSerialize<DateTime>(now),
             'raw_response': jsonEncode(result.detections),
+            if (orientation.pitch != null) 'pitch': orientation.pitch,
+            if (orientation.roll != null) 'roll': orientation.roll,
+            if (estimatedRegion != null) 'estimated_region': estimatedRegion,
           });
         }
       } catch (e) {
@@ -731,6 +757,9 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
         diagnosedPath: result.imagePath,
         detections: result.detections,
         capturedAt: now,
+        pitch: orientation.pitch,
+        roll: orientation.roll,
+        estimatedRegion: estimatedRegion,
       );
 
       safeSetState(() {
@@ -790,6 +819,15 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
 
           final imageId = const Uuid().v4();
           final now = DateTime.now();
+          final orientation =
+              await GyroControllerService.instance.readOrientationInts();
+          final estimatedRegion = (orientation.pitch != null && orientation.roll != null)
+              ? MouthRegionEstimator.estimate(
+                  orientation.pitch!,
+                  orientation.roll!,
+                  AppState().memberCalibration,
+                )
+              : null;
 
           // Save image to database
           try {
@@ -806,6 +844,9 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
                 diagnosedImage: diagnosedBytes,
                 capturedAt: now.millisecondsSinceEpoch ~/ 1000,
                 rawResponse: jsonEncode(result.detections),
+                pitch: orientation.pitch,
+                roll: orientation.roll,
+                estimatedRegion: estimatedRegion,
               );
             } else {
               await ScanImagesTable().insert({
@@ -815,6 +856,9 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
                 'diagnosed_image_path': result.imagePath,
                 'captured_at': supaSerialize<DateTime>(now),
                 'raw_response': jsonEncode(result.detections),
+                if (orientation.pitch != null) 'pitch': orientation.pitch,
+                if (orientation.roll != null) 'roll': orientation.roll,
+                if (estimatedRegion != null) 'estimated_region': estimatedRegion,
               });
             }
           } catch (e) {
@@ -828,6 +872,9 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
             diagnosedPath: result.imagePath,
             detections: result.detections,
             capturedAt: now,
+            pitch: orientation.pitch,
+            roll: orientation.roll,
+            estimatedRegion: estimatedRegion,
           );
 
           safeSetState(() {
@@ -1053,8 +1100,33 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
   }
 
   Future<void> _finishSession() async {
+    debugPrint('[FinishSession] called: images=${_capturedImages.length} member=${_selectedMember?.id} sessionId=$_currentSessionId isLocal=${AppState().UserSession.isLocalSession}');
+
     if (_capturedImages.isEmpty || _selectedMember == null || _currentSessionId == null) {
+      debugPrint('[FinishSession] ❌ early return (empty images / null member / null session)');
       return;
+    }
+
+    // Coverage soft-warn: if any of the 14 regions weren't scanned, offer to
+    // continue rather than end. Ambiguous "R1/R2" entries count for both.
+    final uncovered = MouthRegionEstimator.uncoveredRegions(
+      _capturedImages
+          .map((i) => i.estimatedRegion)
+          .whereType<String>(),
+    );
+    if (uncovered.isNotEmpty) {
+      final proceed = await ConfirmDialog.show(
+        context: context,
+        title: 'Some regions weren\'t scanned',
+        message:
+            'You haven\'t captured: ${uncovered.map((o) => o.name).join(', ')}.\n\nEnd the session anyway, or keep scanning?',
+        confirmText: 'End session',
+        cancelText: 'Continue scanning',
+      );
+      if (!proceed) {
+        debugPrint('[FinishSession] user chose to continue scanning (${uncovered.length} regions missing)');
+        return;
+      }
     }
 
     safeSetState(() => _isFinishingSession = true);
@@ -1063,18 +1135,18 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
     final recordId = const Uuid().v4();
     final findings = _aggregateFindings();
     final overallStatus = (findings['issues_count'] as int) > 0 ? 'attention_needed' : 'healthy';
+    debugPrint('[FinishSession] findings=${findings['issues_count']} issues / ${findings['teeth_count']} teeth → status=$overallStatus recordId=$recordId');
 
     try {
       if (AppState().UserSession.isLocalSession) {
-        // Update session status
+        debugPrint('[FinishSession] local: updateScanSessionEnd id=$_currentSessionId');
         await SQLiteManager.instance.updateScanSessionEnd(
           id: _currentSessionId,
           sessionEnd: now.millisecondsSinceEpoch ~/ 1000,
           status: 'completed',
           totalImagesCaptured: _capturedImages.length,
         );
-
-        // Create dental record
+        debugPrint('[FinishSession] local: createDentalRecord id=$recordId');
         await SQLiteManager.instance.createDentalRecord(
           id: recordId,
           familyMemberId: _selectedMember!.id,
@@ -1083,14 +1155,13 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
           findingsSnapshot: jsonEncode(findings),
           overallStatus: overallStatus,
         );
-
-        // Update last_checked
+        debugPrint('[FinishSession] local: updateLastChecked member=${_selectedMember!.id}');
         await SQLiteManager.instance.updateLastChecked(
           id: _selectedMember!.id,
           lastChecked: now.millisecondsSinceEpoch ~/ 1000,
         );
       } else {
-        // Update session status in Supabase
+        debugPrint('[FinishSession] supabase: update ScanSessionsTable id=$_currentSessionId');
         await ScanSessionsTable().update(
           data: {
             'session_end': supaSerialize<DateTime>(now),
@@ -1099,8 +1170,7 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
           },
           matchingRows: (rows) => rows.eq('id', _currentSessionId!),
         );
-
-        // Create dental record in Supabase
+        debugPrint('[FinishSession] supabase: insert DentalRecord id=$recordId');
         await DentalRecordsTable().insert({
           'id': recordId,
           'family_member_id': _selectedMember!.id,
@@ -1109,8 +1179,7 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
           'findings_snapshot': jsonEncode(findings),
           'overall_status': overallStatus,
         });
-
-        // Update last_checked in Supabase
+        debugPrint('[FinishSession] supabase: update FamilyMember last_checked');
         await FamilyMembersTable().update(
           data: {
             'last_checked': supaSerialize<DateTime>(now),
@@ -1121,7 +1190,6 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
         );
       }
 
-      // Update local state
       final familyIndex = AppState()
           .UserSession
           .family
@@ -1130,7 +1198,7 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
         AppState().UserSession.family[familyIndex].lastChecked = now;
       }
 
-      // Navigate to summary
+      debugPrint('[FinishSession] ✅ all writes succeeded — navigating to summary');
       if (mounted) {
         context.pushReplacementNamed(
           SessionSummaryWidget.routeName,
@@ -1142,7 +1210,8 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
           },
         );
       }
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[FinishSession] ❌ threw: $e\n$st');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -2184,6 +2253,16 @@ class _ImageDetailSheet extends StatelessWidget {
                       width: double.infinity,
                       fit: BoxFit.contain,
                     ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Text(
+                    (image.pitch != null && image.roll != null)
+                        ? 'Orientation · pitch ${image.pitch}° · roll ${image.roll}°'
+                            '${image.estimatedRegion != null ? ' · region ${image.estimatedRegion}' : ''}'
+                        : 'Orientation · unavailable',
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
                   ),
 
                   const SizedBox(height: 20),

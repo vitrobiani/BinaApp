@@ -80,7 +80,6 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
         );
 
         for (final row in rows) {
-          // Load images for this session to get detection counts
           final images = await SQLiteManager.instance.getScanImagesBySessionId(
             sessionId: row.id,
           );
@@ -103,6 +102,7 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
               } catch (_) {}
             }
           }
+          String notes = row.notes ?? '';
 
           sessions.add(_SessionData(
             id: row.id,
@@ -113,6 +113,7 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
             issuesCount: issuesCount,
             teethCount: teethCount,
             status: row.status,
+            notes: notes,
           ));
         }
       } else {
@@ -154,6 +155,7 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
             issuesCount: issuesCount,
             teethCount: teethCount,
             status: row.status,
+            notes: row.notes ?? '',
           ));
         }
       }
@@ -182,6 +184,89 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
   int get _plaqueCount => _sessions.where((s) => s.issuesCount > 0 && s.issuesCount < 3).length;
   int get _cavityCount => _sessions.where((s) => s.issuesCount >= 3).length;
 
+  Future<void> _showMemberMenu(BuildContext anchor) async {
+    final box = anchor.findRenderObject() as RenderBox?;
+    final overlay =
+        Overlay.of(anchor).context.findRenderObject() as RenderBox?;
+    if (box == null || overlay == null) return;
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        box.localToGlobal(Offset.zero, ancestor: overlay),
+        box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+
+    final choice = await showMenu<String>(
+      context: anchor,
+      position: position,
+      items: const [
+        PopupMenuItem(
+          value: 'calibrate',
+          child: Row(
+            children: [
+              Icon(Icons.explore_outlined, size: 20),
+              SizedBox(width: 12),
+              Text('Calibrate orientation'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'documents',
+          child: Row(
+            children: [
+              Icon(Icons.folder_shared_outlined, size: 20),
+              SizedBox(width: 12),
+              Text('Manage documents'),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (!mounted) return;
+    if (choice == 'calibrate') {
+      _openCalibration();
+    } else if (choice == 'documents') {
+      _openDocuments();
+    }
+  }
+
+  void _openDocuments() {
+    context.pushNamed(
+      MemberDocumentsWidget.routeName,
+      extra: <String, dynamic>{
+        'familyMemberId': widget.member.id,
+        'familyMemberName': widget.member.name,
+      },
+    );
+  }
+
+  void _openCalibration() {
+    if (!AppState().cameraConnection.isCameraConnected()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+              'Connect to the Bina camera before calibrating — the gyro reads over Wi-Fi.'),
+          backgroundColor: BinaColors.warning,
+          action: SnackBarAction(
+            label: 'Connect',
+            textColor: BinaColors.surface,
+            onPressed: () =>
+                context.pushNamed(CameraConnectionWidget.routeName),
+          ),
+        ),
+      );
+      return;
+    }
+    context.pushNamed(
+      CalibrationWidget.routeName,
+      extra: <String, dynamic>{
+        'familyMemberId': widget.member.id,
+        'familyMemberName': widget.member.name,
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -205,11 +290,11 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
                     icon: Icons.chevron_left_rounded,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
-                  BinaIconButton(
-                    icon: Icons.settings_outlined,
-                    onPressed: () {
-                      // TODO: Member settings
-                    },
+                  Builder(
+                    builder: (btnContext) => BinaIconButton(
+                      icon: Icons.more_vert_rounded,
+                      onPressed: () => _showMemberMenu(btnContext),
+                    ),
                   ),
                 ],
               ),
@@ -316,6 +401,7 @@ class _SessionData {
   final int issuesCount;
   final int teethCount;
   final String status;
+  final String notes;
 
   _SessionData({
     required this.id,
@@ -324,6 +410,7 @@ class _SessionData {
     required this.issuesCount,
     required this.teethCount,
     required this.status,
+    required this.notes,
   });
 
   DxChipKind get kind {

@@ -102,6 +102,27 @@ class SQLiteManager {
         conversationId: conversationId,
       );
 
+  Future<List<FamilyMemberCalibrationRow>> getCalibrationByMemberId({
+    String? familyMemberId,
+  }) =>
+      performGetCalibrationByMemberId(
+        _database,
+        familyMemberId: familyMemberId,
+      );
+
+  Future<List<MemberDocumentRow>> getMemberDocumentsByMemberId({
+    String? familyMemberId,
+  }) =>
+      performGetMemberDocumentsByMemberId(
+        _database,
+        familyMemberId: familyMemberId,
+      );
+
+  Future<MemberDocumentRow?> getMemberDocumentWithBlob({
+    required String id,
+  }) =>
+      performGetMemberDocumentWithBlob(_database, id: id);
+
   /// END READ QUERY CALLS
 
   /// START UPDATE QUERY CALLS
@@ -191,6 +212,9 @@ class SQLiteManager {
     Uint8List? diagnosedImage,
     int? capturedAt,
     String? rawResponse,
+    int? pitch,
+    int? roll,
+    String? estimatedRegion,
   }) =>
       performCreateScanImage(
         _database,
@@ -200,6 +224,9 @@ class SQLiteManager {
         diagnosedImage: diagnosedImage,
         capturedAt: capturedAt,
         rawResponse: rawResponse,
+        pitch: pitch,
+        roll: roll,
+        estimatedRegion: estimatedRegion,
       );
 
   Future createDentalRecord({
@@ -292,6 +319,53 @@ class SQLiteManager {
         content: content,
         timestamp: DateTime.now().millisecondsSinceEpoch,
       );
+
+  Future upsertCalibration({
+    String? id,
+    String? familyMemberId,
+    String? regionCode,
+    int? avgPitch,
+    int? avgRoll,
+    int? sampleCount,
+    int? calibratedAt,
+  }) =>
+      performUpsertCalibration(
+        _database,
+        id: id,
+        familyMemberId: familyMemberId,
+        regionCode: regionCode,
+        avgPitch: avgPitch,
+        avgRoll: avgRoll,
+        sampleCount: sampleCount,
+        calibratedAt: calibratedAt,
+      );
+
+  Future insertMemberDocument({
+    String? id,
+    String? familyMemberId,
+    String? fileName,
+    String? mimeType,
+    int? byteSize,
+    Uint8List? blob,
+    String? extractedText,
+    String? extractionStatus,
+    int? uploadedAt,
+  }) =>
+      performInsertMemberDocument(
+        _database,
+        id: id,
+        familyMemberId: familyMemberId,
+        fileName: fileName,
+        mimeType: mimeType,
+        byteSize: byteSize,
+        blob: blob,
+        extractedText: extractedText,
+        extractionStatus: extractionStatus,
+        uploadedAt: uploadedAt,
+      );
+
+  Future<int> deleteMemberDocument({required String id}) =>
+      performDeleteMemberDocument(_database, id: id);
 
   /// START DELETE QUERY CALLS
 

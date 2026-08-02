@@ -10,3 +10,5 @@ export 'tables/family_members.dart';
 export 'tables/scan_sessions.dart';
 export 'tables/scan_images.dart';
 export 'tables/dental_records.dart';
+export 'tables/family_member_calibrations.dart';
+export 'tables/member_documents.dart';

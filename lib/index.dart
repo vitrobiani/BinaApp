@@ -54,5 +54,9 @@ export '/components/accessibility/accessibility_widget.dart'
     show AccessibilityWidget;
 export '/pages/family/member_detail/member_detail_widget.dart'
     show MemberDetailWidget;
+export '/pages/family/member_documents/member_documents_widget.dart'
+    show MemberDocumentsWidget;
+export '/pages/other_pages/calibration/calibration_widget.dart'
+    show CalibrationWidget;
 export '/pages/account_settings/account_settings_widget.dart'
     show AccountSettingsWidget;

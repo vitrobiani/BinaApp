@@ -73,6 +73,42 @@ class _FamilyWidgetState extends State<FamilyWidget>
     }
   }
 
+  void _openDocuments(FamilyMemberStruct member) {
+    context.pushNamed(
+      MemberDocumentsWidget.routeName,
+      extra: <String, dynamic>{
+        'familyMemberId': member.id,
+        'familyMemberName': member.name,
+      },
+    );
+  }
+
+  void _openCalibration(FamilyMemberStruct member) {
+    if (!AppState().cameraConnection.isCameraConnected()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+              'Connect to the Bina camera before calibrating — the gyro reads over Wi-Fi.'),
+          backgroundColor: BinaColors.warning,
+          action: SnackBarAction(
+            label: 'Connect',
+            textColor: BinaColors.surface,
+            onPressed: () =>
+                context.pushNamed(CameraConnectionWidget.routeName),
+          ),
+        ),
+      );
+      return;
+    }
+    context.pushNamed(
+      CalibrationWidget.routeName,
+      extra: <String, dynamic>{
+        'familyMemberId': member.id,
+        'familyMemberName': member.name,
+      },
+    );
+  }
+
   Future<void> _loadSessions(String memberId) async {
     setState(() {
       _isLoadingSessions = true;
@@ -522,6 +558,8 @@ class _FamilyWidgetState extends State<FamilyWidget>
                       },
                     );
                   },
+                  onCalibrate: () => _openCalibration(selectedMember),
+                  onManageDocuments: () => _openDocuments(selectedMember),
                 )
               : _NoSelectionPanel(),
         ),
@@ -836,6 +874,8 @@ class _MemberDetailPanel extends StatelessWidget {
     required this.cavityCount,
     required this.onScan,
     required this.onSessionTap,
+    required this.onCalibrate,
+    required this.onManageDocuments,
   });
 
   final FamilyMemberStruct member;
@@ -846,6 +886,50 @@ class _MemberDetailPanel extends StatelessWidget {
   final int cavityCount;
   final VoidCallback onScan;
   final void Function(_SessionData session) onSessionTap;
+  final VoidCallback onCalibrate;
+  final VoidCallback onManageDocuments;
+
+  Future<void> _showMenu(BuildContext anchor) async {
+    final box = anchor.findRenderObject() as RenderBox?;
+    final overlay =
+        Overlay.of(anchor).context.findRenderObject() as RenderBox?;
+    if (box == null || overlay == null) return;
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        box.localToGlobal(Offset.zero, ancestor: overlay),
+        box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+    final choice = await showMenu<String>(
+      context: anchor,
+      position: position,
+      items: const [
+        PopupMenuItem(
+          value: 'calibrate',
+          child: Row(
+            children: [
+              Icon(Icons.explore_outlined, size: 20),
+              SizedBox(width: 12),
+              Text('Calibrate orientation'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'documents',
+          child: Row(
+            children: [
+              Icon(Icons.folder_shared_outlined, size: 20),
+              SizedBox(width: 12),
+              Text('Manage documents'),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (choice == 'calibrate') onCalibrate();
+    if (choice == 'documents') onManageDocuments();
+  }
 
   int? get _age {
     if (!member.hasBirthday()) return null;
@@ -883,6 +967,16 @@ class _MemberDetailPanel extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: Builder(
+                    builder: (btnContext) => BinaIconButton(
+                      icon: Icons.more_vert_rounded,
+                      onPressed: () => _showMenu(btnContext),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 // Hero section
                 Container(
                   padding: const EdgeInsets.all(24),

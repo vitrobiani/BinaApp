@@ -32,11 +32,12 @@ dependencies:
   flutter_gemma: ^0.15.0
   mjpeg_stream: ^1.0.1
   supabase_flutter: 2.9.0
+  syncfusion_flutter_pdf: ^30.1.42
   tflite_flutter: 0.12.1
 
   # Navigation
   go_router: 12.1.3
-  page_transition: 2.2.2
+  page_transition: ^2.2.2
 
   # UI components
   auto_size_text: 3.0.0

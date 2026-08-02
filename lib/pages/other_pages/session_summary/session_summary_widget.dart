@@ -19,12 +19,14 @@ class SessionSummaryWidget extends StatefulWidget {
     this.imageCount,
     this.memberName,
     this.overallStatus,
+    // this.gemmaAnalysis,
   });
 
   final String? sessionId;
   final int? imageCount;
   final String? memberName;
   final String? overallStatus;
+  // final String? gemmaAnalysis;
 
   static String routeName = 'SessionSummary';
   static String routePath = 'sessionSummary';
@@ -163,8 +165,15 @@ class _SessionSummaryWidgetState extends State<SessionSummaryWidget> {
   }
 
   Future<void> _generateLlmSummary() async {
+    // debugPrint("widget.gemmaAnalysis:");
+    // debugPrint(widget.gemmaAnalysis);
     if (!GemmaService.instance.isModelLoaded) return;
     if (widget.sessionId == null) return;
+    // if (widget.gemmaAnalysis!.isNotEmpty) {
+    //   _llmSummary = widget.gemmaAnalysis;
+    //   debugPrint(_llmSummary);
+    //   return;
+    // }
 
     setState(() {
       _isGeneratingSummary = true;

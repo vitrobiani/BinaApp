@@ -13,12 +13,18 @@ class ScanImageStruct extends BaseStruct {
     String? diagnosedImagePath,
     DateTime? capturedAt,
     String? rawResponse,
+    int? pitch,
+    int? roll,
+    String? estimatedRegion,
   })  : _id = id,
         _scanSessionId = scanSessionId,
         _imagePath = imagePath,
         _diagnosedImagePath = diagnosedImagePath,
         _capturedAt = capturedAt,
-        _rawResponse = rawResponse;
+        _rawResponse = rawResponse,
+        _pitch = pitch,
+        _roll = roll,
+        _estimatedRegion = estimatedRegion;
 
   // "id" field.
   String? _id;
@@ -62,6 +68,27 @@ class ScanImageStruct extends BaseStruct {
 
   bool hasRawResponse() => _rawResponse != null;
 
+  // "pitch" field — gyro pitch in degrees, [-180, 180].
+  int? _pitch;
+  int? get pitch => _pitch;
+  set pitch(int? val) => _pitch = val;
+
+  bool hasPitch() => _pitch != null;
+
+  // "roll" field — gyro roll in degrees, [-180, 180].
+  int? _roll;
+  int? get roll => _roll;
+  set roll(int? val) => _roll = val;
+
+  bool hasRoll() => _roll != null;
+
+  // "estimated_region" field — mouth region name or ambiguous pair (e.g. "URI/ULO").
+  String? _estimatedRegion;
+  String? get estimatedRegion => _estimatedRegion;
+  set estimatedRegion(String? val) => _estimatedRegion = val;
+
+  bool hasEstimatedRegion() => _estimatedRegion != null;
+
   static ScanImageStruct fromMap(Map<String, dynamic> data) => ScanImageStruct(
         id: data['id'] as String?,
         scanSessionId: data['scan_session_id'] as String?,
@@ -69,6 +96,9 @@ class ScanImageStruct extends BaseStruct {
         diagnosedImagePath: data['diagnosed_image_path'] as String?,
         capturedAt: data['captured_at'] as DateTime?,
         rawResponse: data['raw_response'] as String?,
+        pitch: (data['pitch'] as num?)?.toInt(),
+        roll: (data['roll'] as num?)?.toInt(),
+        estimatedRegion: data['estimated_region'] as String?,
       );
 
   static ScanImageStruct? maybeFromMap(dynamic data) => data is Map
@@ -82,6 +112,9 @@ class ScanImageStruct extends BaseStruct {
         'diagnosed_image_path': _diagnosedImagePath,
         'captured_at': _capturedAt,
         'raw_response': _rawResponse,
+        'pitch': _pitch,
+        'roll': _roll,
+        'estimated_region': _estimatedRegion,
       }.withoutNulls;
 
   @override
@@ -108,6 +141,18 @@ class ScanImageStruct extends BaseStruct {
         ),
         'raw_response': serializeParam(
           _rawResponse,
+          ParamType.String,
+        ),
+        'pitch': serializeParam(
+          _pitch,
+          ParamType.int,
+        ),
+        'roll': serializeParam(
+          _roll,
+          ParamType.int,
+        ),
+        'estimated_region': serializeParam(
+          _estimatedRegion,
           ParamType.String,
         ),
       }.withoutNulls;
@@ -144,6 +189,21 @@ class ScanImageStruct extends BaseStruct {
           ParamType.String,
           false,
         ),
+        pitch: deserializeParam(
+          data['pitch'],
+          ParamType.int,
+          false,
+        ),
+        roll: deserializeParam(
+          data['roll'],
+          ParamType.int,
+          false,
+        ),
+        estimatedRegion: deserializeParam(
+          data['estimated_region'],
+          ParamType.String,
+          false,
+        ),
       );
 
   @override
@@ -157,7 +217,10 @@ class ScanImageStruct extends BaseStruct {
         imagePath == other.imagePath &&
         diagnosedImagePath == other.diagnosedImagePath &&
         capturedAt == other.capturedAt &&
-        rawResponse == other.rawResponse;
+        rawResponse == other.rawResponse &&
+        pitch == other.pitch &&
+        roll == other.roll &&
+        estimatedRegion == other.estimatedRegion;
   }
 
   @override
@@ -167,7 +230,10 @@ class ScanImageStruct extends BaseStruct {
         imagePath,
         diagnosedImagePath,
         capturedAt,
-        rawResponse
+        rawResponse,
+        pitch,
+        roll,
+        estimatedRegion,
       ]);
 }
 
@@ -178,6 +244,9 @@ ScanImageStruct createScanImageStruct({
   String? diagnosedImagePath,
   DateTime? capturedAt,
   String? rawResponse,
+  int? pitch,
+  int? roll,
+  String? estimatedRegion,
 }) =>
     ScanImageStruct(
       id: id,
@@ -186,4 +255,7 @@ ScanImageStruct createScanImageStruct({
       diagnosedImagePath: diagnosedImagePath,
       capturedAt: capturedAt,
       rawResponse: rawResponse,
+      pitch: pitch,
+      roll: roll,
+      estimatedRegion: estimatedRegion,
     );

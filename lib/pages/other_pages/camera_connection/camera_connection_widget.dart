@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bina_system/services/motor_controller_service.dart';
+import 'package:bina_system/services/gyro_controller_service.dart';
 
 import '/app_core/app_util.dart';
 import '/bina_design/bina_design.dart';
@@ -30,8 +31,21 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
   bool _wifiDirectSupported = false;
   String? _errorMessage;
 
+  bool _showAllDevices = false;
+  bool _hasAutoConnected = false;
+  Timer? _noBinaFoundTimer;
+
+  static const Duration _scanDuration = Duration(seconds: 15);
+
   StreamSubscription? _devicesSubscription;
   StreamSubscription? _connectionSubscription;
+
+  bool _looksLikeBina(WifiP2pDevice d) =>
+      d.deviceName.toLowerCase().contains('bina');
+
+  List<WifiP2pDevice> get _visibleDevices => _showAllDevices
+      ? _discoveredDevices
+      : _discoveredDevices.where(_looksLikeBina).toList();
 
   @override
   void initState() {
@@ -48,7 +62,9 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
     await _wifiDirectService.init();
 
     _devicesSubscription = _wifiDirectService.devicesStream.listen((devices) {
-      if (mounted) setState(() => _discoveredDevices = devices);
+      if (!mounted) return;
+      setState(() => _discoveredDevices = devices);
+      _maybeAutoConnect();
     });
 
     _connectionSubscription = _wifiDirectService.connectionStateStream.listen((state) {
@@ -71,8 +87,9 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
         conn.cameraName = 'Bina-Camera';
         conn.connectionType = 'wifi_direct';
       });
-      // Configure motor controller with same host
+      // Configure motor + gyro controllers with same host
       MotorControllerService.instance.configureFromCamera();
+      GyroControllerService.instance.configureFromCamera();
       safeSetState(() {});
     }
   }
@@ -82,6 +99,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
     _ipController.dispose();
     _devicesSubscription?.cancel();
     _connectionSubscription?.cancel();
+    _noBinaFoundTimer?.cancel();
     super.dispose();
   }
 
@@ -90,17 +108,22 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
       _isScanning = true;
       _errorMessage = null;
       _discoveredDevices = [];
+      _hasAutoConnected = false;
     });
+
+    _noBinaFoundTimer?.cancel();
+    _noBinaFoundTimer = Timer(_scanDuration, _onNoBinaFound);
 
     final success = await _wifiDirectService.startDiscovery();
 
     if (!success && mounted) {
+      _noBinaFoundTimer?.cancel();
       setState(() {
         _isScanning = false;
         _errorMessage = 'Failed to start discovery. Please try again.';
       });
     } else {
-      Future.delayed(const Duration(seconds: 10), () {
+      Future.delayed(_scanDuration, () {
         if (mounted && _isScanning) _stopScan();
       });
     }
@@ -109,6 +132,48 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
   Future<void> _stopScan() async {
     await _wifiDirectService.stopDiscovery();
     if (mounted) setState(() => _isScanning = false);
+  }
+
+  void _onNoBinaFound() {
+    if (!mounted) return;
+    if (_discoveredDevices.any(_looksLikeBina)) return;
+    if (AppState().cameraConnection.isCameraConnected()) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+            'No Bina camera detected — check that it\'s powered on and in pairing mode.'),
+        action: SnackBarAction(
+          label: 'Show all',
+          onPressed: () {
+            if (mounted) setState(() => _showAllDevices = true);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _maybeAutoConnect() {
+    if (_hasAutoConnected) return;
+    if (_connectionState == WifiDirectConnectionState.connecting) return;
+    if (AppState().cameraConnection.isCameraConnected()) return;
+    WifiP2pDevice? bina;
+    for (final d in _discoveredDevices) {
+      if (_looksLikeBina(d) && d.isAvailable) {
+        bina = d;
+        break;
+      }
+    }
+    if (bina == null) return;
+
+    _hasAutoConnected = true;
+    _noBinaFoundTimer?.cancel();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Bina camera found — connecting to ${bina.deviceName}…'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+    _connectToDevice(bina);
   }
 
   Future<void> _connectToDevice(WifiP2pDevice device) async {
@@ -125,16 +190,7 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
   }
 
   Future<void> _disconnect() async {
-    await _wifiDirectService.disconnect();
-
-    AppState().updateCameraConnectionStruct((conn) {
-      conn.isConnected = false;
-      conn.cameraIP = '';
-      conn.cameraName = null;
-      conn.cameraMacAddress = null;
-      conn.connectionType = 'manual';
-    });
-
+    await AppState().disconnectCamera();
     _ipController.clear();
     safeSetState(() {});
   }
@@ -365,8 +421,8 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                         ),
                         const SizedBox(height: 12),
 
-                        if (_discoveredDevices.isNotEmpty)
-                          ..._discoveredDevices.map((device) => _DeviceCard(
+                        if (_visibleDevices.isNotEmpty)
+                          ..._visibleDevices.map((device) => _DeviceCard(
                                 device: device,
                                 isConnecting: _connectionState == WifiDirectConnectionState.connecting,
                                 onConnect: () => _connectToDevice(device),
@@ -382,11 +438,38 @@ class _CameraConnectionWidgetState extends State<CameraConnectionWidget> {
                                   Text('No devices found', style: BinaType.titleSm),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Tap "Scan" to search for cameras',
+                                    _showAllDevices || _discoveredDevices.isEmpty
+                                        ? 'Tap "Scan" to search for cameras'
+                                        : 'No Bina camera found. Toggle "Show all devices" to see other peers.',
                                     style: BinaType.bodySm.copyWith(color: BinaColors.ink2),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ],
                               ),
+                            ),
+                          ),
+                        // Show-all escape hatch — visible when the filter is
+                        // hiding any peers or when the user has explicitly
+                        // enabled it.
+                        if (_showAllDevices ||
+                            _discoveredDevices.any((d) => !_looksLikeBina(d)))
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Show all devices',
+                                  style: BinaType.labelSm
+                                      .copyWith(color: BinaColors.ink2),
+                                ),
+                                const SizedBox(width: 8),
+                                Switch(
+                                  value: _showAllDevices,
+                                  onChanged: (v) =>
+                                      setState(() => _showAllDevices = v),
+                                ),
+                              ],
                             ),
                           ),
 

@@ -1,8 +1,10 @@
 import '/app_core/app_util.dart';
 import '/bina_design/bina_design.dart';
+import '/components/dialogs/confirm_dialog.dart';
 import '/services/gemma_service.dart';
 import '/services/chat_manager.dart';
 import '/services/gemma_agent/index.dart';
+import '/services/member_document_service.dart';
 import '/components/gemma_download_progress/gemma_download_progress_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -34,6 +36,17 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => ChatRoomModel());
+
+    // Hydrate the chatting member's attached documents so Gemma has them
+    // in context from the first message onward.
+    if (widget.conversationId != null) {
+      final conversation =
+          ChatManager.instance.getConversation(widget.conversationId!);
+      final familyMemberId = conversation?.familyMemberId;
+      if (familyMemberId != null && familyMemberId.isNotEmpty) {
+        AppState().loadMemberDocuments(familyMemberId);
+      }
+    }
   }
 
   @override
@@ -53,6 +66,60 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
         );
       }
     });
+  }
+
+  Future<void> _attachDocument() async {
+    final convId = widget.conversationId;
+    if (convId == null) return;
+    final conversation = ChatManager.instance.getConversation(convId);
+    final familyMemberId = conversation?.familyMemberId;
+    if (familyMemberId == null || familyMemberId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No family member linked to this chat.')),
+      );
+      return;
+    }
+
+    final picked = await MemberDocumentService.instance.pickAndExtract();
+    if (picked == null || !mounted) return;
+
+    final confirmed = await ConfirmDialog.show(
+      context: context,
+      title: 'Attach document?',
+      message:
+          '${picked.fileName} (${(picked.byteSize / 1024).toStringAsFixed(1)} KB)\n\nGemma will reference this in future replies about this member.',
+      confirmText: 'Attach',
+      cancelText: 'Cancel',
+    );
+    if (!confirmed || !mounted) return;
+
+    try {
+      await MemberDocumentService.instance.attachToMember(
+        familyMemberId: familyMemberId,
+        doc: picked,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Attach failed: $e')),
+      );
+      return;
+    }
+
+    // Insert a trail message so the conversation shows the attachment.
+    ChatManager.instance.addMessage(
+      convId,
+      ChatMessage(
+        id: const Uuid().v4(),
+        conversationId: convId,
+        role: 'system',
+        content: picked.extractionStatus == 'empty'
+            ? 'Attached document: ${picked.fileName} (no readable text — scanned image?)'
+            : 'Attached document: ${picked.fileName}',
+        timestamp: DateTime.now(),
+      ),
+    );
+    if (mounted) _scrollToBottom();
   }
 
   Future<void> _sendMessage() async {
@@ -352,6 +419,14 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                     ),
                     child: Row(
                       children: [
+                        IconButton(
+                          onPressed: _isGenerating ? null : _attachDocument,
+                          icon: Icon(Icons.attach_file_rounded,
+                              color: _isGenerating
+                                  ? BinaColors.ink3
+                                  : BinaColors.primary),
+                          tooltip: 'Attach a PDF',
+                        ),
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
@@ -403,6 +478,38 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.role == 'user';
+    final isSystem = message.role == 'system';
+
+    if (isSystem) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: BinaColors.surfaceSunken,
+              borderRadius: BorderRadius.circular(BinaRadius.pill),
+              border: Border.all(color: BinaColors.line),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.description_rounded,
+                    size: 16, color: BinaColors.ink2),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    message.content,
+                    style: BinaType.labelSm.copyWith(color: BinaColors.ink2),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),

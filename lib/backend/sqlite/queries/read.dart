@@ -111,7 +111,7 @@ Future<List<ScanImageRow>> performGetScanImagesBySessionId(
   String? sessionId,
 }) async {
   final result = await database.rawQuery(
-    'SELECT id, scan_session_id, image, diagnosed_image, captured_at, raw_response FROM scan_image WHERE scan_session_id = ? ORDER BY captured_at ASC',
+    'SELECT id, scan_session_id, image, diagnosed_image, captured_at, raw_response, pitch, roll, estimated_region FROM scan_image WHERE scan_session_id = ? ORDER BY captured_at ASC',
     [sessionId],
   );
   return result.map((d) => ScanImageRow(d)).toList();
@@ -126,6 +126,9 @@ class ScanImageRow extends SqliteRow {
   List<int>? get diagnosedImage => data['diagnosed_image'] as List<int>?;
   int? get capturedAt => data['captured_at'] as int?;
   String? get rawResponse => data['raw_response'] as String?;
+  int? get pitch => data['pitch'] as int?;
+  int? get roll => data['roll'] as int?;
+  String? get estimatedRegion => data['estimated_region'] as String?;
 }
 
 /// END GETSCANIMAGESBYSESSIONID
@@ -210,3 +213,69 @@ class ChatMessageRow extends SqliteRow {
 }
 
 /// END GETCHATMESSAGESBYCONVERSATIONID
+
+/// BEGIN GETCALIBRATIONBYMEMBERID
+Future<List<FamilyMemberCalibrationRow>> performGetCalibrationByMemberId(
+  Database database, {
+  String? familyMemberId,
+}) async {
+  final result = await database.rawQuery(
+    'SELECT id, family_member_id, region_code, avg_pitch, avg_roll, sample_count, calibrated_at FROM family_member_calibration WHERE family_member_id = ?',
+    [familyMemberId],
+  );
+  return result.map((d) => FamilyMemberCalibrationRow(d)).toList();
+}
+
+class FamilyMemberCalibrationRow extends SqliteRow {
+  FamilyMemberCalibrationRow(Map<String, dynamic> data) : super(data);
+
+  String get id => data['id'] as String;
+  String get familyMemberId => data['family_member_id'] as String;
+  String get regionCode => data['region_code'] as String;
+  int? get avgPitch => data['avg_pitch'] as int?;
+  int? get avgRoll => data['avg_roll'] as int?;
+  int? get sampleCount => data['sample_count'] as int?;
+  int? get calibratedAt => data['calibrated_at'] as int?;
+}
+/// END GETCALIBRATIONBYMEMBERID
+
+/// BEGIN GETMEMBERDOCUMENTSBYMEMBERID
+Future<List<MemberDocumentRow>> performGetMemberDocumentsByMemberId(
+  Database database, {
+  String? familyMemberId,
+}) async {
+  final result = await database.rawQuery(
+    'SELECT id, family_member_id, file_name, mime_type, byte_size, extracted_text, extraction_status, uploaded_at FROM member_document WHERE family_member_id = ? ORDER BY uploaded_at DESC',
+    [familyMemberId],
+  );
+  return result.map((d) => MemberDocumentRow(d)).toList();
+}
+
+/// Fetch a single document row including its blob. Kept separate from the
+/// list query so we only pay the memory cost when actually previewing.
+Future<MemberDocumentRow?> performGetMemberDocumentWithBlob(
+  Database database, {
+  required String id,
+}) async {
+  final result = await database.rawQuery(
+    'SELECT id, family_member_id, file_name, mime_type, byte_size, blob, extracted_text, extraction_status, uploaded_at FROM member_document WHERE id = ? LIMIT 1',
+    [id],
+  );
+  if (result.isEmpty) return null;
+  return MemberDocumentRow(result.first);
+}
+
+class MemberDocumentRow extends SqliteRow {
+  MemberDocumentRow(Map<String, dynamic> data) : super(data);
+
+  String get id => data['id'] as String;
+  String get familyMemberId => data['family_member_id'] as String;
+  String get fileName => data['file_name'] as String;
+  String? get mimeType => data['mime_type'] as String?;
+  int? get byteSize => data['byte_size'] as int?;
+  List<int>? get blob => data['blob'] as List<int>?;
+  String? get extractedText => data['extracted_text'] as String?;
+  String? get extractionStatus => data['extraction_status'] as String?;
+  int? get uploadedAt => data['uploaded_at'] as int?;
+}
+/// END GETMEMBERDOCUMENTSBYMEMBERID

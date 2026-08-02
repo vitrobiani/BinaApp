@@ -196,6 +196,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                 imageCount: params.getParam('imageCount', ParamType.int),
                 memberName: params.getParam('memberName', ParamType.String),
                 overallStatus: params.getParam('overallStatus', ParamType.String),
+                // gemmaAnalysis: params.getParam('gemmaAnalysis', ParamType.String),
               ),
             ),
             AppRoute(
@@ -223,6 +224,26 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                 member: params.getParam('member', ParamType.DataStruct,
                     structBuilder: FamilyMemberStruct.fromSerializableMap) ??
                     FamilyMemberStruct(),
+              ),
+            ),
+            AppRoute(
+              name: CalibrationWidget.routeName,
+              path: CalibrationWidget.routePath,
+              builder: (context, params) => CalibrationWidget(
+                familyMemberId:
+                    params.getParam('familyMemberId', ParamType.String) ?? '',
+                familyMemberName:
+                    params.getParam('familyMemberName', ParamType.String),
+              ),
+            ),
+            AppRoute(
+              name: MemberDocumentsWidget.routeName,
+              path: MemberDocumentsWidget.routePath,
+              builder: (context, params) => MemberDocumentsWidget(
+                familyMemberId:
+                    params.getParam('familyMemberId', ParamType.String) ?? '',
+                familyMemberName:
+                    params.getParam('familyMemberName', ParamType.String),
               ),
             ),
             AppRoute(

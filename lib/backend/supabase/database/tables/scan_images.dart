@@ -34,4 +34,16 @@ class ScanImagesRow extends SupabaseDataRow {
 
   String? get rawResponse => getField<String>('raw_response');
   set rawResponse(String? value) => setField<String>('raw_response', value);
+
+  // Gyro orientation captured with the image, degrees in [-180, 180].
+  int? get pitch => getField<int>('pitch');
+  set pitch(int? value) => setField<int>('pitch', value);
+
+  int? get roll => getField<int>('roll');
+  set roll(int? value) => setField<int>('roll', value);
+
+  // Estimated mouth region at capture time (e.g. "URI" or "URI/ULO").
+  String? get estimatedRegion => getField<String>('estimated_region');
+  set estimatedRegion(String? value) =>
+      setField<String>('estimated_region', value);
 }

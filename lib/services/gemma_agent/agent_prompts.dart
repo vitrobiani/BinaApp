@@ -1,13 +1,20 @@
 /// System prompts for the Gemma agent.
 /// Includes base prompt and language-specific additions.
 
+import '/backend/schema/structs/index.dart';
 import 'command_registry.dart';
 
 class AgentPrompts {
+  /// Total budget for injected document text, across all docs. Chosen so
+  /// gemma3_1b (32K token window ≈ 24K chars) has headroom for history +
+  /// user turn + system prompt. Gemma4_e2b has plenty of room too.
+  static const int documentBudgetChars = 16000;
+
   /// Build the complete system prompt - SIMPLIFIED for small models
   static String buildSystemPrompt({
     String? languageHint,
     String? currentMemberName,
+    List<MemberDocumentStruct>? memberDocuments,
   }) {
     final buffer = StringBuffer();
 
@@ -19,6 +26,14 @@ class AgentPrompts {
     // Current user context
     if (currentMemberName != null && currentMemberName.isNotEmpty) {
       buffer.writeln('User: $currentMemberName');
+    }
+
+    // Attached reference documents (extracted text from PDFs the user
+    // uploaded on the member's page or in this chat).
+    final docBlock = _buildDocumentBlock(memberDocuments);
+    if (docBlock != null) {
+      buffer.writeln();
+      buffer.writeln(docBlock);
     }
 
     // Minimal command reference
@@ -42,6 +57,41 @@ Example: "go home" → "Going home! [NAV_HOME]"
 Example: "I want to scan" → "Let's scan! [START_SCAN_SELECT]"
 ''');
 
+    return buffer.toString();
+  }
+
+  /// Assemble the `Reference documents:` block from the docs whose text
+  /// extraction succeeded. If the total text exceeds [documentBudgetChars]
+  /// each doc gets an equal share and is truncated from the tail with
+  /// `[…truncated]`. Returns `null` when no usable docs are present.
+  static String? _buildDocumentBlock(List<MemberDocumentStruct>? docs) {
+    if (docs == null || docs.isEmpty) return null;
+    final usable = docs
+        .where((d) =>
+            d.extractionStatus == 'ok' &&
+            d.extractedText != null &&
+            d.extractedText!.isNotEmpty)
+        .toList();
+    if (usable.isEmpty) return null;
+
+    final totalChars =
+        usable.fold<int>(0, (sum, d) => sum + d.extractedText!.length);
+    final perDocBudget = totalChars <= documentBudgetChars
+        ? null
+        : documentBudgetChars ~/ usable.length;
+
+    final buffer = StringBuffer();
+    buffer.writeln('Reference documents (attached to this member):');
+    for (final d in usable) {
+      final text = d.extractedText!;
+      buffer.writeln('--- Document: ${d.fileName} ---');
+      if (perDocBudget != null && text.length > perDocBudget) {
+        buffer.writeln(text.substring(0, perDocBudget));
+        buffer.writeln('[…truncated]');
+      } else {
+        buffer.writeln(text);
+      }
+    }
     return buffer.toString();
   }
 

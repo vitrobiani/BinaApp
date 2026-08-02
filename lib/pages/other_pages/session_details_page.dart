@@ -73,6 +73,9 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
             capturedAt: image.capturedAt != null
                 ? DateTime.fromMillisecondsSinceEpoch(image.capturedAt! * 1000)
                 : null,
+            pitch: image.pitch,
+            roll: image.roll,
+            estimatedRegion: image.estimatedRegion,
           ));
         }
       } else {
@@ -93,6 +96,9 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
             diagnosedImage: image.diagnosedImage,
             rawResponse: image.rawResponse ?? '[]',
             capturedAt: image.capturedAt,
+            pitch: image.pitch,
+            roll: image.roll,
+            estimatedRegion: image.estimatedRegion,
           ));
         }
       }
@@ -130,6 +136,9 @@ class _SessionDetailsPageWidgetState extends State<SessionDetailsPageWidget> {
         originalImage: image.originalImage,
         diagnosedImage: image.diagnosedImage,
         detections: jsonDecode(image.rawResponse),
+        pitch: image.pitch,
+        roll: image.roll,
+        estimatedRegion: image.estimatedRegion,
       ),
     );
   }
@@ -320,6 +329,9 @@ class _ImageData {
   final Uint8List? diagnosedImage;
   final String rawResponse;
   final DateTime? capturedAt;
+  final int? pitch;
+  final int? roll;
+  final String? estimatedRegion;
 
   _ImageData({
     required this.id,
@@ -327,6 +339,9 @@ class _ImageData {
     this.diagnosedImage,
     required this.rawResponse,
     this.capturedAt,
+    this.pitch,
+    this.roll,
+    this.estimatedRegion,
   });
 }
 
@@ -336,11 +351,17 @@ class _ImageDetailSheet extends StatefulWidget {
     this.originalImage,
     this.diagnosedImage,
     this.detections,
+    this.pitch,
+    this.roll,
+    this.estimatedRegion,
   });
 
   final Uint8List? originalImage;
   final Uint8List? diagnosedImage;
   final List<dynamic>? detections;
+  final int? pitch;
+  final int? roll;
+  final String? estimatedRegion;
 
   @override
   State<_ImageDetailSheet> createState() => _ImageDetailSheetState();
@@ -436,6 +457,14 @@ class _ImageDetailSheetState extends State<_ImageDetailSheet> {
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: _buildImagePreview(),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    (widget.pitch != null && widget.roll != null)
+                        ? 'Orientation · pitch ${widget.pitch}° · roll ${widget.roll}°'
+                            '${widget.estimatedRegion != null ? ' · region ${widget.estimatedRegion}' : ''}'
+                        : 'Orientation · unavailable',
+                    style: BinaType.bodySm.copyWith(color: BinaColors.ink3),
                   ),
                   const SizedBox(height: 24),
                   // Detection Summary
