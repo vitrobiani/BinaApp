@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import '/backend/schema/structs/index.dart';
+import '/backend/schema/enums/enums.dart';
 import '/backend/sqlite/sqlite_manager.dart';
 import '/backend/supabase/supabase.dart';
 import '/app_core/app_util.dart';
@@ -1417,9 +1418,36 @@ class _ScanTargetSelector extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
             child: _SelfScanCard(
               userName: user.name,
-              onTap: () {
-                // Create a self member struct
-                final selfMember = FamilyMemberStruct(
+              onTap: () async {
+                // Scans must be filed under the family_member id, not the
+                // account id. Try memory first, then fall back to a DB lookup
+                // to handle the race where UserSession.family isn't populated
+                // yet (e.g. immediately after signup).
+                FamilyMemberStruct? selfMember;
+                for (final m in user.family) {
+                  if (m.relationship == Relationships.ME) {
+                    selfMember = m;
+                    break;
+                  }
+                }
+                if (selfMember == null) {
+                  final rows = await SQLiteManager.instance
+                      .getFamilyMembersByAccountId(accountId: user.userID);
+                  for (final r in rows) {
+                    if (r.relationship == 'ME') {
+                      selfMember = FamilyMemberStruct(
+                        id: r.id,
+                        name: r.name,
+                        admin: true,
+                        relationship: Relationships.ME,
+                      );
+                      break;
+                    }
+                  }
+                }
+                debugPrint('[SelfScan] selfMember.id=${selfMember?.id} '
+                    'user.userID=${user.userID}');
+                selfMember ??= FamilyMemberStruct(
                   id: user.userID,
                   name: user.name,
                   admin: true,
