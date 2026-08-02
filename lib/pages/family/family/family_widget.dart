@@ -39,11 +39,14 @@ class _FamilyWidgetState extends State<FamilyWidget>
   // History data for selected member
   List<_SessionData> _sessions = [];
   bool _isLoadingSessions = false;
+  int _lastScansVersion = 0;
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => FamilyModel());
+    _lastScansVersion = AppState().scansVersion;
+    AppState().addListener(_onAppStateChanged);
 
     // Refresh family data on page load
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -60,8 +63,19 @@ class _FamilyWidgetState extends State<FamilyWidget>
 
   @override
   void dispose() {
+    AppState().removeListener(_onAppStateChanged);
     _model.dispose();
     super.dispose();
+  }
+
+  void _onAppStateChanged() {
+    final v = AppState().scansVersion;
+    if (v != _lastScansVersion) {
+      _lastScansVersion = v;
+      if (_selectedMemberId != null) {
+        _loadSessions(_selectedMemberId!);
+      }
+    }
   }
 
   void _selectMember(String memberId) {
@@ -156,6 +170,7 @@ class _FamilyWidgetState extends State<FamilyWidget>
             issuesCount: issuesCount,
             teethCount: teethCount,
             status: row.status,
+            notes: row.notes ?? '',
           ));
         }
       } else {
@@ -196,6 +211,7 @@ class _FamilyWidgetState extends State<FamilyWidget>
             issuesCount: issuesCount,
             teethCount: teethCount,
             status: row.status,
+            notes: row.notes ?? '',
           ));
         }
       }
@@ -555,6 +571,7 @@ class _FamilyWidgetState extends State<FamilyWidget>
                         'imageCount': session.imageCount,
                         'memberName': selectedMember.name,
                         'overallStatus': session.issuesCount == 0 ? 'healthy' : 'attention_needed',
+                        'gemmaAnalysis': session.notes,
                       },
                     );
                   },
@@ -579,6 +596,7 @@ class _SessionData {
   final int issuesCount;
   final int teethCount;
   final String status;
+  final String notes;
 
   _SessionData({
     required this.id,
@@ -587,6 +605,7 @@ class _SessionData {
     required this.issuesCount,
     required this.teethCount,
     required this.status,
+    required this.notes,
   });
 
   DxChipKind get kind {

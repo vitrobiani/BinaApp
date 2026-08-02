@@ -774,6 +774,8 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
         AppState().UserSession.family[familyIndex].lastChecked = now;
       }
 
+      AppState().notifyScansUpdated();
+
       if (mounted) {
         context.pushReplacementNamed(
           SessionSummaryWidget.routeName,
@@ -782,7 +784,7 @@ class _PhotoSessionWidgetState extends State<PhotoSessionWidget> {
             'imageCount': _sessionImages.length,
             'memberName': widget.memberName,
             'overallStatus': (findings['issues_count'] as int) > 0 ? 'attention_needed' : 'healthy',
-            // 'gemmaAnalysis': '',
+            'gemmaAnalysis': '',
           },
         );
       }

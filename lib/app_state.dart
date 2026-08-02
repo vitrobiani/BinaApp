@@ -55,6 +55,13 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  int _scansVersion = 0;
+  int get scansVersion => _scansVersion;
+  void notifyScansUpdated() {
+    _scansVersion++;
+    notifyListeners();
+  }
+
   late FlutterSecureStorage secureStorage;
 
   UserSessionStruct _UserSession = UserSessionStruct();

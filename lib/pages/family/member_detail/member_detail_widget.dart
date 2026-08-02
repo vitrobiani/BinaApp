@@ -26,6 +26,7 @@ class MemberDetailWidget extends StatefulWidget {
 class _MemberDetailWidgetState extends State<MemberDetailWidget> {
   List<_SessionData> _sessions = [];
   bool _isLoading = true;
+  int _lastScansVersion = 0;
 
   int? get _age {
     if (!widget.member.hasBirthday()) return null;
@@ -65,9 +66,25 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
   @override
   void initState() {
     super.initState();
+    _lastScansVersion = AppState().scansVersion;
+    AppState().addListener(_onAppStateChanged);
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await _loadSessions();
     });
+  }
+
+  @override
+  void dispose() {
+    AppState().removeListener(_onAppStateChanged);
+    super.dispose();
+  }
+
+  void _onAppStateChanged() {
+    final v = AppState().scansVersion;
+    if (v != _lastScansVersion) {
+      _lastScansVersion = v;
+      _loadSessions();
+    }
   }
 
   Future<void> _loadSessions() async {
@@ -668,6 +685,7 @@ class _HistoryList extends StatelessWidget {
                   'imageCount': session.imageCount,
                   'memberName': memberName,
                   'overallStatus': session.issuesCount == 0 ? 'healthy' : 'attention_needed',
+                  'gemmaAnalysis': session.notes,
                 },
               );
             },

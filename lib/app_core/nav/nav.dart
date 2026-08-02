@@ -196,7 +196,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                 imageCount: params.getParam('imageCount', ParamType.int),
                 memberName: params.getParam('memberName', ParamType.String),
                 overallStatus: params.getParam('overallStatus', ParamType.String),
-                // gemmaAnalysis: params.getParam('gemmaAnalysis', ParamType.String),
+                gemmaAnalysis: params.getParam('gemmaAnalysis', ParamType.String),
               ),
             ),
             AppRoute(

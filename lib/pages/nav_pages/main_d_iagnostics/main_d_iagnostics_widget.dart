@@ -1198,6 +1198,8 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
         AppState().UserSession.family[familyIndex].lastChecked = now;
       }
 
+      AppState().notifyScansUpdated();
+
       debugPrint('[FinishSession] ✅ all writes succeeded — navigating to summary');
       if (mounted) {
         context.pushReplacementNamed(
@@ -1207,6 +1209,7 @@ class _MainDIagnosticsWidgetState extends State<MainDIagnosticsWidget>
             'imageCount': _capturedImages.length,
             'memberName': _selectedMember!.name,
             'overallStatus': overallStatus,
+            'gemmaAnalysis': '',
           },
         );
       }
