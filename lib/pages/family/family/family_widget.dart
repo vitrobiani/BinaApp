@@ -343,76 +343,104 @@ class _FamilyWidgetState extends State<FamilyWidget>
       ),
     );
   }
-  void _deleteFamilyMember(String memberId) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: BinaColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(BinaRadius.lg),
-        ),
-        title: Text(
-          AppLocalizations.of(context).getText('family_delete_dialog_title'),
-          style: BinaType.headlineSm,
-        ),
-        content: Text(
-          AppLocalizations.of(context).getText('family_delete_dialog_content'),
-          style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              AppLocalizations.of(context).getText('profile_cancel'),
-              style: BinaType.labelLg.copyWith(color: BinaColors.ink2),
+  void _deleteFamilyMember(String memberId, bool admin) {
+    if (admin)
+      showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: BinaColors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(BinaRadius.lg),
             ),
+            title: Text(
+              AppLocalizations.of(context).getText('family_cant_delete_admin_title'),
+              style: BinaType.headlineSm,
+            ),
+            content: Text(
+              AppLocalizations.of(context).getText('family_cant_delete_admin_content'),
+              style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(
+                  AppLocalizations.of(context).getText('family_cant_delete_admin_button'),
+                  style: BinaType.labelLg.copyWith(color: BinaColors.ink2),
+                ),
+              ),
+            ],
+          )
+      );
+    else
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: BinaColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(BinaRadius.lg),
           ),
-          TextButton(
-            onPressed: () async {
-              if (AppState().UserSession.isLocalSession) {
-                await SQLiteManager.instance.deleteFamilyMemberCascade(memberId: memberId);
-              } else {
-                final sessionRows = await ScanSessionsTable().queryRows(
-                  queryFn: (q) => q.eq('family_member_id', memberId),
-                );
-                final sessionIds = sessionRows.map((r) => r.id).toList();
-                if (sessionIds.isNotEmpty) {
-                  await ScanImagesTable().delete(
-                    matchingRows: (rows) =>
-                        rows.inFilter('scan_session_id', sessionIds),
+          title: Text(
+            AppLocalizations.of(context).getText('family_delete_dialog_title'),
+            style: BinaType.headlineSm,
+          ),
+          content: Text(
+            AppLocalizations.of(context).getText('family_delete_dialog_content'),
+            style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(
+                AppLocalizations.of(context).getText('profile_cancel'),
+                style: BinaType.labelLg.copyWith(color: BinaColors.ink2),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (AppState().UserSession.isLocalSession) {
+                  await SQLiteManager.instance.deleteFamilyMemberCascade(memberId: memberId);
+                } else {
+                  final sessionRows = await ScanSessionsTable().queryRows(
+                    queryFn: (q) => q.eq('family_member_id', memberId),
+                  );
+                  final sessionIds = sessionRows.map((r) => r.id).toList();
+                  if (sessionIds.isNotEmpty) {
+                    await ScanImagesTable().delete(
+                      matchingRows: (rows) =>
+                          rows.inFilter('scan_session_id', sessionIds),
+                    );
+                  }
+                  await ScanSessionsTable().delete(
+                    matchingRows: (rows) => rows.eq('family_member_id', memberId),
+                  );
+                  await FamilyMemberCalibrationsTable().delete(
+                    matchingRows: (rows) => rows.eq('family_member_id', memberId),
+                  );
+                  await MemberDocumentsTable().delete(
+                    matchingRows: (rows) => rows.eq('family_member_id', memberId),
+                  );
+                  await FamilyMembersTable().delete(
+                    matchingRows: (rows) => rows.eq('id', memberId),
                   );
                 }
-                await ScanSessionsTable().delete(
-                  matchingRows: (rows) => rows.eq('family_member_id', memberId),
-                );
-                await FamilyMemberCalibrationsTable().delete(
-                  matchingRows: (rows) => rows.eq('family_member_id', memberId),
-                );
-                await MemberDocumentsTable().delete(
-                  matchingRows: (rows) => rows.eq('family_member_id', memberId),
-                );
-                await FamilyMembersTable().delete(
-                  matchingRows: (rows) => rows.eq('id', memberId),
-                );
-              }
-              if (context.mounted) {
-                await action_blocks.updateSessionFamily(context);
-              }
+                if (context.mounted) {
+                  await action_blocks.updateSessionFamily(context);
+                }
 
-              if (_selectedMemberId == memberId) {
-                _selectedMemberId = null;
-                _sessions = [];
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: Text(
-              AppLocalizations.of(context).getText('family_delete_dialog_button'),
-              style: BinaType.labelLg.copyWith(color: BinaColors.error),
+                if (_selectedMemberId == memberId) {
+                  _selectedMemberId = null;
+                  _sessions = [];
+                }
+                Navigator.of(ctx).pop();
+              },
+              child: Text(
+                AppLocalizations.of(context).getText('family_delete_dialog_button'),
+                style: BinaType.labelLg.copyWith(color: BinaColors.error),
+              ),
             ),
-          ),
-        ],
-      ),
-    ).then((value) => safeSetState(() {}));
+          ],
+        ),
+      ).then((value) => safeSetState(() {}));
 
   }
 
@@ -505,7 +533,7 @@ class _FamilyWidgetState extends State<FamilyWidget>
                                   );
                                 },
                                 onLongPress:
-                                    () => _deleteFamilyMember(member.id),
+                                    () => _deleteFamilyMember(member.id, member.admin),
                               ),
                             ).animate()
                                 .fadeIn(
@@ -609,7 +637,7 @@ class _FamilyWidgetState extends State<FamilyWidget>
                                   isSelected: isSelected,
                                   onTap: () => _selectMember(member.id),
                                   onLongPress:
-                                      () => _deleteFamilyMember(member.id),
+                                      () => _deleteFamilyMember(member.id, member.admin),
                                 ),
                               );
                             }).toList(),

@@ -2142,6 +2142,24 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   },
   // Family
   {
+    'family_cant_delete_admin_title': {
+      'en': 'Can\'t Delete Admin Member',
+      'he': 'לא ניתן למחוק את האחראי',
+      'id': '',
+      'ms': '',
+    },
+    'family_cant_delete_admin_content': {
+      'en': 'You can\'t delete the admin of this account',
+      'he': 'אתה לא יכול למחוק את האחראי בחשבון זה',
+      'id': '',
+      'ms': '',
+    },
+    'family_cant_delete_admin_button': {
+      'en': 'OK',
+      'he': 'אוקיי',
+      'id': '',
+      'ms': '',
+    },
     'family_delete_dialog_button': {
       'en': 'Delete',
       'he': 'מחק',
