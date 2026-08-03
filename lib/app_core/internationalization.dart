@@ -1037,6 +1037,24 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'id': 'masalah ditemukan',
       'ms': 'isu ditemui',
     },
+    'member_delete_session_title': {
+      'en': 'Delete Session?',
+      'he': 'למחוק את הסשן?',
+      'id': 'Hapus Sesi?',
+      'ms': 'Padam Sesi?',
+    },
+    'member_delete_session_content': {
+      'en': 'This scan session and all its images will be permanently deleted.',
+      'he': 'סשן הסריקה וכל התמונות שבו יימחקו לצמיתות.',
+      'id': 'Sesi pemindaian ini dan semua gambarnya akan dihapus secara permanen.',
+      'ms': 'Sesi imbasan ini dan semua imejnya akan dipadam secara kekal.',
+    },
+    'member_delete_session_button': {
+      'en': 'Delete',
+      'he': 'מחק',
+      'id': 'Hapus',
+      'ms': 'Padam',
+    },
     // Diagnostics Page
     'diag_camera_preview': {
       'en': 'Camera Preview',
@@ -2124,6 +2142,42 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   },
   // Family
   {
+    'family_cant_delete_admin_title': {
+      'en': 'Can\'t Delete Admin Member',
+      'he': 'לא ניתן למחוק את האחראי',
+      'id': '',
+      'ms': '',
+    },
+    'family_cant_delete_admin_content': {
+      'en': 'You can\'t delete the admin of this account',
+      'he': 'אתה לא יכול למחוק את האחראי בחשבון זה',
+      'id': '',
+      'ms': '',
+    },
+    'family_cant_delete_admin_button': {
+      'en': 'OK',
+      'he': 'אוקיי',
+      'id': '',
+      'ms': '',
+    },
+    'family_delete_dialog_button': {
+      'en': 'Delete',
+      'he': 'מחק',
+      'id': '',
+      'ms': '',
+    },
+    'family_delete_dialog_title': {
+      'en': 'Delete Member?',
+      'he': 'מחק בן משפחה?',
+      'id': '',
+      'ms': '',
+    },
+    'family_delete_dialog_content': {
+      'en': 'All the diagnoses and data will be permanently deleted!',
+      'he': 'כל המידע והאבחונים ימחקו למציתות!',
+      'id': '',
+      'ms': '',
+    },
     '609lph0v': {
       'en': 'My Family',
       'he': 'המשפחה שלי',

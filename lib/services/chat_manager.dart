@@ -121,9 +121,12 @@ class ChatManager extends ChangeNotifier {
   }
 
   /// Delete a conversation by ID.
-  void deleteConversation(String id) {
+  Future<void> deleteConversation(String id) async {
     _conversations.removeWhere((c) => c.id == id);
     notifyListeners();
+    await SQLiteManager.instance.deleteChatConversationCascade(
+      conversationId: id,
+    );
   }
 
   /// Add a message to a conversation.
