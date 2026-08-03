@@ -370,12 +370,30 @@ class _FamilyWidgetState extends State<FamilyWidget>
           TextButton(
             onPressed: () async {
               if (AppState().UserSession.isLocalSession) {
-                debugPrint("about to delete:");
-                debugPrint(memberId);
                 await SQLiteManager.instance.deleteFamilyMemberCascade(memberId: memberId);
               } else {
-                // await FamilyMembersTable().delete(matchingRows: );
-                // TODO: Implement for supabase
+                final sessionRows = await ScanSessionsTable().queryRows(
+                  queryFn: (q) => q.eq('family_member_id', memberId),
+                );
+                final sessionIds = sessionRows.map((r) => r.id).toList();
+                if (sessionIds.isNotEmpty) {
+                  await ScanImagesTable().delete(
+                    matchingRows: (rows) =>
+                        rows.inFilter('scan_session_id', sessionIds),
+                  );
+                }
+                await ScanSessionsTable().delete(
+                  matchingRows: (rows) => rows.eq('family_member_id', memberId),
+                );
+                await FamilyMemberCalibrationsTable().delete(
+                  matchingRows: (rows) => rows.eq('family_member_id', memberId),
+                );
+                await MemberDocumentsTable().delete(
+                  matchingRows: (rows) => rows.eq('family_member_id', memberId),
+                );
+                await FamilyMembersTable().delete(
+                  matchingRows: (rows) => rows.eq('id', memberId),
+                );
               }
               if (context.mounted) {
                 await action_blocks.updateSessionFamily(context);

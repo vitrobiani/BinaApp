@@ -258,6 +258,57 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
     );
   }
 
+  void _confirmDeleteSession(String sessionId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: BinaColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BinaRadius.lg),
+        ),
+        title: Text(
+          AppLocalizations.of(context).getText('member_delete_session_title'),
+          style: BinaType.headlineSm,
+        ),
+        content: Text(
+          AppLocalizations.of(context).getText('member_delete_session_content'),
+          style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              AppLocalizations.of(context).getText('profile_cancel'),
+              style: BinaType.labelLg.copyWith(color: BinaColors.ink2),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (AppState().UserSession.isLocalSession) {
+                await SQLiteManager.instance.deleteScanSessionsCascade(
+                  sessionIds: [sessionId],
+                );
+              } else {
+                await ScanImagesTable().delete(
+                  matchingRows: (rows) => rows.eq('scan_session_id', sessionId),
+                );
+                await ScanSessionsTable().delete(
+                  matchingRows: (rows) => rows.eq('id', sessionId),
+                );
+              }
+              AppState().notifyScansUpdated();
+              if (ctx.mounted) Navigator.of(ctx).pop();
+            },
+            child: Text(
+              AppLocalizations.of(context).getText('member_delete_session_button'),
+              style: BinaType.labelLg.copyWith(color: BinaColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openCalibration() {
     if (!AppState().cameraConnection.isCameraConnected()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -393,6 +444,7 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
                     sessions: _sessions,
                     isLoading: _isLoading,
                     memberName: widget.member.name,
+                    onSessionLongPress: _confirmDeleteSession,
                   ),
                 ],
               ),
@@ -607,11 +659,13 @@ class _HistoryList extends StatelessWidget {
     required this.sessions,
     required this.isLoading,
     required this.memberName,
+    required this.onSessionLongPress,
   });
 
   final List<_SessionData> sessions;
   final bool isLoading;
   final String memberName;
+  final void Function(String sessionId) onSessionLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -689,6 +743,7 @@ class _HistoryList extends StatelessWidget {
                 },
               );
             },
+            onLongPress: () => onSessionLongPress(session.id),
           ),
         );
       }).toList(),
@@ -701,11 +756,13 @@ class _HistoryRow extends StatelessWidget {
     required this.session,
     required this.memberName,
     required this.onTap,
+    required this.onLongPress,
   });
 
   final _SessionData session;
   final String memberName;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   String get _dateStr {
     final date = session.date;
@@ -724,6 +781,7 @@ class _HistoryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(

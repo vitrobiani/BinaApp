@@ -1037,6 +1037,24 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'id': 'masalah ditemukan',
       'ms': 'isu ditemui',
     },
+    'member_delete_session_title': {
+      'en': 'Delete Session?',
+      'he': 'למחוק את הסשן?',
+      'id': 'Hapus Sesi?',
+      'ms': 'Padam Sesi?',
+    },
+    'member_delete_session_content': {
+      'en': 'This scan session and all its images will be permanently deleted.',
+      'he': 'סשן הסריקה וכל התמונות שבו יימחקו לצמיתות.',
+      'id': 'Sesi pemindaian ini dan semua gambarnya akan dihapus secara permanen.',
+      'ms': 'Sesi imbasan ini dan semua imejnya akan dipadam secara kekal.',
+    },
+    'member_delete_session_button': {
+      'en': 'Delete',
+      'he': 'מחק',
+      'id': 'Hapus',
+      'ms': 'Padam',
+    },
     // Diagnostics Page
     'diag_camera_preview': {
       'en': 'Camera Preview',
