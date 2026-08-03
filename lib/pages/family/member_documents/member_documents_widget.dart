@@ -26,6 +26,7 @@ class MemberDocumentsWidget extends StatefulWidget {
 
 class _MemberDocumentsWidgetState extends State<MemberDocumentsWidget> {
   bool _isBusy = false;
+  AttachProgress? _progress;
 
   @override
   void initState() {
@@ -39,13 +40,19 @@ class _MemberDocumentsWidgetState extends State<MemberDocumentsWidget> {
 
   Future<void> _upload() async {
     if (_isBusy) return;
-    setState(() => _isBusy = true);
+    setState(() {
+      _isBusy = true;
+      _progress = null;
+    });
     try {
       final picked = await MemberDocumentService.instance.pickAndExtract();
       if (picked == null) return;
       await MemberDocumentService.instance.attachToMember(
         familyMemberId: widget.familyMemberId,
         doc: picked,
+        onProgress: (p) {
+          if (mounted) setState(() => _progress = p);
+        },
       );
       if (!mounted) return;
       final msg = picked.extractionStatus == 'empty'
@@ -58,7 +65,12 @@ class _MemberDocumentsWidgetState extends State<MemberDocumentsWidget> {
         SnackBar(content: Text('Upload failed: $e')),
       );
     } finally {
-      if (mounted) setState(() => _isBusy = false);
+      if (mounted) {
+        setState(() {
+          _isBusy = false;
+          _progress = null;
+        });
+      }
     }
   }
 
@@ -90,6 +102,7 @@ class _MemberDocumentsWidgetState extends State<MemberDocumentsWidget> {
         child: Column(
           children: [
             _buildHeader(),
+            if (_progress != null) _buildProgressBar(_progress!),
             Expanded(
               child: AnimatedBuilder(
                 animation: AppState(),
@@ -135,6 +148,34 @@ class _MemberDocumentsWidgetState extends State<MemberDocumentsWidget> {
                   : 'Member documents',
               style: BinaType.titleLg,
               overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(AttachProgress p) {
+    final label = switch (p.stage) {
+      AttachStage.saving => 'Saving document…',
+      AttachStage.embedding => 'Embedding chunk ${p.current + 1} / ${p.total}',
+      AttachStage.done => 'Done',
+    };
+    final value = p.total == 0 ? null : (p.current + 1) / p.total;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(label, style: BinaType.bodySm.copyWith(color: BinaColors.ink2)),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: p.stage == AttachStage.embedding ? value : null,
+              minHeight: 6,
+              backgroundColor: BinaColors.surface,
+              color: BinaColors.primary,
             ),
           ),
         ],

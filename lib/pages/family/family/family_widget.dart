@@ -8,6 +8,7 @@ import '/bina_design/bina_design.dart';
 import '/pages/family/family_member/family_member_widget.dart';
 import '/pages/nav_pages/web_nav/web_nav_widget.dart';
 import '/actions/actions.dart' as action_blocks;
+import '/services/health_report_service.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -1193,10 +1194,13 @@ class _MemberDetailPanel extends StatelessWidget {
                   children: [
                     BinaSectionHeader(
                       title: AppLocalizations.of(context).getText('family_history'),
-                      action: AppLocalizations.of(context).getText('family_export'),
-                      onActionTap: () {
-                        // TODO: Export history
-                      },
+                      action: sessions.isEmpty
+                          ? null
+                          : AppLocalizations.of(context).getText('family_export'),
+                      onActionTap: sessions.isEmpty
+                          ? null
+                          : () => HealthReportService.exportAndShare(
+                              context, member),
                     ),
                     const SizedBox(height: 12),
                     _HistoryList(

@@ -709,10 +709,12 @@ class _InlineChatRoomState extends State<_InlineChatRoom> {
     });
 
     try {
+      debugPrint("[Agent] Its using this one not the other the dumbo!");
       // Use the agent service for intelligent responses
       final agentResponse = await GemmaAgentService.instance.processMessage(
         userMessage: text,
         context: context,
+        currentMemberId: widget.memberId,
       );
 
       final assistantContent = agentResponse.textResponse.isNotEmpty

@@ -8,6 +8,7 @@ import '/backend/sqlite/sqlite_manager.dart';
 import '/backend/supabase/supabase.dart';
 import '/app_core/app_util.dart';
 import '/services/gemma_service.dart';
+import '/services/embedding/chunk_retriever.dart';
 import 'command_parser.dart';
 import 'command_executor.dart';
 import 'command_registry.dart';
@@ -108,11 +109,29 @@ class GemmaAgentService {
       // Load family members (cached)
       final familyMembers = await _getFamilyMembers();
 
+      // RAG: embed the user's turn and pull the top-K most relevant chunks
+      // from this member's uploaded documents. Empty list if the member has
+      // no docs or the embedder is offline — the prompt just skips the
+      // passages block in that case.
+      List<RetrievedChunk> retrievedChunks = const [];
+      if (currentMemberId != null && currentMemberId.isNotEmpty) {
+        debugPrint('[Agent] RAG lookup for memberId=$currentMemberId '
+            'query="${userMessage.length > 60 ? "${userMessage.substring(0, 60)}…" : userMessage}"');
+        retrievedChunks = await ChunkRetriever.instance.retrieveTopK(
+          familyMemberId: currentMemberId,
+          userQuery: userMessage,
+        );
+        debugPrint('[Agent] RAG returned ${retrievedChunks.length} chunks');
+      } else {
+        debugPrint('[Agent] RAG skipped — currentMemberId is null/empty '
+            '(chat not scoped to a member)');
+      }
+
       // Build a minimal prompt for small models
       final systemPrompt = AgentPrompts.buildSystemPrompt(
         languageHint: languageHint,
         currentMemberName: currentMemberName,
-        memberDocuments: AppState().memberDocuments,
+        retrievedChunks: retrievedChunks,
       );
 
       // Keep prompt short - just system + last message

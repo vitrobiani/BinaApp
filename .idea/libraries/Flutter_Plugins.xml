@@ -27,7 +27,6 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/permission_handler-11.4.0" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/shared_preferences_windows-2.4.1" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/app_links_linux-1.0.3" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider-2.1.4" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_windows-0.2.1+1" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/app_links_web-1.0.4" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/url_launcher_linux-3.2.1" />
@@ -49,6 +48,9 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/shared_preferences_foundation-2.5.4" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/shared_preferences_linux-2.4.1" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/flutter_gemma-0.15.0" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider-2.1.6" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/flutter_onnxruntime-1.8.3" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/printing-5.14.3" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

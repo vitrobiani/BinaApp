@@ -276,3 +276,34 @@ Future<int> performDeleteMemberDocument(
   );
 }
 /// END INSERTMEMBERDOCUMENT
+
+/// BEGIN DOCUMENTCHUNKS
+/// Insert one chunk with its raw Float32 embedding buffer. Called in a loop
+/// during upload (30-page PDF → ~30 chunks, so a batch write path could be
+/// added later; today the per-call cost is dwarfed by the embedding pass).
+Future performInsertMemberDocumentChunk(
+  Database database, {
+  required String id,
+  required String documentId,
+  required int chunkIndex,
+  required String text,
+  required Uint8List embedding,
+}) async {
+  return database.rawInsert(
+    'INSERT INTO member_document_chunk (id, document_id, chunk_index, text, embedding) VALUES (?, ?, ?, ?, ?)',
+    [id, documentId, chunkIndex, text, embedding],
+  );
+}
+
+/// Drop every chunk row for a document. Called before deleting the document
+/// itself; SQLite CASCADE is not enabled in this app.
+Future<int> performDeleteChunksByDocumentId(
+  Database database, {
+  required String documentId,
+}) async {
+  return database.rawDelete(
+    'DELETE FROM member_document_chunk WHERE document_id = ?',
+    [documentId],
+  );
+}
+/// END DOCUMENTCHUNKS

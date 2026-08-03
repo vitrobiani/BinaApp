@@ -33,7 +33,9 @@ dependencies:
   mjpeg_stream: ^1.0.1
   supabase_flutter: 2.9.0
   syncfusion_flutter_pdf: ^30.1.42
+  printing: ^5.13.0
   tflite_flutter: 0.12.1
+  flutter_onnxruntime: ^1.8.3
 
   # Navigation
   go_router: 12.1.3
@@ -69,7 +71,7 @@ dependencies:
   flutter_secure_storage: 10.0.0-beta.4
   image: 4.7.2
   image_picker: 1.1.2
-  path_provider: 2.1.4
+  path_provider: ^2.1.6
   shared_preferences: 2.5.3
   sqflite: 2.3.3+1
 
@@ -141,6 +143,12 @@ flutter:
     - assets/yolo11n_float16.tflite
     - assets/best_model.tflite
     - assets/cavity_detector_no_nms.tflite
+    - assets/model/embeddings/config.json
+    - assets/model/embeddings/model_quantized.onnx
+    - assets/model/embeddings/model_quantized.onnx_data
+    - assets/model/embeddings/special_tokens_map.json
+    - assets/model/embeddings/tokenizer.json
+    - assets/model/embeddings/tokenizer_config.json
 #    - assets/best_float32.tflite
     # Gemma models
     # - Gemma 3 1B is bundled (small enough at ~555MB)

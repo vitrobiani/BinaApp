@@ -105,6 +105,20 @@ class ScanSessionRow extends SqliteRow {
 
 /// END GETSCANSESSIONSBYMEMBERID
 
+/// BEGIN GETRECENTSCANSESSIONSBYMEMBERID
+Future<List<ScanSessionRow>> performGetRecentScanSessionsByMemberId(
+  Database database, {
+  String? memberId,
+  int limit = 5,
+}) async {
+  final result = await database.rawQuery(
+    'SELECT id, family_member_id, session_start, session_end, status, notes, total_images_captured FROM scan_session WHERE family_member_id = ? ORDER BY session_start DESC LIMIT ?',
+    [memberId, limit],
+  );
+  return result.map((d) => ScanSessionRow(d)).toList();
+}
+/// END GETRECENTSCANSESSIONSBYMEMBERID
+
 /// BEGIN GETSCANIMAGESBYSESSIONID
 Future<List<ScanImageRow>> performGetScanImagesBySessionId(
   Database database, {
@@ -279,3 +293,34 @@ class MemberDocumentRow extends SqliteRow {
   int? get uploadedAt => data['uploaded_at'] as int?;
 }
 /// END GETMEMBERDOCUMENTSBYMEMBERID
+
+/// BEGIN GETDOCUMENTCHUNKSBYMEMBERID
+/// Fetch every chunk belonging to every doc attached to this member, with
+/// the raw embedding bytes. One JOIN keeps it a single round-trip on the
+/// hot path (retrieval runs on every user message).
+Future<List<MemberDocumentChunkRow>> performGetChunksByMemberId(
+  Database database, {
+  required String familyMemberId,
+}) async {
+  final result = await database.rawQuery(
+    'SELECT c.id, c.document_id, c.chunk_index, c.text, c.embedding, d.file_name '
+    'FROM member_document_chunk c '
+    'INNER JOIN member_document d ON d.id = c.document_id '
+    'WHERE d.family_member_id = ? '
+    'ORDER BY c.document_id, c.chunk_index',
+    [familyMemberId],
+  );
+  return result.map((d) => MemberDocumentChunkRow(d)).toList();
+}
+
+class MemberDocumentChunkRow extends SqliteRow {
+  MemberDocumentChunkRow(Map<String, dynamic> data) : super(data);
+
+  String get id => data['id'] as String;
+  String get documentId => data['document_id'] as String;
+  int get chunkIndex => data['chunk_index'] as int;
+  String get text => data['text'] as String;
+  List<int> get embedding => data['embedding'] as List<int>;
+  String? get fileName => data['file_name'] as String?;
+}
+/// END GETDOCUMENTCHUNKSBYMEMBERID
