@@ -53,7 +53,7 @@ class _MainProfilePageWidgetState extends State<MainProfilePageWidget>
 
   void _showSignOutDialog() {
     showDialog(
-      context: context,
+      context: context, //
       builder: (ctx) => AlertDialog(
         backgroundColor: BinaColors.surface,
         shape: RoundedRectangleBorder(

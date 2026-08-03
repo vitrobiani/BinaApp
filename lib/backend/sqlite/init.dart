@@ -39,6 +39,18 @@ Future<Database> initializeDatabaseFromDbFile(
 
 Future<void> _runMigrations(Database database) async {
   await database.execute('''
+    CREATE TABLE IF NOT EXISTS member_document_chunk (
+    id TEXT PRIMARY KEY,
+    document_id TEXT NOT NULL,         
+    chunk_index INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    embedding BLOB NOT NULL,            
+    FOREIGN KEY (document_id) REFERENCES member_document(id) ON DELETE CASCADE
+  );
+  CREATE INDEX idx_chunk_doc ON member_document_chunk(document_id);
+  ''');
+
+  await database.execute('''
     CREATE TABLE IF NOT EXISTS member_document (
     id TEXT PRIMARY KEY,
     family_member_id TEXT NOT NULL,
@@ -127,5 +139,23 @@ Future<void> _runMigrations(Database database) async {
       FOREIGN KEY (family_member_id) REFERENCES family_member(id),
       FOREIGN KEY (scan_session_id) REFERENCES scan_session(id)
     )
+  ''');
+
+  // Chunked + embedded slices of every uploaded member document. Feeds
+  // the on-device RAG retrieval (EmbeddingGemma-300M, 768-dim). The
+  // embedding is a raw Float32 buffer (3072 bytes per chunk). Cascade
+  // delete is done in Dart because PRAGMA foreign_keys is off.
+  await database.execute('''
+    CREATE TABLE IF NOT EXISTS member_document_chunk (
+      id TEXT PRIMARY KEY,
+      document_id TEXT NOT NULL,
+      chunk_index INTEGER NOT NULL,
+      text TEXT NOT NULL,
+      embedding BLOB NOT NULL
+    )
+  ''');
+  await database.execute('''
+    CREATE INDEX IF NOT EXISTS idx_chunk_doc
+      ON member_document_chunk(document_id)
   ''');
 }

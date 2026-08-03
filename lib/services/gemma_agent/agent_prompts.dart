@@ -1,42 +1,42 @@
 /// System prompts for the Gemma agent.
 /// Includes base prompt and language-specific additions.
 
-import '/backend/schema/structs/index.dart';
+import '/services/embedding/chunk_retriever.dart';
 import 'command_registry.dart';
 
 class AgentPrompts {
-  /// Total budget for injected document text, across all docs. Chosen so
-  /// gemma3_1b (32K token window ≈ 24K chars) has headroom for history +
-  /// user turn + system prompt. Gemma4_e2b has plenty of room too.
-  static const int documentBudgetChars = 16000;
+  /// Character budget for the retrieved-passages block. Sized so that even
+  /// with a long user turn and history the prompt stays under the small
+  /// model's 2048-token context. Individual chunks are ~500 chars.
+  static const int passageBudgetChars = 1500;
 
   /// Build the complete system prompt - SIMPLIFIED for small models
   static String buildSystemPrompt({
     String? languageHint,
     String? currentMemberName,
-    List<MemberDocumentStruct>? memberDocuments,
+    List<RetrievedChunk>? retrievedChunks,
   }) {
     final buffer = StringBuffer();
+    final hasPassages = retrievedChunks != null && retrievedChunks.isNotEmpty;
 
-    // Minimal prompt for small models
+    // Base instructions
     buffer.writeln('You are Bina, a dental health assistant.');
-    buffer.writeln('Respond in the user\'s language. Be brief.');
+    buffer.writeln('Respond in the user\'s language.');
+    // Don't say "be brief" when we want a real document explanation —
+    // small models take that literally and emit a single-word reply.
+    if (!hasPassages) {
+      buffer.writeln('Be brief.');
+    }
     buffer.writeln();
 
     // Current user context
     if (currentMemberName != null && currentMemberName.isNotEmpty) {
       buffer.writeln('User: $currentMemberName');
-    }
-
-    // Attached reference documents (extracted text from PDFs the user
-    // uploaded on the member's page or in this chat).
-    final docBlock = _buildDocumentBlock(memberDocuments);
-    if (docBlock != null) {
       buffer.writeln();
-      buffer.writeln(docBlock);
     }
 
-    // Minimal command reference
+    // Command reference — kept above passages so the RAG block, being
+    // adjacent to the user turn, gets Gemma's recency attention.
     buffer.writeln('''
 Commands (output in brackets):
 [GET_MY_SCANS] - show user's scans
@@ -57,40 +57,52 @@ Example: "go home" → "Going home! [NAV_HOME]"
 Example: "I want to scan" → "Let's scan! [START_SCAN_SELECT]"
 ''');
 
+    // Retrieved passages last, right before the user turn, with an
+    // explicit "answer using these" instruction. Small models need the
+    // mapping spelled out — "your PDF" and "the passages above" are the
+    // same thing, since the passages were extracted from the user's
+    // uploaded files at attach time.
+    final passageBlock = _buildPassageBlock(retrievedChunks);
+    if (passageBlock != null) {
+      buffer.writeln();
+      buffer.writeln(passageBlock);
+      buffer.writeln('The passages above ARE the text extracted from the '
+          'user\'s uploaded documents/PDFs/files. When the user asks about '
+          '"the PDF", "the document", "the file", or "what I uploaded", '
+          'answer using these passages. Write 2–5 sentences. Quote or '
+          'paraphrase specific facts from the passages. Do NOT say you '
+          'cannot access the file — you already have its contents above.');
+    }
+
     return buffer.toString();
   }
 
-  /// Assemble the `Reference documents:` block from the docs whose text
-  /// extraction succeeded. If the total text exceeds [documentBudgetChars]
-  /// each doc gets an equal share and is truncated from the tail with
-  /// `[…truncated]`. Returns `null` when no usable docs are present.
-  static String? _buildDocumentBlock(List<MemberDocumentStruct>? docs) {
-    if (docs == null || docs.isEmpty) return null;
-    final usable = docs
-        .where((d) =>
-            d.extractionStatus == 'ok' &&
-            d.extractedText != null &&
-            d.extractedText!.isNotEmpty)
-        .toList();
-    if (usable.isEmpty) return null;
-
-    final totalChars =
-        usable.fold<int>(0, (sum, d) => sum + d.extractedText!.length);
-    final perDocBudget = totalChars <= documentBudgetChars
-        ? null
-        : documentBudgetChars ~/ usable.length;
+  /// Assemble the `Reference passages:` block from the retrieved chunks.
+  /// Chunks are already ranked by cosine similarity; we take them in order
+  /// until the character budget is filled. Returns `null` when there are no
+  /// usable passages.
+  static String? _buildPassageBlock(List<RetrievedChunk>? chunks) {
+    if (chunks == null || chunks.isEmpty) return null;
 
     final buffer = StringBuffer();
-    buffer.writeln('Reference documents (attached to this member):');
-    for (final d in usable) {
-      final text = d.extractedText!;
-      buffer.writeln('--- Document: ${d.fileName} ---');
-      if (perDocBudget != null && text.length > perDocBudget) {
-        buffer.writeln(text.substring(0, perDocBudget));
-        buffer.writeln('[…truncated]');
-      } else {
-        buffer.writeln(text);
-      }
+    buffer.writeln('Reference passages (from documents attached to this '
+        'member; higher score = more relevant):');
+
+    int used = 0;
+    for (final c in chunks) {
+      if (used >= passageBudgetChars) break;
+      final label = c.fileName == null || c.fileName!.isEmpty
+          ? 'passage'
+          : c.fileName;
+      final header =
+          '--- $label (chunk ${c.chunkIndex}, score ${c.score.toStringAsFixed(2)}) ---';
+      final remaining = passageBudgetChars - used;
+      final body = c.text.length <= remaining
+          ? c.text
+          : '${c.text.substring(0, remaining)}[…]';
+      buffer.writeln(header);
+      buffer.writeln(body);
+      used += header.length + body.length + 2;
     }
     return buffer.toString();
   }

@@ -31,21 +31,24 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
   bool _isGenerating = false;
+  AttachProgress? _attachProgress;
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => ChatRoomModel());
 
-    // Hydrate the chatting member's attached documents so Gemma has them
-    // in context from the first message onward.
-    if (widget.conversationId != null) {
-      final conversation =
-          ChatManager.instance.getConversation(widget.conversationId!);
-      final familyMemberId = conversation?.familyMemberId;
-      if (familyMemberId != null && familyMemberId.isNotEmpty) {
-        AppState().loadMemberDocuments(familyMemberId);
-      }
+    // Hydrate the chatting member's attached documents so the docs page
+    // (opened from the chat) shows the current list. Uses the DB-fallback
+    // getter so it works even if ChatManager hasn't finished init.
+    final convId = widget.conversationId;
+    if (convId != null) {
+      ChatManager.instance.getConversationEnsured(convId).then((c) {
+        final id = c?.familyMemberId;
+        if (id != null && id.isNotEmpty) {
+          AppState().loadMemberDocuments(id);
+        }
+      });
     }
   }
 
@@ -71,9 +74,11 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
   Future<void> _attachDocument() async {
     final convId = widget.conversationId;
     if (convId == null) return;
-    final conversation = ChatManager.instance.getConversation(convId);
+    final conversation =
+        await ChatManager.instance.getConversationEnsured(convId);
     final familyMemberId = conversation?.familyMemberId;
     if (familyMemberId == null || familyMemberId.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No family member linked to this chat.')),
       );
@@ -97,6 +102,12 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
       await MemberDocumentService.instance.attachToMember(
         familyMemberId: familyMemberId,
         doc: picked,
+        onProgress: (p) {
+          if (!mounted) return;
+          setState(() {
+            _attachProgress = p.stage == AttachStage.done ? null : p;
+          });
+        },
       );
     } catch (e) {
       if (!mounted) return;
@@ -160,8 +171,11 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
     });
 
     try {
-      // Get the current member context from the conversation
-      final conversation = ChatManager.instance.getConversation(widget.conversationId!);
+      // Get the current member context from the conversation. Fall back to
+      // a DB read if ChatManager hasn't finished initialising — otherwise
+      // the RAG retriever is skipped and Gemma answers blind.
+      final conversation = await ChatManager.instance
+          .getConversationEnsured(widget.conversationId!);
       final familyMemberId = conversation?.familyMemberId;
       debugPrint('Conversation ID: ${widget.conversationId}');
       debugPrint('Family Member ID: $familyMemberId');
@@ -177,6 +191,8 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
         debugPrint('WARNING: No family member ID - self commands will fail');
       }
 
+      debugPrint("currentMemberId: ");
+      debugPrint(familyMemberId);
       // Use the agent service for intelligent responses
       final agentResponse = await GemmaAgentService.instance.processMessage(
         userMessage: text,
@@ -408,6 +424,8 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                         ],
                       ),
                     ),
+                  if (_attachProgress != null)
+                    _AttachProgressBar(progress: _attachProgress!),
                   // Input bar
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -420,11 +438,14 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                     child: Row(
                       children: [
                         IconButton(
-                          onPressed: _isGenerating ? null : _attachDocument,
+                          onPressed: (_isGenerating || _attachProgress != null)
+                              ? null
+                              : _attachDocument,
                           icon: Icon(Icons.attach_file_rounded,
-                              color: _isGenerating
-                                  ? BinaColors.ink3
-                                  : BinaColors.primary),
+                              color:
+                                  (_isGenerating || _attachProgress != null)
+                                      ? BinaColors.ink3
+                                      : BinaColors.primary),
                           tooltip: 'Attach a PDF',
                         ),
                         Expanded(
@@ -621,6 +642,45 @@ class _SendButtonState extends State<_SendButton> {
           color: widget.isEnabled ? Colors.white : BinaColors.ink3,
           size: 20,
         ),
+      ),
+    );
+  }
+}
+
+/// Slim progress bar shown above the input while a document is being
+/// chunked + embedded. Same visual language as the docs-page bar so users
+/// recognise the "attaching a PDF" state regardless of where they started.
+class _AttachProgressBar extends StatelessWidget {
+  const _AttachProgressBar({required this.progress});
+  final AttachProgress progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = switch (progress.stage) {
+      AttachStage.saving => 'Saving document…',
+      AttachStage.embedding =>
+        'Embedding chunk ${progress.current + 1} / ${progress.total}',
+      AttachStage.done => 'Done',
+    };
+    final value = progress.total == 0 ? null : (progress.current + 1) / progress.total;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      color: BinaColors.surfaceAlt,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(label, style: BinaType.bodySm.copyWith(color: BinaColors.ink2)),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: progress.stage == AttachStage.embedding ? value : null,
+              minHeight: 4,
+              backgroundColor: BinaColors.surface,
+              color: BinaColors.primary,
+            ),
+          ),
+        ],
       ),
     );
   }

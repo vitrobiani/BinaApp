@@ -5,8 +5,10 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_linux
   flutter_gemma
+  flutter_onnxruntime
   flutter_secure_storage_linux
   gtk
+  printing
   url_launcher_linux
 )
 

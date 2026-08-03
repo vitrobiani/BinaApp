@@ -13,6 +13,7 @@ import 'auth/supabase_auth/auth_util.dart';
 
 import '/backend/supabase/supabase.dart';
 import '/services/gemma_service.dart';
+import '/services/embedding_service.dart';
 import '/services/accessibility_settings_service.dart';
 import '/backend/sqlite/sqlite_manager.dart';
 import '/app_core/app_theme.dart';
@@ -54,6 +55,10 @@ void main() async {
   // Users can use the app while it downloads
   GemmaService.instance.init().catchError((e) {
     debugPrint('GemmaService background init error: $e');
+  });
+
+  EmbeddingService.instance.init().catchError((e) {
+    debugPrint('EmbeddingService background init error: $e');
   });
 
   final appState = AppState(); // Initialize AppState

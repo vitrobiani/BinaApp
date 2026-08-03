@@ -111,13 +111,49 @@ class ChatManager extends ChangeNotifier {
     return conversation;
   }
 
-  /// Get a conversation by ID.
+  /// Get a conversation by ID from the in-memory cache.
   ChatConversation? getConversation(String id) {
     try {
       return _conversations.firstWhere((c) => c.id == id);
     } catch (_) {
       return null;
     }
+  }
+
+  /// Get a conversation by ID, falling back to a direct SQLite read when
+  /// the manager hasn't finished [initialize] yet. The chat room can be
+  /// entered before chat_history mounts (e.g. via a "New Chat" push right
+  /// after cold-launch), and previously that left the in-memory cache empty
+  /// so the RAG lookup couldn't find the member the chat is scoped to.
+  Future<ChatConversation?> getConversationEnsured(String id) async {
+    final cached = getConversation(id);
+    if (cached != null) {
+      debugPrint('[ChatManager] getConversationEnsured($id) → cached hit '
+          '(memberId=${cached.familyMemberId})');
+      return cached;
+    }
+    final rows = await SQLiteManager.instance.getAllChatConversations();
+    debugPrint('[ChatManager] getConversationEnsured($id) not cached; '
+        'DB has ${rows.length} conversations');
+    for (final row in rows) {
+      if (row.id != id) continue;
+      final convo = ChatConversation(
+        id: row.id,
+        familyMemberId: row.familyMemberId,
+        title: row.title,
+        messages: await getConversationMessages(row.id),
+        createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt!),
+        lastUpdatedAt: DateTime.fromMillisecondsSinceEpoch(row.lastUpdatedAt!),
+      );
+      _conversations.add(convo);
+      notifyListeners();
+      debugPrint('[ChatManager] getConversationEnsured($id) → DB hit '
+          '(memberId=${convo.familyMemberId})');
+      return convo;
+    }
+    debugPrint('[ChatManager] getConversationEnsured($id) → NOT FOUND '
+        'in cache or DB');
+    return null;
   }
 
   /// Delete a conversation by ID.

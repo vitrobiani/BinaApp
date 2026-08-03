@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart' hide Orientation;
 import '/backend/schema/structs/index.dart';
 import '/backend/sqlite/sqlite_manager.dart';
@@ -349,11 +351,23 @@ class AppState extends ChangeNotifier {
   }
 
   /// Delete a document. Local session drops the row (which drops the blob).
-  /// Cloud session deletes the Storage object first, then the row.
+  /// Cloud session deletes the Storage object first, then the row. Both
+  /// backends explicitly drop the associated chunk rows first, because
+  /// SQLite `PRAGMA foreign_keys` is off and the Supabase CASCADE only fires
+  /// if the manual migration is in place — being explicit here keeps the
+  /// two backends symmetric.
   Future<void> deleteMemberDocument(MemberDocumentStruct doc) async {
     if (_UserSession.isLocalSession) {
+      await SQLiteManager.instance.deleteChunksByDocumentId(documentId: doc.id);
       await SQLiteManager.instance.deleteMemberDocument(id: doc.id);
     } else {
+      try {
+        await MemberDocumentChunksTable().delete(
+          matchingRows: (rows) => rows.eq('document_id', doc.id),
+        );
+      } catch (e) {
+        debugPrint('[MemberDocuments] chunk delete failed: $e');
+      }
       final path = doc.storagePath;
       if (path != null && path.isNotEmpty) {
         try {
@@ -371,6 +385,49 @@ class AppState extends ChangeNotifier {
     _memberDocuments =
         _memberDocuments.where((d) => d.id != doc.id).toList();
     notifyListeners();
+  }
+
+  /// Persist one embedded chunk. Called in a loop by the upload path; the
+  /// embedding is a raw Float32 buffer (768 dims → 3072 bytes) locally, or
+  /// a pgvector literal remotely.
+  Future<void> saveDocumentChunk({
+    required String documentId,
+    required int chunkIndex,
+    required String text,
+    required Float32List embedding,
+  }) async {
+    final chunkId = _uuidLike();
+    if (_UserSession.isLocalSession) {
+      final bytes = embedding.buffer.asUint8List();
+      await SQLiteManager.instance.insertMemberDocumentChunk(
+        id: chunkId,
+        documentId: documentId,
+        chunkIndex: chunkIndex,
+        text: text,
+        embedding: bytes,
+      );
+    } else {
+      await MemberDocumentChunksTable().insert({
+        'id': chunkId,
+        'document_id': documentId,
+        'chunk_index': chunkIndex,
+        'text': text,
+        // pgvector accepts the literal "[0.1,0.2,...]" string format.
+        'embedding': pgvectorLiteral(embedding),
+      });
+    }
+  }
+
+  /// Format a Float32List as a pgvector literal. Public so the retriever can
+  /// reuse it when calling the cloud RPC.
+  static String pgvectorLiteral(Float32List v) {
+    final sb = StringBuffer('[');
+    for (var i = 0; i < v.length; i++) {
+      if (i > 0) sb.write(',');
+      sb.write(v[i].toStringAsFixed(6));
+    }
+    sb.write(']');
+    return sb.toString();
   }
 }
 

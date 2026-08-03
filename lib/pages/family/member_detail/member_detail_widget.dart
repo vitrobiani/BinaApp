@@ -4,6 +4,7 @@ import '/backend/sqlite/sqlite_manager.dart';
 import '/backend/supabase/supabase.dart';
 import '/bina_design/bina_design.dart';
 import '/index.dart';
+import '/services/health_report_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -434,10 +435,13 @@ class _MemberDetailWidgetState extends State<MemberDetailWidget> {
                 children: [
                   BinaSectionHeader(
                     title: AppLocalizations.of(context).getText('member_history'),
-                    action: AppLocalizations.of(context).getText('member_export'),
-                    onActionTap: () {
-                      // TODO: Export history
-                    },
+                    action: _sessions.isEmpty
+                        ? null
+                        : AppLocalizations.of(context).getText('member_export'),
+                    onActionTap: _sessions.isEmpty
+                        ? null
+                        : () => HealthReportService.exportAndShare(
+                            context, widget.member),
                   ),
                   const SizedBox(height: 12),
                   _HistoryList(

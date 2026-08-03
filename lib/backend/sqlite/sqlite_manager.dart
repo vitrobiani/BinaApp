@@ -65,6 +65,16 @@ class SQLiteManager {
         memberId: memberId,
       );
 
+  Future<List<ScanSessionRow>> getRecentScanSessionsByMemberId({
+    String? memberId,
+    int limit = 5,
+  }) =>
+      performGetRecentScanSessionsByMemberId(
+        _database,
+        memberId: memberId,
+        limit: limit,
+      );
+
   Future<List<ScanImageRow>> getScanImagesBySessionId({
     String? sessionId,
   }) =>
@@ -122,6 +132,14 @@ class SQLiteManager {
     required String id,
   }) =>
       performGetMemberDocumentWithBlob(_database, id: id);
+
+  Future<List<MemberDocumentChunkRow>> getChunksByMemberId({
+    required String familyMemberId,
+  }) =>
+      performGetChunksByMemberId(
+        _database,
+        familyMemberId: familyMemberId,
+      );
 
   /// END READ QUERY CALLS
 
@@ -366,6 +384,25 @@ class SQLiteManager {
 
   Future<int> deleteMemberDocument({required String id}) =>
       performDeleteMemberDocument(_database, id: id);
+
+  Future insertMemberDocumentChunk({
+    required String id,
+    required String documentId,
+    required int chunkIndex,
+    required String text,
+    required Uint8List embedding,
+  }) =>
+      performInsertMemberDocumentChunk(
+        _database,
+        id: id,
+        documentId: documentId,
+        chunkIndex: chunkIndex,
+        text: text,
+        embedding: embedding,
+      );
+
+  Future<int> deleteChunksByDocumentId({required String documentId}) =>
+      performDeleteChunksByDocumentId(_database, documentId: documentId);
 
   /// START DELETE QUERY CALLS
 
