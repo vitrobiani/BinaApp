@@ -53,3 +53,42 @@ Future<void> performDeleteScanSessionsCascade(
   }
   await batch.commit(noResult: true);
 }
+
+/// Delete chat messages by conversation ID
+Future<int> performDeleteChatMessagesByConversationId(
+  Database database, {
+  required String conversationId,
+}) async {
+  return database.rawDelete(
+    'DELETE FROM chat_message WHERE conversation_id = ?',
+    [conversationId],
+  );
+}
+
+/// Delete a chat conversation by ID
+Future<int> performDeleteChatConversation(
+  Database database, {
+  required String conversationId,
+}) async {
+  return database.rawDelete(
+    'DELETE FROM chat_conversation WHERE id = ?',
+    [conversationId],
+  );
+}
+
+/// Delete a chat conversation with cascade (messages first, then conversation)
+Future<void> performDeleteChatConversationCascade(
+  Database database, {
+  required String conversationId,
+}) async {
+  final batch = database.batch();
+  batch.rawDelete(
+    'DELETE FROM chat_message WHERE conversation_id = ?',
+    [conversationId],
+  );
+  batch.rawDelete(
+    'DELETE FROM chat_conversation WHERE id = ?',
+    [conversationId],
+  );
+  await batch.commit(noResult: true);
+}

@@ -402,5 +402,14 @@ class SQLiteManager {
     performDeleteFamilyMemberByMemberId(_database, memberId: memberId);
   }
 
+  /// Delete a chat conversation (and its messages) by ID
+  Future<void> deleteChatConversationCascade({
+    required String conversationId,
+  }) =>
+      performDeleteChatConversationCascade(
+        _database,
+        conversationId: conversationId,
+      );
+
   /// END DELETE QUERY CALLS
 }
