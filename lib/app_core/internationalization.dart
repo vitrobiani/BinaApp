@@ -2124,6 +2124,24 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   },
   // Family
   {
+    'family_delete_dialog_button': {
+      'en': 'Delete',
+      'he': 'מחק',
+      'id': '',
+      'ms': '',
+    },
+    'family_delete_dialog_title': {
+      'en': 'Delete Member?',
+      'he': 'מחק בן משפחה?',
+      'id': '',
+      'ms': '',
+    },
+    'family_delete_dialog_content': {
+      'en': 'All the diagnoses and data will be permanently deleted!',
+      'he': 'כל המידע והאבחונים ימחקו למציתות!',
+      'id': '',
+      'ms': '',
+    },
     '609lph0v': {
       'en': 'My Family',
       'he': 'המשפחה שלי',

@@ -1,3 +1,5 @@
+import 'package:bina_system/components/dialogs/confirm_dialog.dart';
+
 import '/app_core/app_util.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/sqlite/sqlite_manager.dart';
@@ -341,6 +343,60 @@ class _FamilyWidgetState extends State<FamilyWidget>
       ),
     );
   }
+  void _deleteFamilyMember(String memberId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: BinaColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BinaRadius.lg),
+        ),
+        title: Text(
+          AppLocalizations.of(context).getText('family_delete_dialog_title'),
+          style: BinaType.headlineSm,
+        ),
+        content: Text(
+          AppLocalizations.of(context).getText('family_delete_dialog_content'),
+          style: BinaType.bodyMd.copyWith(color: BinaColors.ink2),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              AppLocalizations.of(context).getText('profile_cancel'),
+              style: BinaType.labelLg.copyWith(color: BinaColors.ink2),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (AppState().UserSession.isLocalSession) {
+                debugPrint("about to delete:");
+                debugPrint(memberId);
+                await SQLiteManager.instance.deleteFamilyMemberCascade(memberId: memberId);
+              } else {
+                // await FamilyMembersTable().delete(matchingRows: );
+                // TODO: Implement for supabase
+              }
+              if (context.mounted) {
+                await action_blocks.updateSessionFamily(context);
+              }
+
+              if (_selectedMemberId == memberId) {
+                _selectedMemberId = null;
+                _sessions = [];
+              }
+              Navigator.of(ctx).pop();
+            },
+            child: Text(
+              AppLocalizations.of(context).getText('family_delete_dialog_button'),
+              style: BinaType.labelLg.copyWith(color: BinaColors.error),
+            ),
+          ),
+        ],
+      ),
+    ).then((value) => safeSetState(() {}));
+
+  }
 
   Widget _buildPhoneLayout({
     required BuildContext context,
@@ -430,6 +486,8 @@ class _FamilyWidgetState extends State<FamilyWidget>
                                     },
                                   );
                                 },
+                                onLongPress:
+                                    () => _deleteFamilyMember(member.id),
                               ),
                             ).animate()
                                 .fadeIn(
@@ -532,6 +590,8 @@ class _FamilyWidgetState extends State<FamilyWidget>
                                   member: member,
                                   isSelected: isSelected,
                                   onTap: () => _selectMember(member.id),
+                                  onLongPress:
+                                      () => _deleteFamilyMember(member.id),
                                 ),
                               );
                             }).toList(),
@@ -670,12 +730,14 @@ class _FamilyMemberRow extends StatelessWidget {
   const _FamilyMemberRow({
     required this.member,
     required this.onTap,
+    required this.onLongPress,
     this.isSelected = false,
   });
 
   final FamilyMemberStruct member;
   final VoidCallback onTap;
   final bool isSelected;
+  final VoidCallback onLongPress;
 
   int? get _age {
     if (!member.hasBirthday()) return null;
@@ -716,6 +778,7 @@ class _FamilyMemberRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(

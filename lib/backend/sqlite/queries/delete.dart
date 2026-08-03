@@ -1,5 +1,16 @@
 import 'package:sqflite/sqflite.dart';
 
+/// Delete family member by member id
+Future<int> performDeleteFamilyMemberByMemberId(
+  Database database, {
+    required String memberId,
+}) async {
+  return database.rawDelete(
+    'DELETE FROM family_member WHERE id = ?',
+    [memberId],
+  );
+}
+
 /// Delete scan images by session ID
 Future<int> performDeleteScanImagesBySessionId(
   Database database, {

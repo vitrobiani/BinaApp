@@ -396,5 +396,11 @@ class SQLiteManager {
         sessionIds: sessionIds,
       );
 
+  Future<void> deleteFamilyMemberCascade({
+    required String memberId,
+  }) async {
+    performDeleteFamilyMemberByMemberId(_database, memberId: memberId);
+  }
+
   /// END DELETE QUERY CALLS
 }
