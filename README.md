@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/images/logos/bina_logo_blue.png">
-    <img src="assets/images/logos/bina_logo_dark.png" alt="Bina logo" style="width: 30%; max-width: 200; height: auto;">
+    <img src="assets/images/logos/bina_logo_dark.png" alt="Bina logo" style="width: 10%; max-width: 100; height: auto;">
   </picture>
 </p>
 
@@ -670,13 +670,16 @@ Honest inventory. These are the things worth calling out proactively to any revi
 <details>
 <summary>Screenshots</summary>
 
-![Homepage on phone](assets/images/screenshots/Homepage_phone.jpg)
+[//]: # (![Homepage on phone]&#40;assets/images/screenshots/Homepage_phone.jpg&#41;)
+<img src="assets/images/screenshots/Homepage_phone.jpg" alt="Homepage on phone" style="width: 10%; max-width: 100; height: auto;">
 ![Homepage on tablet](assets/images/screenshots/Home_tablet.jpg)
 
-![Profile page on phone](assets/images/screenshots/Profile_phone.jpg)
+[//]: # (![Profile page on phone]&#40;assets/images/screenshots/Profile_phone.jpg&#41;)
+<img src="assets/images/screenshots/Profile_phone.jpg" alt="Profile page on phone" style="width: 10%; max-width: 100; height: auto;">
 ![Profile page on tablet](assets/images/screenshots/Profile_tablet.jpg)
 
-![Family page on phone](assets/images/screenshots/Family_phone.jpg)
+[//]: # (![Family page on phone]&#40;assets/images/screenshots/Family_phone.jpg&#41;)
+<img src="assets/images/screenshots/Family_phone.jpg" alt="Profile page on phone" style="width: 10%; max-width: 100; height: auto;">
 ![Family page on tablet](assets/images/screenshots/Family_tablet.jpg)
 
 </details>
