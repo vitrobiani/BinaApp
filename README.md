@@ -1,13 +1,14 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/images/logos/bina_logo_blue.png">
-    <img src="assets/images/logos/bina_logo_dark.png" alt="Bina logo" width="180">
+    <img src="assets/images/logos/bina_logo_dark.png" alt="Bina logo" width="170" height="380">
   </picture>
 </p>
 
 <h1 align="center">BinaApp</h1>
 
 Bina is a Flutter application for at-home dental screening. It pairs with a small custom camera device over WiFi Direct, streams MJPEG video from an oral cavity endoscope, runs on-device YOLO inference to spot cavities, guides users through a structured mouth-region calibration, keeps a household of family members with individual histories, and layers a fully local Gemma-based assistant on top with retrieval augmented generation over uploaded medical documents.
+
 
 ---
 
@@ -59,9 +60,12 @@ The stack is intentionally offline-first. The only network dependency is Supabas
 
 ## Code Tour
 
-A set of links to methods worth reviewing. 
+A set of links to methods worth reviewing.
 
-### Gemma agent
+<details>
+<summary>Gemma Agent</summary>
+
+### Gemma agent features
 
 | What | Where |
 | --- | --- |
@@ -84,8 +88,12 @@ A set of links to methods worth reviewing.
 | Which model is active | [`gemma_service.dart:89`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/services/gemma_service.dart#L89) |
 | `resetModel` to clear KV cache between chats | [`gemma_service.dart:110`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/services/gemma_service.dart#L110) |
 | Static prompts (image interpretation, session summary, chat context) | [`llm_prompts.dart:5`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/services/llm_prompts.dart#L5) |
+</details>
 
-### Embeddings and RAG
+<details>
+<summary>Embeddings and RAG</summary>
+
+### Embeddings and RAG features
 
 | What | Where |
 | --- | --- |
@@ -102,8 +110,12 @@ A set of links to methods worth reviewing.
 | Upload pipeline (`pickAndExtract`) | [`member_document_service.dart:56`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/services/member_document_service.dart#L56) |
 | AttachProgress state machine (saving → embedding → done) | [`member_document_service.dart:33`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/services/member_document_service.dart#L33) |
 | 40-char threshold that rejects scanned-image PDFs | [`member_document_service.dart:54`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/services/member_document_service.dart#L54) |
+</details>
 
-### Camera, gyro, YOLO
+<details>
+<summary>Camera, gyro, YOLO</summary>
+
+### Camera, gyro, YOLO features
 
 | What | Where |
 | --- | --- |
@@ -125,8 +137,12 @@ A set of links to methods worth reviewing.
 | Auto-connect when a `Bina` device is seen | [`camera_connection_widget.dart:155`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/pages/other_pages/camera_connection/camera_connection_widget.dart#L155) |
 | "No Bina camera detected" snackbar with "Show all" action | [`camera_connection_widget.dart:137`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/pages/other_pages/camera_connection/camera_connection_widget.dart#L137) |
 | Gyro self-heal in `readOrientationInts` | [`gyro_controller_service.dart:257`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/services/gyro_controller_service.dart#L257) |
+</details>
 
-### Health report, family, UX
+<details>
+<summary>Health report, family, UX</summary>
+
+### Health report, family, UX features
 
 | What | Where |
 | --- | --- |
@@ -138,20 +154,25 @@ A set of links to methods worth reviewing.
 | Sign-out confirmation dialog | [`main_profile_page_widget.dart:63`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/pages/nav_pages/main_profile_page/main_profile_page_widget.dart#L63) |
 | Delete-family-member with cascade delete of sessions, images, calibrations, documents | [`family_widget.dart:347`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/pages/family/family/family_widget.dart#L347) |
 | Cascade in action | [`family_widget.dart:402`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/pages/family/family/family_widget.dart#L402) |
+</details>
 
-### Design system and accessibility
+<details>
+<summary>Design system and accessibility</summary>
 
-| What                                                    | Where |
-|---------------------------------------------------------| --- |
-| Responsive breakpoints (`800`, `1100`)                  | [`bina_responsive.dart:24`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/bina_design/bina_responsive.dart#L24) |
-| Breakpoint resolver                                     | [`bina_responsive.dart:30`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/bina_design/bina_responsive.dart#L30) |
-| Bina design tokens (colours, space, radius)             | [`bina_design_tokens.dart:36`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/bina_design/bina_design_tokens.dart#L36) |
+### Design system and accessibility features
+
+| What | Where |
+| --- | --- |
+| Responsive breakpoints (`720`, `1100`) | [`bina_responsive.dart:24`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/bina_design/bina_responsive.dart#L24) |
+| Breakpoint resolver | [`bina_responsive.dart:30`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/bina_design/bina_responsive.dart#L30) |
+| Bina design tokens (colours, space, radius) | [`bina_design_tokens.dart:36`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/bina_design/bina_design_tokens.dart#L36) |
 | Five-theme enum (light, dark, warm, cool, deuteranopia) | [`app_theme_type.dart:8`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/app_core/app_theme_type.dart#L8) |
-| Text-scale enum (small, medium, large, extra-large)     | [`text_scale.dart:5`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/app_core/text_scale.dart#L5) |
-| `suggestedForAge` (65+ → large, 75+ → extra-large)      | [`text_scale.dart:30`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/app_core/text_scale.dart#L30) |
-| AccessibilitySettingsService state and persistence      | [`accessibility_settings_service.dart:28`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/services/accessibility_settings_service.dart#L28) |
-| Localization: four supported languages                  | [`internationalization.dart:16`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/app_core/internationalization.dart#L16) |
-| Translation map                                         | [`internationalization.dart:150`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/app_core/internationalization.dart#L150) |
+| Text-scale enum (small, medium, large, extra-large) | [`text_scale.dart:5`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/app_core/text_scale.dart#L5) |
+| `suggestedForAge` (65+ → large, 75+ → extra-large) | [`text_scale.dart:30`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/app_core/text_scale.dart#L30) |
+| AccessibilitySettingsService state and persistence | [`accessibility_settings_service.dart:28`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/services/accessibility_settings_service.dart#L28) |
+| Localization: four supported languages | [`internationalization.dart:16`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/app_core/internationalization.dart#L16) |
+| Translation map | [`internationalization.dart:150`](https://github.com/vitrobiani/BinaApp/blob/55ea52cc70aff3e59a1d16c21c744c70d0a53c07/lib/app_core/internationalization.dart#L150) |
+</details>
 
 ---
 
@@ -380,7 +401,7 @@ Keeping them here means the prompt strings live outside of any widget and can be
 
 The interesting one is [`gemma_agent_service.dart`](https://github.com/vitrobiani/BinaApp/blob/main/lib/services/gemma_agent/gemma_agent_service.dart). `processMessage(userText)` does the following in order:
 
-1. Detect Hebrew via the regex and set a language flag
+1. Detect Hebrew via the regex `[֐-׿]` and set a language flag
 2. Retrieve top-K RAG chunks for the active family member from the local or cloud embedding index
 3. Build the system prompt (see next section)
 4. Call `GemmaService.generateResponse`
@@ -414,6 +435,9 @@ The passage budget is deliberately small. Gemma 3 1B behaves noticeably worse wh
 
 </details>
 
+### Family member resolution
+
+Users refer to family members by name, but also by role: "mom", "dad", "אבא", "ibu", "ayah". [`member_name_resolver.dart`](https://github.com/vitrobiani/BinaApp/blob/main/lib/services/gemma_agent/member_name_resolver.dart) holds a `familyTerms` map with English, Hebrew, Indonesian, and Malay for mother, father, grandmother, grandfather, brother, sister, son, daughter. Free-text names get a Levenshtein match with distance up to 2 for tolerance to typos and transliteration.
 
 ### Interpretation, summary, and trend
 
@@ -526,11 +550,11 @@ The profile page shows these as coloured swatches ([`main_profile_page_widget.da
 
 [`bina_responsive.dart`](https://github.com/vitrobiani/BinaApp/blob/main/lib/bina_design/bina_responsive.dart) declares three breakpoints:
 
-| Breakpoint | Width                 |
-| --- |-----------------------|
-| Phone | `<800 px`             |
-| Tablet | `800 px` to `1099 px` |
-| Desktop | `>=1100 px`           |
+| Breakpoint | Width |
+| --- | --- |
+| Phone | `<720 px` |
+| Tablet | `720 px` to `1099 px` |
+| Desktop | `>=1100 px` |
 
 `BinaResponsive`, `BinaWidePage`, and `BinaMasterDetail` are the primitives that pages consume. The chrome switches from a 70 px floating pill nav on phones ([`bina_floating_nav.dart`](https://github.com/vitrobiani/BinaApp/blob/main/lib/bina_design/bina_floating_nav.dart)) to a 236 px sidebar on desktop ([`bina_sidebar.dart`](https://github.com/vitrobiani/BinaApp/blob/main/lib/bina_design/bina_sidebar.dart)).
 
@@ -613,7 +637,7 @@ Hebrew triggers RTL directionality throughout the app. The Gemma agent also dete
 - **AppState** is a `provider`-backed `ChangeNotifier` that holds the current session, active family member, camera connection, and cross-cutting flags
 - **go_router** owns navigation; every navigation intent produced by the agent goes through it
 - **SQLite** (`sqflite`) is the primary session store, chat store, and document store
-- **Supabase** Serves as a secondary way to save the user's data
+- **Supabase** mirrors sessions and documents to the cloud and hosts pgvector for cloud RAG
 - **Provider** wires `AppState` and `AppModel` into the widget tree
 
 The dual-backend pattern (SQLite for offline speed, Supabase for cross-device sync and semantic search) shows up in `chunk_retriever.dart`, `member_document_service.dart`, and the family session tables. Both backends round-trip the same struct types generated under `lib/backend/schema/structs/`.
@@ -624,31 +648,50 @@ The dual-backend pattern (SQLite for offline speed, Supabase for cross-device sy
 
 Honest inventory. These are the things worth calling out proactively to any reviewer:
 
-- **Hebrew embedding quality**. EmbeddingGemma-300M's Hebrew retrieval is noticeably weaker than English. From what we see in the logs the text fetched by the embedder gets broken so severely in the process that it is unintelligible and basically forces gemma to hallucinate.
-- **Vague queries**. Gemma is easy to derail with vague follow-ups like "tell me more". The system prompt tries to steer it toward asking a clarifying question rather than confabulating, but it does not always. Very unspesific questions are very hard on gemma, because they force her to bring in to many chunks basically "eating" all of her context window (of 16k only).
-- **iOS Limitations**. GPU delegate for the YOLO detector is Android-only. The Gemma path itself runs on iOS through `flutter_gemma` but has not been performance-tuned there. Further more IOS devices lock their WIFI Direct capabilities not allowing access to them (they do have the ability but presumably for security reasons they have not opened an interface), so a solution for IOS devices needs to be implemented.
-- **Region estimator relies on calibration quality**. The 14-region default calibration is a reasonable starting point but per-user calibration is recommended. Even with calibration, there some regions whose angles are just to similar.
+- **Hebrew embedding quality**. EmbeddingGemma-300M's Hebrew retrieval is noticeably weaker than English. Chunk boundaries are also less reliable in Hebrew because our chunker only recognises the sof pasuq and standard punctuation, not the full range of taamim
+- **Vague queries**. Gemma 3 1B in particular is easy to derail with vague follow-ups like "tell me more". The system prompt tries to steer it toward asking a clarifying question rather than confabulating, but it does not always
+- **Passage budget is small**. The 1500-character reference block was chosen to protect 1B model quality; on 4 E2B it could safely be larger. Currently it is the same for both
+- **Single-class YOLO**. The active detector is cavity-only. The multi-class labels are commented out in [`run_yolo_inference.dart`](https://github.com/vitrobiani/BinaApp/blob/main/lib/custom_code/actions/run_yolo_inference.dart) and there is no gingivitis or plaque detection today
+- **iOS Gemma path**. GPU delegate for the YOLO detector is Android-only. The Gemma path itself runs on iOS through `flutter_gemma` but has not been performance-tuned there
+- **Region estimator relies on calibration quality**. The 14-region default calibration is a reasonable starting point but per-user calibration is recommended, and skipped calibrations degrade the `uncoveredRegions` warning proportionally
 
 ---
 
-## Appendix
+## Suggested Additions
 
+Space intentionally left for content to add before the presentation.
+
+<details>
+<summary>Architecture diagram</summary>
+
+*(insert a high-level diagram showing phone, camera board, Supabase, and the ML pipeline)*
+
+</details>
 
 <details>
 <summary>Entity-relationship diagram</summary>
-![ERD](assets/diagrams/bina_erd_diagram.png)
+
+*(insert an ERD covering `family_members`, `sessions`, `session_images`, `member_documents`, `document_chunks`, and their Supabase mirrors)*
+
+</details>
+
+<details>
+<summary>Sequence diagram: scan session</summary>
+
+*(insert a sequence diagram: user → camera pairing → calibration → photo session → YOLO tick → mouth region estimator → session summary → Gemma → session details / export)*
+
+</details>
+
+<details>
+<summary>Sequence diagram: RAG chat turn</summary>
+
+*(insert a sequence diagram: user query → language detection → EmbeddingGemma → chunk retrieval → system prompt build → Gemma → command parse → executor → follow-up Gemma turn → UI)*
+
 </details>
 
 <details>
 <summary>Screenshots</summary>
 
-![Homepage on phone](assets/screenshots/Homepage_phone.jpg)
-![Homepage on tablet](assets/screenshots/Home_tablet.jpg)
-
-![Profile page on phone](assets/screenshots/Profile_phone.jpg)
-![Profile page on tablet](assets/screenshots/Profile_tablet.jpg)
-
-![Family page on phone](assets/screenshots/Family_phone.jpg)
-![Family page on tablet](assets/screenshots/Family_tablet.jpg)
+*(insert screenshots for home, diagnostics with overlay, calibration, family list, member detail with PDF export, chat with RAG citation, accessibility hub)*
 
 </details>
