@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/images/logos/bina_logo_blue.png">
-    <img src="assets/images/logos/bina_logo_dark.png" alt="Bina logo" width="170" height="380">
+    <img src="assets/images/logos/bina_logo_dark.png" alt="Bina logo" style="width: 100%; max-width: 400px; height: auto;">
   </picture>
 </p>
 
@@ -657,41 +657,24 @@ Honest inventory. These are the things worth calling out proactively to any revi
 
 ---
 
-## Suggested Additions
+## Appendix
 
-Space intentionally left for content to add before the presentation.
-
-<details>
-<summary>Architecture diagram</summary>
-
-*(insert a high-level diagram showing phone, camera board, Supabase, and the ML pipeline)*
-
-</details>
 
 <details>
 <summary>Entity-relationship diagram</summary>
-
-*(insert an ERD covering `family_members`, `sessions`, `session_images`, `member_documents`, `document_chunks`, and their Supabase mirrors)*
-
-</details>
-
-<details>
-<summary>Sequence diagram: scan session</summary>
-
-*(insert a sequence diagram: user → camera pairing → calibration → photo session → YOLO tick → mouth region estimator → session summary → Gemma → session details / export)*
-
-</details>
-
-<details>
-<summary>Sequence diagram: RAG chat turn</summary>
-
-*(insert a sequence diagram: user query → language detection → EmbeddingGemma → chunk retrieval → system prompt build → Gemma → command parse → executor → follow-up Gemma turn → UI)*
-
+![ERD](assets/diagrams/bina_erd_diagram.png)
 </details>
 
 <details>
 <summary>Screenshots</summary>
 
-*(insert screenshots for home, diagnostics with overlay, calibration, family list, member detail with PDF export, chat with RAG citation, accessibility hub)*
+![Homepage on phone](assets/screenshots/Homepage_phone.jpg)
+![Homepage on tablet](assets/screenshots/Home_tablet.jpg)
+
+![Profile page on phone](assets/screenshots/Profile_phone.jpg)
+![Profile page on tablet](assets/screenshots/Profile_tablet.jpg)
+
+![Family page on phone](assets/screenshots/Family_phone.jpg)
+![Family page on tablet](assets/screenshots/Family_tablet.jpg)
 
 </details>
