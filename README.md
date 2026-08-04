@@ -674,24 +674,24 @@ Honest inventory. These are the things worth calling out proactively to any revi
 [//]: # (<img src="assets/images/screenshots/Homepage_phone.jpg" alt="Homepage on phone" style="width: 10%; max-width: 100; height: auto;">)
 [//]: # (![Homepage on tablet]&#40;assets/images/screenshots/Home_tablet.jpg&#41;)
 <p float="left">
-  <img src="assets/images/screenshots/Homepage_phone.jpg" width="49%" />
-  <img src="assets/images/screenshots/Home_tablet.jpg" width="49%" />
+  <img src="assets/images/screenshots/Homepage_phone.jpg" width="25%" />
+  <img src="assets/images/screenshots/Home_tablet.jpg" width="73%" />
 </p>
 
 [//]: # (![Profile page on phone]&#40;assets/images/screenshots/Profile_phone.jpg&#41;)
 [//]: # (<img src="assets/images/screenshots/Profile_phone.jpg" alt="Profile page on phone" style="width: 10%; max-width: 100; height: auto;">)
 [//]: # (![Profile page on tablet]&#40;assets/images/screenshots/Profile_tablet.jpg&#41;)
 <p float="left">
-  <img src="assets/images/screenshots/Profile_phone.jpg" width="49%" />
-  <img src="assets/images/screenshots/Profile_tablet.jpg" width="49%" />
+  <img src="assets/images/screenshots/Profile_phone.jpg" width="25%" />
+  <img src="assets/images/screenshots/Profile_tablet.jpg" width="73%" />
 </p>
 
 [//]: # (![Family page on phone]&#40;assets/images/screenshots/Family_phone.jpg&#41;)
 [//]: # (<img src="assets/images/screenshots/Family_phone.jpg" alt="Profile page on phone" style="width: 10%; max-width: 100; height: auto;">)
 [//]: # (![Family page on tablet]&#40;assets/images/screenshots/Family_tablet.jpg&#41;)
 <p float="left">
-  <img src="assets/images/screenshots/Family_phone.jpg" width="49%" />
-  <img src="assets/images/screenshots/Family_tablet.jpg" width="49%" />
+  <img src="assets/images/screenshots/Family_phone.jpg" width="25%" />
+  <img src="assets/images/screenshots/Family_tablet.jpg" width="73%" />
 </p>
 
 </details>
