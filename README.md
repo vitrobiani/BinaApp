@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/images/logos/bina_logo_blue.png">
-    <img src="assets/images/logos/bina_logo_dark.png" alt="Bina logo" style="width: 100%; max-width: 400px; height: auto;">
+    <img src="assets/images/logos/bina_logo_dark.png" alt="Bina logo" style="width: 30%; max-width: 200; height: auto;">
   </picture>
 </p>
 
@@ -662,19 +662,21 @@ Honest inventory. These are the things worth calling out proactively to any revi
 
 <details>
 <summary>Entity-relationship diagram</summary>
-![ERD](assets/diagrams/bina_erd_diagram.png)
+
+![ERD](assets/images/diagrams/bina_erd_diagram.png)
+
 </details>
 
 <details>
 <summary>Screenshots</summary>
 
-![Homepage on phone](assets/screenshots/Homepage_phone.jpg)
-![Homepage on tablet](assets/screenshots/Home_tablet.jpg)
+![Homepage on phone](assets/images/screenshots/Homepage_phone.jpg)
+![Homepage on tablet](assets/images/screenshots/Home_tablet.jpg)
 
-![Profile page on phone](assets/screenshots/Profile_phone.jpg)
-![Profile page on tablet](assets/screenshots/Profile_tablet.jpg)
+![Profile page on phone](assets/images/screenshots/Profile_phone.jpg)
+![Profile page on tablet](assets/images/screenshots/Profile_tablet.jpg)
 
-![Family page on phone](assets/screenshots/Family_phone.jpg)
-![Family page on tablet](assets/screenshots/Family_tablet.jpg)
+![Family page on phone](assets/images/screenshots/Family_phone.jpg)
+![Family page on tablet](assets/images/screenshots/Family_tablet.jpg)
 
 </details>
