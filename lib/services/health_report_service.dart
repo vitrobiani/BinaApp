@@ -233,27 +233,32 @@ class HealthReportService {
         .toList();
     if (analysed.isEmpty) return '';
 
-    await GemmaService.instance.init();
-
-    final buf = StringBuffer();
-    for (var i = 0; i < analysed.length; i++) {
-      final s = analysed[i];
-      buf.writeln('--- Session ${i + 1} (${_isoDate(s.date)}) ---');
-      buf.writeln(s.gemmaAnalysis!.trim());
-      buf.writeln();
-    }
-
-    final prompt =
-        'You are Bina, a dental health assistant. Below are the last '
-        '${analysed.length} dental session analyses for '
-        '${member.name.isEmpty ? "this member" : member.name}.\n\n'
-        '${buf.toString()}'
-        'In 3–4 sentences, describe the overall trend: what is improving, '
-        'what is persistent, and what warrants a dentist visit. Do not '
-        'repeat individual sessions — synthesise across them. Respond in '
-        'English only.';
-
     try {
+      // `init()` is wrapped alongside `generateResponse` on purpose: on hosts
+      // without the bundled model (e.g. unit tests, first-run before the
+      // background download completes), init throws. A missing overview
+      // should never kill the export — the caller falls back to the "No AI
+      // overview available." line on the cover page.
+      await GemmaService.instance.init();
+
+      final buf = StringBuffer();
+      for (var i = 0; i < analysed.length; i++) {
+        final s = analysed[i];
+        buf.writeln('--- Session ${i + 1} (${_isoDate(s.date)}) ---');
+        buf.writeln(s.gemmaAnalysis!.trim());
+        buf.writeln();
+      }
+
+      final prompt =
+          'You are Bina, a dental health assistant. Below are the last '
+          '${analysed.length} dental session analyses for '
+          '${member.name.isEmpty ? "this member" : member.name}.\n\n'
+          '${buf.toString()}'
+          'In 3–4 sentences, describe the overall trend: what is improving, '
+          'what is persistent, and what warrants a dentist visit. Do not '
+          'repeat individual sessions — synthesise across them. Respond in '
+          'English only.';
+
       final resp = await GemmaService.instance.generateResponse(prompt);
       final cleaned = resp.trim();
       if (cleaned.isEmpty || cleaned.startsWith('[ERROR')) {

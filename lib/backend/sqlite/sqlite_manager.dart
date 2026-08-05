@@ -19,6 +19,13 @@ class SQLiteManager {
   static late Database _database;
   Database get database => _database;
 
+  /// Test-only seam. Lets unit tests point the manager at an in-memory
+  /// database (via `sqflite_common_ffi`) without calling `initialize()`,
+  /// which needs the bundled `AppData.db` asset.
+  @visibleForTesting
+  // ignore: use_setters_to_change_properties
+  static void setDatabaseForTesting(Database db) => _database = db;
+
   static Future initialize() async {
     if (kIsWeb) {
       return;

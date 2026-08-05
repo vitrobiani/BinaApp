@@ -20,10 +20,10 @@ enum BinaBreakpoint { phone, tablet, desktop }
 class BinaBreakpoints {
   BinaBreakpoints._();
 
-  /// Phone breakpoint: < 720px
-  static const double phone = 720;
+  /// Phone breakpoint: < 800px
+  static const double phone = 800;
 
-  /// Tablet breakpoint: 720–1099px
+  /// Tablet breakpoint: 800–1099px
   static const double tablet = 1100;
 
   /// Get current breakpoint from width

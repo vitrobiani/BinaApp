@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +12,7 @@ import 'auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/services/gemma_service.dart';
 import '/services/embedding_service.dart';
+import '/services/lifecycle_camera_supervisor.dart';
 import '/services/accessibility_settings_service.dart';
 import '/backend/sqlite/sqlite_manager.dart';
 import '/app_core/app_theme.dart';
@@ -99,12 +98,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late GoRouter _router;
 
   // Auto-disconnect from the Bina camera after the app has been backgrounded
-  // for this long. Prevents the camera from staying paired to a phone that's
-  // no longer using it. Note: Android/iOS may suspend Dart timers when the
-  // app is fully backgrounded, so this is best-effort — on `detached` we
-  // also disconnect immediately as a hard fallback.
-  static const Duration _cameraIdleDisconnectAfter = Duration(seconds: 60);
-  Timer? _cameraDisconnectTimer;
+  // for this long. Android/iOS may suspend Dart timers when the app is fully
+  // backgrounded, so this is best-effort — on `detached` we also disconnect
+  // immediately as a hard fallback. Logic lives in [LifecycleCameraSupervisor]
+  // so it can be exercised under `fake_async` in unit tests.
+  late final LifecycleCameraSupervisor _cameraSupervisor =
+      LifecycleCameraSupervisor(
+    idleAfter: const Duration(seconds: 60),
+    isConnected: () => AppState().cameraConnection.isCameraConnected(),
+    disconnect: () => AppState().disconnectCamera(),
+  );
   String getRoute([RouteMatch? routeMatch]) {
     final RouteMatch lastMatch =
         routeMatch ?? _router.routerDelegate.currentConfiguration.last;
@@ -140,7 +143,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    _cameraDisconnectTimer?.cancel();
+    _cameraSupervisor.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -148,38 +151,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    switch (state) {
-      case AppLifecycleState.paused:
-        _armCameraDisconnectTimer();
-        break;
-      case AppLifecycleState.resumed:
-        _cameraDisconnectTimer?.cancel();
-        _cameraDisconnectTimer = null;
-        break;
-      case AppLifecycleState.detached:
-        _cameraDisconnectTimer?.cancel();
-        _cameraDisconnectTimer = null;
-        // Fire-and-forget: the app is dying, we just want to release the
-        // Wi-Fi Direct group on the way out.
-        unawaited(AppState().disconnectCamera());
-        break;
-      case AppLifecycleState.inactive:
-      case AppLifecycleState.hidden:
-        // Transient (control center, incoming call preview) — don't act.
-        break;
-    }
-  }
-
-  void _armCameraDisconnectTimer() {
-    if (!AppState().cameraConnection.isCameraConnected()) return;
-    _cameraDisconnectTimer?.cancel();
-    _cameraDisconnectTimer = Timer(_cameraIdleDisconnectAfter, () async {
-      if (AppState().cameraConnection.isCameraConnected()) {
-        debugPrint(
-            '[Lifecycle] auto-disconnecting camera after ${_cameraIdleDisconnectAfter.inSeconds}s in background');
-        await AppState().disconnectCamera();
-      }
-    });
+    _cameraSupervisor.handleLifecycleState(state);
   }
 
   void setLocale(String language) {

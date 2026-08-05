@@ -141,5 +141,51 @@ void main() {
       expect(uncovered, isNot(contains(Orientation.UFO)));
       expect(uncovered.length, Orientation.values.length - 2);
     });
+
+    test('complementarity holds for every subset size 0..14', () {
+      // Covered ∪ uncovered = all regions, with no overlap. Iterate over the
+      // subset sizes because a bug could easily surface only at one size
+      // (off-by-one in the .where() filter for instance).
+      final all = Orientation.values.toList();
+      for (var k = 0; k <= all.length; k++) {
+        final covered = all.take(k).map((o) => o.name).toList();
+        final uncovered = MouthRegionEstimator.uncoveredRegions(covered);
+        expect(uncovered.length, equals(all.length - k),
+            reason: 'k=$k covered=$covered');
+        for (final o in uncovered) {
+          expect(covered, isNot(contains(o.name)),
+              reason: 'k=$k, region $o should not appear in both sides');
+        }
+      }
+    });
+  });
+
+  group('MouthRegionEstimator personalisation shifts the estimate', () {
+    test('a member whose "front" is skewed 20° right resolves accordingly',
+        () {
+      // Baseline: default calibration says (0, 0) is UT.
+      expect(
+        MouthRegionEstimator.estimate(
+          0,
+          0,
+          MouthRegionEstimator.defaultCalibration,
+        ),
+        equals('UT'),
+      );
+
+      final personalised = [
+        // Replace the default UT anchor.
+        const CalibrationPoint(region: Orientation.UT, pitch: 0, roll: 20),
+        ...MouthRegionEstimator.defaultCalibration
+            .where((p) => p.region != Orientation.UT),
+      ];
+      final result =
+          MouthRegionEstimator.estimate(0, 0, personalised);
+      expect(result, isNotNull);
+      expect(
+        MouthRegionEstimator.estimate(0, 20, personalised),
+        equals('UT'),
+      );
+    });
   });
 }

@@ -136,6 +136,17 @@ class ChunkRetriever {
     }
   }
 
+  /// Test-only. Exposes the blob→Float32List round-trip so unit tests can
+  /// verify the misaligned-offset workaround stays in place.
+  @visibleForTesting
+  static Float32List decodeEmbeddingForTesting(List<int> raw) =>
+      _decodeEmbedding(raw);
+
+  /// Test-only. Exposes the L2-normalised dot product used for scoring so
+  /// unit tests can validate scoring math without spinning up the embedder.
+  @visibleForTesting
+  static double cosineForTesting(Float32List a, Float32List b) => _cosine(a, b);
+
   static Float32List _decodeEmbedding(List<int> raw) {
     // sqflite gives blobs back as a Uint8List view onto a shared ByteBuffer,
     // and that view's `offsetInBytes` is *not* guaranteed to be a multiple

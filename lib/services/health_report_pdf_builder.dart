@@ -275,6 +275,12 @@ class HealthReportPdfBuilder {
     }
   }
 
+  /// Test-only alias for [_sanitize] — lets unit tests pin the character
+  /// mapping table (em-dash → `-`, ellipsis → `...`, Cyrillic `О` → `?`,
+  /// etc.) without going through a full PDF round-trip.
+  @visibleForTesting
+  static String sanitizeForTesting(String s) => _sanitize(s);
+
   /// Replace characters that [PdfStandardFont] (Windows-1252) can't render
   /// with `?`. Preserves ASCII, Latin-1 supplement (accented Latin, middle
   /// dot, em/en dashes via Windows-1252 mapping), tabs, and newlines. Any
