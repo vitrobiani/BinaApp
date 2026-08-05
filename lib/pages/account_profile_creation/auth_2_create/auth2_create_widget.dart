@@ -149,6 +149,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget> {
         familyAmount: 1,
         sumChecked: 0,
         isLocalSession: true,
+        isMock: true,
       );
 
       context.goNamedAuth(MainHomeWidget.routeName, context.mounted);

@@ -118,6 +118,13 @@ class MotorControllerService {
   String? _host;
   int _port = defaultPort;
 
+  http.Client _client = http.Client();
+
+  /// Test-only seam. Lets unit tests swap in a `MockClient` from
+  /// `package:http/testing.dart` without adding a whole DI framework.
+  @visibleForTesting
+  set httpClient(http.Client client) => _client = client;
+
   /// Configure the motor controller connection.
   void configure({required String host, int port = defaultPort}) {
     _host = host;
@@ -156,7 +163,7 @@ class MotorControllerService {
     }
 
     try {
-      final response = await http
+      final response = await _client
           .get(Uri.parse(_baseUrl))
           .timeout(_timeout);
 
@@ -180,7 +187,7 @@ class MotorControllerService {
     }
 
     try {
-      final response = await http
+      final response = await _client
           .get(Uri.parse('$_baseUrl/status'))
           .timeout(_timeout);
 
@@ -206,7 +213,7 @@ class MotorControllerService {
     }
 
     try {
-      final response = await http
+      final response = await _client
           .post(
             Uri.parse('$_baseUrl/move'),
             headers: {'Content-Type': 'application/json'},
@@ -241,7 +248,7 @@ class MotorControllerService {
     try {
       final url = '$_baseUrl/rotate';
       debugPrint('MotorControllerService: POST to $url');
-      final response = await http
+      final response = await _client
           .post(
             Uri.parse(url),
             headers: {'Content-Type': 'application/json'},
@@ -271,7 +278,7 @@ class MotorControllerService {
     }
 
     try {
-      final response = await http
+      final response = await _client
           .post(Uri.parse('$_baseUrl/stop'))
           .timeout(_timeout);
 
@@ -294,7 +301,7 @@ class MotorControllerService {
     }
 
     try {
-      final response = await http
+      final response = await _client
           .post(Uri.parse('$_baseUrl/enable'))
           .timeout(_timeout);
 
@@ -317,7 +324,7 @@ class MotorControllerService {
     }
 
     try {
-      final response = await http
+      final response = await _client
           .post(Uri.parse('$_baseUrl/disable'))
           .timeout(_timeout);
 
@@ -340,7 +347,7 @@ class MotorControllerService {
     }
 
     try {
-      final response = await http
+      final response = await _client
           .post(
             Uri.parse('$_baseUrl/led'),
             headers: {'Content-Type': 'application/json'},
@@ -365,7 +372,7 @@ class MotorControllerService {
     if (!isConfigured) return false;
 
     try {
-      final response = await http
+      final response = await _client
           .get(Uri.parse('$_baseUrl/status'))
           .timeout(_timeout);
 

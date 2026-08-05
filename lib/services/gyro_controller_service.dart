@@ -169,6 +169,13 @@ class GyroControllerService {
   String? _host;
   int _port = defaultPort;
 
+  http.Client _client = http.Client();
+
+  /// Test-only seam. Lets unit tests inject a `MockClient` from
+  /// `package:http/testing.dart` without touching the singleton reset dance.
+  @visibleForTesting
+  set httpClient(http.Client client) => _client = client;
+
   void configure({required String host, int port = defaultPort}) {
     _host = host;
     _port = port;
@@ -200,7 +207,7 @@ class GyroControllerService {
     }
     final url = '$_baseUrl$path';
     try {
-      final response = await http.get(Uri.parse(url)).timeout(_timeout);
+      final response = await _client.get(Uri.parse(url)).timeout(_timeout);
       debugPrint('[Gyro] $url → HTTP ${response.statusCode}, body: ${response.body}');
       if (response.statusCode == 200 || response.statusCode == 500) {
         // The backend returns 500 with a JSON error body when the sensor

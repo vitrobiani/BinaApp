@@ -14,6 +14,7 @@ class UserSessionStruct extends BaseStruct {
     int? familyAmount,
     int? sumChecked,
     bool? isLocalSession,
+    bool? isMock
   })  : _userID = userID,
         _name = name,
         _email = email,
@@ -21,7 +22,13 @@ class UserSessionStruct extends BaseStruct {
         _family = family,
         _familyAmount = familyAmount,
         _sumChecked = sumChecked,
-        _isLocalSession = isLocalSession;
+        _isLocalSession = isLocalSession,
+        _isMock = isMock;
+
+
+  bool? _isMock;
+  bool get isMock => _isMock ?? true;
+  set isMock(bool? val) => _isMock = val;
 
   // "userID" field.
   String? _userID;
@@ -101,6 +108,7 @@ class UserSessionStruct extends BaseStruct {
         familyAmount: castToType<int>(data['familyAmount']),
         sumChecked: castToType<int>(data['sumChecked']),
         isLocalSession: data['isLocalSession'] as bool?,
+        isMock: data['isMock'] as bool?,
       );
 
   static UserSessionStruct? maybeFromMap(dynamic data) => data is Map
@@ -198,6 +206,11 @@ class UserSessionStruct extends BaseStruct {
           ParamType.bool,
           false,
         ),
+        isMock: deserializeParam(
+          data['isMock'],
+          ParamType.bool,
+          false,
+        ),
       );
 
   @override
@@ -230,6 +243,7 @@ UserSessionStruct createUserSessionStruct({
   int? familyAmount,
   int? sumChecked,
   bool? isLocalSession,
+  bool? isMock,
 }) =>
     UserSessionStruct(
       userID: userID,
@@ -239,4 +253,5 @@ UserSessionStruct createUserSessionStruct({
       familyAmount: familyAmount,
       sumChecked: sumChecked,
       isLocalSession: isLocalSession,
+      isMock: isMock
     );

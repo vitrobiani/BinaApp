@@ -13,6 +13,15 @@ class MjpegCaptureService {
   static const int _connectionTimeout = 5;
   static const int _receiveTimeout = 10;
 
+  http.Client _client = http.Client();
+
+  /// Test-only seam for the snapshot + testConnection paths (which use
+  /// `package:http`). The MJPEG stream parser uses `dart:io HttpClient`
+  /// directly and needs `HttpOverrides` to mock; that path is not covered
+  /// by the unit-test seam.
+  @visibleForTesting
+  set httpClient(http.Client client) => _client = client;
+
   /// Capture frame and return file path (legacy method)
   Future<String?> captureFrame({
     required String cameraIP,
@@ -34,7 +43,7 @@ class MjpegCaptureService {
     final snapshotUrl = 'http://$cameraIP:$port/snapshot.jpg';
 
     try {
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse(snapshotUrl),
       ).timeout(const Duration(seconds: 3));
 
@@ -193,7 +202,7 @@ class MjpegCaptureService {
     final snapshotUrl = 'http://$cameraIP:$port/snapshot.jpg';
 
     try {
-      final response = await http.head(
+      final response = await _client.head(
         Uri.parse(snapshotUrl),
       ).timeout(
         const Duration(seconds: _connectionTimeout),
@@ -204,7 +213,7 @@ class MjpegCaptureService {
       // Try the stream URL
       final streamUrl = 'http://$cameraIP:$port/stream.mjpg';
       try {
-        final response = await http.head(
+        final response = await _client.head(
           Uri.parse(streamUrl),
         ).timeout(
           const Duration(seconds: _connectionTimeout),

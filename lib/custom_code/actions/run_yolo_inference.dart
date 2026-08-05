@@ -28,14 +28,15 @@ export 'yolo_inference_stub.dart' show YoloResult;
 //   'broken_tooth', 'tooth_discoloration', 'gingivitis', 'gum_recession', 'plaque', 'Ulcer'
 // ];
 
-// const List<String> classLabels = [
-//   'caries', 'restoration', 'broken_tooth', 'discoloration', 'gingivitis',
-//   'gum_recession', 'plaque', 'Ulcer'
-// ];
 
 const List<String> classLabels = [
+  'caries', 'gingivitis', 'gum_recession', 'plaque', 'Ulcer'
+];
+
+const List<String> classLabelsMock = [
   'Cavity'
 ];
+bool isMock = AppState().UserSession.isMock;
 
 /// Runs YOLO inference on the given image
 /// Returns a YoloResult with the annotated image path and detections
@@ -46,5 +47,7 @@ Future<yolo_impl.YoloResult> runYoloInference(String imagePath) async {
 /// Lightweight inference for real-time preview (skips drawing/saving)
 /// Returns only detection coordinates without annotating the image
 Future<yolo_impl.YoloResult> runYoloInferenceLite(String imagePath) async {
-  return yolo_impl.runYoloInferenceImpl(imagePath, classLabels, drawDetections: false);
+  debugPrint("[YOLO_INF] Running mock: ");
+  debugPrint(isMock.toString());
+  return yolo_impl.runYoloInferenceImpl(imagePath, (!isMock) ? classLabelsMock : classLabels, drawDetections: false);
 }

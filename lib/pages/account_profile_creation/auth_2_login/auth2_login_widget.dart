@@ -113,6 +113,7 @@ class _Auth2LoginWidgetState extends State<Auth2LoginWidget> {
           familyAmount: familyList.length,
           sumChecked: 0,
           isLocalSession: true,
+          isMock: true,
         );
 
         navigate = () => context.goNamedAuth(

@@ -1,0 +1,65 @@
+name: tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: analyze + unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # LFS-tracked assets (models, images) are needed for pub-get to
+          # succeed and for any test that references bundled fixtures.
+          lfs: true
+
+      - name: Install libsqlite3 (needed by sqflite_common_ffi tests)
+        run: sudo apt-get update && sudo apt-get install -y libsqlite3-0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.6'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        # The codebase has a backlog of unused-import / unused-field infos
+        # and warnings; keep the CI passing on that legacy while still
+        # failing on hard errors introduced by new changes.
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+
+      - name: Unit + widget + perf + supabase-integration tests
+        # Everything under test/ — that's unit + widget + perf +
+        # test/integration (Supabase auth/RLS). The Supabase tier skips
+        # cleanly when BINA_TEST_SUPABASE_URL / _ANON_KEY aren't set, so
+        # CI runs it in "all-skipped" mode by default. To actually
+        # exercise Supabase in CI, set both as GitHub Actions secrets and
+        # expose them via env: below.
+        #
+        # The device-in-loop tests under integration_test/ are
+        # intentionally excluded — they need a connected Android/iOS
+        # device via `flutter test integration_test/`.
+        run: flutter test --coverage
+        env:
+          # Populate from repository secrets when ready:
+          # BINA_TEST_SUPABASE_URL: ${{ secrets.BINA_TEST_SUPABASE_URL }}
+          # BINA_TEST_SUPABASE_ANON_KEY: ${{ secrets.BINA_TEST_SUPABASE_ANON_KEY }}
+          # BINA_TEST_SUPABASE_SERVICE_KEY: ${{ secrets.BINA_TEST_SUPABASE_SERVICE_KEY }}
+          CI: "true"
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: ignore

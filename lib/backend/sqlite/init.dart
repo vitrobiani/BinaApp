@@ -32,24 +32,15 @@ Future<Database> initializeDatabaseFromDbFile(
   final database = await openDatabase(databasePath);
 
   // Run migrations for new tables
-  await _runMigrations(database);
+  await runMigrations(database);
 
   return database;
 }
 
-Future<void> _runMigrations(Database database) async {
-  await database.execute('''
-    CREATE TABLE IF NOT EXISTS member_document_chunk (
-    id TEXT PRIMARY KEY,
-    document_id TEXT NOT NULL,         
-    chunk_index INTEGER NOT NULL,
-    text TEXT NOT NULL,
-    embedding BLOB NOT NULL,            
-    FOREIGN KEY (document_id) REFERENCES member_document(id) ON DELETE CASCADE
-  );
-  CREATE INDEX idx_chunk_doc ON member_document_chunk(document_id);
-  ''');
-
+/// Public so tests can seed an in-memory ffi DB and drive the migration
+/// pipeline without asset copying. Order matters — later ALTERs assume the
+/// tables from earlier CREATEs exist.
+Future<void> runMigrations(Database database) async {
   await database.execute('''
     CREATE TABLE IF NOT EXISTS member_document (
     id TEXT PRIMARY KEY,
